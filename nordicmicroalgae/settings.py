@@ -24,10 +24,10 @@ CONTENT_DIR = os.environ.get(
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', "123456qwerty")
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = bool(os.environ.get('DJANGO_DEBUG', True))
+DEBUG = os.environ.get('DJANGO_DEBUG', 'no').lower() in ['yes', 'on', 'true']
 
 ALLOWED_HOSTS = ['next.nordicmicroalgae.org']
 
