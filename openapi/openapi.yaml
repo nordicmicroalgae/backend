@@ -13,6 +13,8 @@ tags:
   description: Collections of facts, traits and various description of taxa
 - name: media
   description: Information about pictures and operations for contributing media
+- name: articles
+  description: Generic content such as pages, news, etc
 paths:
   /taxa:
     get:
@@ -225,6 +227,38 @@ paths:
       - $ref: '#/components/parameters/filterParam'
       - $ref: '#/components/parameters/skipParam'
       - $ref: '#/components/parameters/limitParam'
+  /articles:
+    get:
+      tags:
+      - articles
+      description: Returns a list of articles
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Article'
+      parameters:
+      - $ref: '#/components/parameters/articleTypeParam'
+  /articles/{id}:
+    get:
+      tags:
+      - articles
+      description: Returns a single article
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Article'
+        404:
+          description: Article not found
+      parameters:
+      - $ref: '#/components/parameters/articleIdParam'
 components:
   parameters:
     aphiaIdParam:
@@ -312,6 +346,25 @@ components:
         - Variety
         - Form
         - Hybrid
+    articleIdParam:
+      name: id
+      in: path
+      description: Identifier for the article
+      required: true
+      schema:
+        type: string
+        example: contact-us
+    articleTypeParam:
+      name: type
+      in: query
+      description: Article type
+      schema:
+        type: string
+        example: page
+        enum:
+        - news
+        - page
+        default: page
   schemas:
     Attribute:
       type: object
@@ -379,3 +432,15 @@ components:
         image:
           type: string
           example: e2773cc4-b088-4821-81ef-631a8a7c8135
+    Article:
+      type: object
+      properties:
+        id:
+          type: string
+          example: contact-us
+        title:
+          type: string
+          example: Contact us
+        content:
+          type: string
+          example: This is an __example__ of text content for an _article_.
