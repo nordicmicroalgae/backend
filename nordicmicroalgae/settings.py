@@ -29,7 +29,10 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DJANGO_DEBUG', 'no').lower() in ['yes', 'on', 'true']
 
-ALLOWED_HOSTS = ['next.nordicmicroalgae.org']
+ALLOWED_HOSTS = os.environ.get(
+    'DJANGO_ALLOWED_HOSTS',
+    '.nordicmicroalgae.org'
+).split(' ')
 
 
 # Application definition
