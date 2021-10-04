@@ -238,11 +238,15 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Article'
+                type: object
+                properties:
+                  articles:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Article/properties/id'
       parameters:
       - $ref: '#/components/parameters/articleTypeParam'
+      - $ref: '#/components/parameters/articleLimitParam'
   /articles/{id}:
     get:
       tags:
@@ -365,6 +369,13 @@ components:
         - news
         - page
         default: page
+    articleLimitParam:
+      name: limit
+      in: query
+      description: Maximum number of articles to return
+      schema:
+        type: int
+        example: 10
   schemas:
     Attribute:
       type: object
