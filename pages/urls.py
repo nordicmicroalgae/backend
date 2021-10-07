@@ -4,5 +4,6 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('pages/<page_slug>/', views.get_page),
+    path('articles/', views.get_page_list),
+    path('articles/<slug:article_id>/', views.get_page),
 ]
