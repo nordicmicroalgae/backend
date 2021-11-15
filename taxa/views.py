@@ -1,467 +1,57 @@
+from django.db.models import Q
 from django.http import JsonResponse
-from django.conf import settings
-import pathlib
 
-taxa_worms_cache = None  # Global.
+from taxa.models import Taxon
 
-# Dummy view for testing purposes
+
 def get_taxon(request, scientific_name):
-    all_taxa = get_taxon_list()
     try:
-        taxon = next(filter(lambda t: t["scientific_name"] == str(scientific_name), all_taxa))
-        return JsonResponse(taxon)
-    except StopIteration:
-        return JsonResponse({"message": "Taxon not found"}, status=404)
+        taxon = Taxon.objects.get(
+            scientific_name__iexact=scientific_name
+        )
+        return JsonResponse({
+            'scientific_name': taxon.scientific_name,
+            'parent_name': taxon.parent_name,
+            'authority': taxon.authority,
+            'rank': taxon.rank,
+            'classification': taxon.classification,
+            'children': taxon.children,
+            'attributes': taxon.attributes,
+        })
+    except Taxon.DoesNotExist:
+        return JsonResponse({'message': 'Taxon not found'}, status=404)
 
 
-# Dummy view for testing purposes
 def get_taxa(request):
-    return JsonResponse({"taxa": get_taxon_list()})
+    conditions = Q()
 
 
-def get_taxon_list():
-    """ """
-    global taxa_worms_cache
-    if taxa_worms_cache is not None:
-        return taxa_worms_cache
+    name_pattern = request.GET.get('name', None)
 
-    taxa_worms_path = pathlib.Path(settings.CONTENT_DIR, "species/taxa_worms.txt")
-    # Use test data if not available. TODO: Remove later.
-    if not taxa_worms_path.exists():
-        taxa_worms_cache = get_test_taxon_list()
-        return taxa_worms_cache
-
-    try:
-        taxa_worms_cache = []
-        with taxa_worms_path.open("r", encoding="cp1252", errors="ignore") as in_file:
-            header = None
-            for row in in_file:
-                row = [item.strip() for item in row.strip().split("\t")]
-                if row:
-                    if header is None:
-                        header = row
-                    else:
-                        row_dict = dict(zip(header, row))
-                        scientific_name = row_dict.get("scientific_name", "")
-                        if scientific_name:
-                            taxa_worms_cache.append(row_dict)
-        print("DEBUG: Taxon list length: ", len(taxa_worms_cache))
-        return taxa_worms_cache
-    except Exception as e:
-        print("DEBUG: Exception in get_taxon_list: ", e)
-        return []
+    if name_pattern != None:
+        conditions = conditions & Q(scientific_name__contains=name_pattern)
 
 
-def get_test_taxon_list():
-    return [
-        {
-            "scientific_name": "Acantharia",
-            "rank": "Class",
-            "aphia_id": "586732",
-            "parent_name": "Radiozoa",
-            "parent_id": "582421",
-            "authority": "",
-            "status": "accepted",
-            "kingdom": "Chromista",
-            "phylum": "Radiozoa",
-            "class": "Acantharia",
-        },
-        {
-            "scientific_name": "Acantharia incertae sedis",
-            "rank": "Order",
-            "aphia_id": "711964",
-            "parent_name": "Acantharia",
-            "parent_id": "586732",
-            "authority": "",
-            "status": "accepted",
-            "kingdom": "Chromista",
-            "phylum": "Radiozoa",
-            "class": "Acantharia",
-            "order": "Acantharia incertae sedis",
-        },
-        {
-            "scientific_name": "Acanthonida",
-            "rank": "Order",
-            "aphia_id": "866438",
-            "parent_name": "Acantharia",
-            "parent_id": "586732",
-            "authority": "Haeckel, 1881",
-            "status": "accepted",
-            "kingdom": "Chromista",
-            "phylum": "Radiozoa",
-            "class": "Acantharia",
-            "order": "Acanthonida",
-        },
-        {
-            "scientific_name": "Astrolonchidae",
-            "rank": "Family",
-            "aphia_id": "866439",
-            "parent_name": "Acanthonida",
-            "parent_id": "866438",
-            "authority": "Haeckel, 1881",
-            "status": "accepted",
-            "kingdom": "Chromista",
-            "phylum": "Radiozoa",
-            "class": "Acantharia",
-            "order": "Acanthonida",
-            "family": "Astrolonchidae",
-        },
-        {
-            "scientific_name": "Zygacanthida",
-            "rank": "Subfamily",
-            "aphia_id": "866440",
-            "parent_name": "Astrolonchidae",
-            "parent_id": "866439",
-            "authority": "Haeckel",
-            "status": "accepted",
-            "kingdom": "Chromista",
-            "phylum": "Radiozoa",
-            "class": "Acantharia",
-            "order": "Acanthonida",
-            "family": "Astrolonchidae",
-        },
-        {
-            "scientific_name": "Acanthonia",
-            "rank": "Genus",
-            "aphia_id": "866441",
-            "parent_name": "Zygacanthida",
-            "parent_id": "866440",
-            "authority": "Haeckel, 1881",
-            "status": "accepted",
-            "kingdom": "Chromista",
-            "phylum": "Radiozoa",
-            "class": "Acantharia",
-            "order": "Acanthonida",
-            "family": "Astrolonchidae",
-            "genus": "Acanthonia",
-        },
-        {
-            "scientific_name": "Acanthonia echinoides",
-            "rank": "Species",
-            "aphia_id": "866442",
-            "parent_name": "Acanthonia",
-            "parent_id": "866441",
-            "authority": "(Claparède & Lachmann, 1858) Haeckel, 1881",
-            "status": "accepted",
-            "kingdom": "Chromista",
-            "phylum": "Radiozoa",
-            "class": "Acantharia",
-            "order": "Acanthonida",
-            "family": "Astrolonchidae",
-            "genus": "Acanthonia",
-        },
-        {
-            "scientific_name": "Arthracanthida",
-            "rank": "Order",
-            "aphia_id": "367301",
-            "parent_name": "Acantharia",
-            "parent_id": "586732",
-            "authority": "Schewiakoff, 1926",
-            "status": "accepted",
-            "kingdom": "Chromista",
-            "phylum": "Radiozoa",
-            "class": "Acantharia",
-            "order": "Arthracanthida",
-        },
-        {
-            "scientific_name": "Acanthostaurus",
-            "rank": "Genus",
-            "aphia_id": "393198",
-            "parent_name": "Arthracanthida",
-            "parent_id": "367301",
-            "authority": "Haeckel, 1862",
-            "status": "accepted",
-            "kingdom": "Chromista",
-            "phylum": "Radiozoa",
-            "class": "Acantharia",
-            "order": "Arthracanthida",
-            "family": "",
-            "genus": "Acanthostaurus",
-        },
-        {
-            "scientific_name": "Acanthostaurus nordgaardi",
-            "rank": "Species",
-            "aphia_id": "393199",
-            "parent_name": "Acanthostaurus",
-            "parent_id": "393198",
-            "authority": "Jørgensen, 1899",
-            "status": "accepted",
-            "kingdom": "Chromista",
-            "phylum": "Radiozoa",
-            "class": "Acantharia",
-            "order": "Arthracanthida",
-            "family": "",
-            "genus": "Acanthostaurus",
-        },
-        {
-            "scientific_name": "Acanthostaurus pallidus",
-            "rank": "Species",
-            "aphia_id": "866443",
-            "parent_name": "Acanthostaurus",
-            "parent_id": "393198",
-            "authority": "(Claparède & Lachmann, 1858) Haeckel, 1862",
-            "status": "accepted",
-            "kingdom": "Chromista",
-            "phylum": "Radiozoa",
-            "class": "Acantharia",
-            "order": "Arthracanthida",
-            "family": "",
-            "genus": "Acanthostaurus",
-        },
-        {
-            "scientific_name": "Phyllacantha",
-            "rank": "Suborder",
-            "aphia_id": "367303",
-            "parent_name": "Arthracanthida",
-            "parent_id": "367301",
-            "authority": "Schewiakoff, 1926",
-            "status": "accepted",
-            "kingdom": "Chromista",
-            "phylum": "Radiozoa",
-            "class": "Acantharia",
-            "order": "Arthracanthida",
-        },
-        {
-            "scientific_name": "Dictyacanthidae",
-            "rank": "Family",
-            "aphia_id": "367337",
-            "parent_name": "Phyllacantha",
-            "parent_id": "367303",
-            "authority": "Schewiakoff, 1926",
-            "status": "accepted",
-            "kingdom": "Chromista",
-            "phylum": "Radiozoa",
-            "class": "Acantharia",
-            "order": "Arthracanthida",
-            "family": "Dictyacanthidae",
-        },
-        {
-            "scientific_name": "Phyllostauridae",
-            "rank": "Family",
-            "aphia_id": "367335",
-            "parent_name": "Phyllacantha",
-            "parent_id": "367303",
-            "authority": "Schewiakoff, 1926",
-            "status": "accepted",
-            "kingdom": "Chromista",
-            "phylum": "Radiozoa",
-            "class": "Acantharia",
-            "order": "Arthracanthida",
-            "family": "Phyllostauridae",
-        },
-        {
-            "scientific_name": "Stauracanthidae",
-            "rank": "Infraorder",
-            "aphia_id": "367336",
-            "parent_name": "Phyllacantha",
-            "parent_id": "367303",
-            "authority": "Schewiakoff, 1926",
-            "status": "accepted",
-            "kingdom": "Chromista",
-            "phylum": "Radiozoa",
-            "class": "Acantharia",
-            "order": "Arthracanthida",
-        },
-        {
-            "scientific_name": "Sphaenacantha",
-            "rank": "Suborder",
-            "aphia_id": "367302",
-            "parent_name": "Arthracanthida",
-            "parent_id": "367301",
-            "authority": "Schewiakoff, 1926",
-            "status": "accepted",
-            "kingdom": "Chromista",
-            "phylum": "Radiozoa",
-            "class": "Acantharia",
-            "order": "Arthracanthida",
-        },
-        {
-            "scientific_name": "Acanthometridae",
-            "rank": "Family",
-            "aphia_id": "235748",
-            "parent_name": "Sphaenacantha",
-            "parent_id": "367302",
-            "authority": "Haeckel, 1887",
-            "status": "accepted",
-            "kingdom": "Chromista",
-            "phylum": "Radiozoa",
-            "class": "Acantharia",
-            "order": "Arthracanthida",
-            "family": "Acanthometridae",
-        },
-        {
-            "scientific_name": "Acanthometra",
-            "rank": "Genus",
-            "aphia_id": "235749",
-            "parent_name": "Acanthometridae",
-            "parent_id": "235748",
-            "authority": "J. Müller, 1856",
-            "status": "accepted",
-            "kingdom": "Chromista",
-            "phylum": "Radiozoa",
-            "class": "Acantharia",
-            "order": "Arthracanthida",
-            "family": "Acanthometridae",
-            "genus": "Acanthometra",
-        },
-        {
-            "scientific_name": "Acanthometra pellucida",
-            "rank": "Species",
-            "aphia_id": "235750",
-            "parent_name": "Acanthometra",
-            "parent_id": "235749",
-            "authority": "Müller, 1858",
-            "status": "accepted",
-            "kingdom": "Chromista",
-            "phylum": "Radiozoa",
-            "class": "Acantharia",
-            "order": "Arthracanthida",
-            "family": "Acanthometridae",
-            "genus": "Acanthometra",
-        },
-        {
-            "scientific_name": "Acanthometron",
-            "rank": "Genus",
-            "aphia_id": "391880",
-            "parent_name": "Acanthometridae",
-            "parent_id": "235748",
-            "authority": "",
-            "status": "accepted",
-            "kingdom": "Chromista",
-            "phylum": "Radiozoa",
-            "class": "Acantharia",
-            "order": "Arthracanthida",
-            "family": "Acanthometridae",
-            "genus": "Acanthometron",
-        },
-        {
-            "scientific_name": "Acanthometron elastricum",
-            "rank": "Species",
-            "aphia_id": "391881",
-            "parent_name": "Acanthometron",
-            "parent_id": "391880",
-            "authority": "",
-            "status": "accepted",
-            "kingdom": "Chromista",
-            "phylum": "Radiozoa",
-            "class": "Acantharia",
-            "order": "Arthracanthida",
-            "family": "Acanthometridae",
-            "genus": "Acanthometron",
-        },
-        {
-            "scientific_name": "Acanthometron pellucida",
-            "rank": "Species",
-            "aphia_id": "391883",
-            "parent_name": "Acanthometron",
-            "parent_id": "391880",
-            "authority": "",
-            "status": "accepted",
-            "kingdom": "Chromista",
-            "phylum": "Radiozoa",
-            "class": "Acantharia",
-            "order": "Arthracanthida",
-            "family": "Acanthometridae",
-            "genus": "Acanthometron",
-        },
-        {
-            "scientific_name": "Amphilonche",
-            "rank": "Genus",
-            "aphia_id": "235751",
-            "parent_name": "Acanthometridae",
-            "parent_id": "235748",
-            "authority": "",
-            "status": "accepted",
-            "kingdom": "Chromista",
-            "phylum": "Radiozoa",
-            "class": "Acantharia",
-            "order": "Arthracanthida",
-            "family": "Acanthometridae",
-            "genus": "Amphilonche",
-        },
-        {
-            "scientific_name": "Amphilonche elongata",
-            "rank": "Species",
-            "aphia_id": "235752",
-            "parent_name": "Amphilonche",
-            "parent_id": "235751",
-            "authority": "(Müller, 1858)",
-            "status": "accepted",
-            "kingdom": "Chromista",
-            "phylum": "Radiozoa",
-            "class": "Acantharia",
-            "order": "Arthracanthida",
-            "family": "Acanthometridae",
-            "genus": "Amphilonche",
-        },
-        {
-            "scientific_name": "Diploconidae",
-            "rank": "Family",
-            "aphia_id": "367340",
-            "parent_name": "Sphaenacantha",
-            "parent_id": "367302",
-            "authority": "Haeckel, 1887",
-            "status": "accepted",
-            "kingdom": "Chromista",
-            "phylum": "Radiozoa",
-            "class": "Acantharia",
-            "order": "Arthracanthida",
-            "family": "Diploconidae",
-        },
-        {
-            "scientific_name": "Dorataspidae",
-            "rank": "Family",
-            "aphia_id": "367338",
-            "parent_name": "Sphaenacantha",
-            "parent_id": "367302",
-            "authority": "Haeckel, 1887",
-            "status": "accepted",
-            "kingdom": "Chromista",
-            "phylum": "Radiozoa",
-            "class": "Acantharia",
-            "order": "Arthracanthida",
-            "family": "Dorataspidae",
-        },
-        {
-            "scientific_name": "Hexalaspidae",
-            "rank": "Family",
-            "aphia_id": "367342",
-            "parent_name": "Sphaenacantha",
-            "parent_id": "367302",
-            "authority": "Haeckel, 1887",
-            "status": "accepted",
-            "kingdom": "Chromista",
-            "phylum": "Radiozoa",
-            "class": "Acantharia",
-            "order": "Arthracanthida",
-            "family": "Hexalaspidae",
-        },
-        {
-            "scientific_name": "Lithopteridae",
-            "rank": "Family",
-            "aphia_id": "367341",
-            "parent_name": "Sphaenacantha",
-            "parent_id": "367302",
-            "authority": "Haeckel, 1887",
-            "status": "accepted",
-            "kingdom": "Chromista",
-            "phylum": "Radiozoa",
-            "class": "Acantharia",
-            "order": "Arthracanthida",
-            "family": "Lithopteridae",
-        },
-        {
-            "scientific_name": "Phractopeltidae",
-            "rank": "Family",
-            "aphia_id": "367339",
-            "parent_name": "Sphaenacantha",
-            "parent_id": "367302",
-            "authority": "Haeckel, 1887",
-            "status": "accepted",
-            "kingdom": "Chromista",
-            "phylum": "Radiozoa",
-            "class": "Acantharia",
-            "order": "Arthracanthida",
-            "family": "Phractopeltidae",
-        },
-    ]
+    rank = request.GET.get('rank', None)
+
+    if rank != None:
+        conditions = conditions & Q(rank__iexact=rank)
+
+
+    skip = abs(int(request.GET.get('skip', 0)))
+    limit = abs(int(request.GET.get('limit', 0)))
+
+
+    taxa = Taxon.objects.filter(conditions)
+
+    if skip > 0 or limit > 0:
+        taxa = taxa[skip:(skip + limit)]
+
+    return JsonResponse({
+        'taxa': list(taxa.values(
+            'scientific_name',
+            'parent_name',
+            'authority',
+            'rank',
+        ))
+    })

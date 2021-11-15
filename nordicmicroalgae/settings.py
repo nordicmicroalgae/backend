@@ -40,6 +40,7 @@ ALLOWED_HOSTS = os.environ.get(
 INSTALLED_APPS = [
 #    'django.contrib.admin',
     'nordicmicroalgae.apps.NordicMicroalgaeAdminConfig',
+    'taxa',
     'openapi',
     'django.contrib.auth',
     'django.contrib.contenttypes',
