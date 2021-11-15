@@ -84,8 +84,12 @@ WSGI_APPLICATION = 'nordicmicroalgae.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('DJANGO_DATABASE_NAME'),
+        'USER': os.environ.get('DJANGO_DATABASE_USER'),
+        'PASSWORD': os.environ.get('DJANGO_DATABASE_PASSWORD'),
+        'HOST': '127.0.0.1',
+        'PORT': '5432',
     }
 }
 
