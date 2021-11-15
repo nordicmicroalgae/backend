@@ -27,13 +27,18 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Taxon'
+                type: object
+                properties:
+                  taxa:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Taxon'
       parameters:
-      - $ref: '#/components/parameters/skipParam'
-      - $ref: '#/components/parameters/limitParam'
-  /taxa/{aphiaId}:
+      - $ref: '#/components/parameters/skip'
+      - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/name'
+      - $ref: '#/components/parameters/rank'
+  /taxa/{scientific-name}:
     get:
       tags:
       - taxa
@@ -48,80 +53,8 @@ paths:
         404:
           description: Taxon not found
       parameters:
-      - $ref: '#/components/parameters/aphiaIdParam'
-  /findTaxaByFilter:
-    get:
-      tags:
-      - taxa
-      description: Returns a list of taxa that match specified filter criterias
-      responses:
-        200:
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Taxon'
-      parameters:
-      - $ref: '#/components/parameters/filterParam'
-      - $ref: '#/components/parameters/skipParam'
-      - $ref: '#/components/parameters/limitParam'
-  /findTaxaByName:
-    get:
-      tags:
-      - taxa
-      description: Returns a list of taxa that match a specified name or pattern
-      responses:
-        200:
-          description: Succesful operation
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Taxon'
-      parameters:
-      - $ref: '#/components/parameters/nameParam'
-      - $ref: '#/components/parameters/skipParam'
-      - $ref: '#/components/parameters/limitParam'
-  /findTaxaByParent:
-    get:
-      tags:
-      - taxa
-      description: Returns a list of children taxa for specified taxon
-      responses:
-        200:
-          description: Succesful operation
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Taxon'
-      parameters:
-      - $ref: '#/components/parameters/aphiaIdParam'
-      - $ref: '#/components/parameters/skipParam'
-      - $ref: '#/components/parameters/limitParam'
-  /findTaxaByRank:
-    get:
-      tags:
-      - taxa
-      description: Returns a list of taxa within a specified taxonomical rank
-      responses:
-        200:
-          description: Succesful operation
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Taxon'
-      parameters:
-      - $ref: '#/components/parameters/rankParam'
-      - $ref: '#/components/parameters/skipParam'
-      - $ref: '#/components/parameters/limitParam'
-  /facts/{aphiaId}:
+      - $ref: '#/components/parameters/scientific-name'
+  /facts/{scientific-name}:
     get:
       tags:
       - facts
@@ -138,7 +71,7 @@ paths:
         404:
           description: Facts not found
       parameters:
-      - $ref: '#/components/parameters/aphiaIdParam'
+      - $ref: '#/components/parameters/scientific-name'
   /media:
     post:
       tags:
@@ -163,7 +96,7 @@ paths:
                 $ref: '#/components/schemas/Media'
         422:
           description: Invalid file upload
-  /media/{mediaId}:
+  /media/{media-id}:
     get:
       tags:
       - media
@@ -178,7 +111,7 @@ paths:
         404:
           description: Media item not found
       parameters:
-      - $ref: '#/components/parameters/mediaIdParam'
+      - $ref: '#/components/parameters/media-id'
     patch:
       tags:
       - media
@@ -189,7 +122,7 @@ paths:
         404:
           description: Media item not found
       parameters:
-      - $ref: '#/components/parameters/mediaIdParam'
+      - $ref: '#/components/parameters/media-id'
       requestBody:
         required: true
         content:
@@ -208,25 +141,7 @@ paths:
         404:
           description: Media item not found
       parameters:
-      - $ref: '#/components/parameters/mediaIdParam'
-  /findMediaByFilter:
-    get:
-      tags:
-      - media
-      description: Returns a list of media that match specified filter criterias
-      responses:
-        200:
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Media'
-      parameters:
-      - $ref: '#/components/parameters/filterParam'
-      - $ref: '#/components/parameters/skipParam'
-      - $ref: '#/components/parameters/limitParam'
+      - $ref: '#/components/parameters/media-id'
   /articles:
     get:
       tags:
@@ -245,8 +160,8 @@ paths:
                     items:
                       $ref: '#/components/schemas/Article/properties/id'
       parameters:
-      - $ref: '#/components/parameters/articleTypeParam'
-      - $ref: '#/components/parameters/articleLimitParam'
+      - $ref: '#/components/parameters/article-type'
+      - $ref: '#/components/parameters/article-limit'
   /articles/{id}:
     get:
       tags:
@@ -262,27 +177,26 @@ paths:
         404:
           description: Article not found
       parameters:
-      - $ref: '#/components/parameters/articleIdParam'
+      - $ref: '#/components/parameters/article-id'
 components:
   parameters:
-    aphiaIdParam:
-      name: aphiaId
+    scientific-name:
+      name: scientific-name
       in: path
-      description: Aphia-ID for the taxon
+      description: Scientific name for the taxon
       required: true
       schema:
-        type: integer
-        format: int32
-        example: 232161
-    mediaIdParam:
-      name: mediaId
+        type: string
+        example: Dinophysis arctica
+    media-id:
+      name: media-id
       in: path
       description: ID for the media item
       required: true
       schema:
         type: string
         example: e2773cc4-b088-4821-81ef-631a8a7c8135
-    skipParam:
+    skip:
       name: skip
       in: query
       description: Number of records to skip for pagination
@@ -291,7 +205,7 @@ components:
         format: int32
         minimum: 0
         default: 0
-    limitParam:
+    limit:
       name: limit
       in: query
       description: Maximum number of records to return
@@ -301,28 +215,17 @@ components:
         minimum: 0
         maximum: 50
         default: 50
-    filterParam:
-      name: filter
-      in: query
-      description: Set of name:value that need to be considered for filter
-      required: true
-      schema:
-        type: array
-        items:
-          type: string
-    nameParam:
+    name:
       name: name
       in: query
       description: Scientific name
-      required: true
       schema:
         type: string
         example: Dinophysis arctica
-    rankParam:
+    rank:
       name: rank
       in: query
       description: Taxonomical rank
-      required: true
       schema:
         type: string
         example: Phylum
@@ -350,7 +253,7 @@ components:
         - Variety
         - Form
         - Hybrid
-    articleIdParam:
+    article-id:
       name: id
       in: path
       description: Identifier for the article
@@ -358,7 +261,7 @@ components:
       schema:
         type: string
         example: contact-us
-    articleTypeParam:
+    article-type:
       name: type
       in: query
       description: Article type
@@ -369,7 +272,7 @@ components:
         - news
         - page
         default: page
-    articleLimitParam:
+    article-limit:
       name: limit
       in: query
       description: Maximum number of articles to return
@@ -400,22 +303,22 @@ components:
     Media:
       type: object
       properties:
-        mediaId:
+        media_id:
           type: string
           example: e2773cc4-b088-4821-81ef-631a8a7c8135
-        fileName:
+        file_name:
           type: string
           example: Dinophysis arctica.jpg
-        fileType:
+        file_type:
           type: string
           example: image/jpeg
-        fileSize:
+        file_size:
           type: integer
           example: 334207
         checksum:
           type: string
           example: 4338b10b1545efd8b3bb6250831aaaf06dafa21f966fccb40edb808c0606582f
-        userName:
+        user_name:
           type: string
           example: Bengt Karlson
         attributes:
@@ -425,15 +328,12 @@ components:
     Taxon:
       type: object
       properties:
-        aphiaId:
-          type: integer
-          example: 232161
-        parentId:
-          type: integer
-          example: 109462
-        scientificName:
+        scientific_name:
           type: string
           example: Dinophysis arctica
+        parent_name:
+          type: string
+          example: Dinophysis
         authority:
           type: string
           example: Mereschkowsky, 1879

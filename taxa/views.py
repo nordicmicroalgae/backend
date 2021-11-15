@@ -5,10 +5,10 @@ import pathlib
 taxa_worms_cache = None  # Global.
 
 # Dummy view for testing purposes
-def get_taxon(request, aphia_id):
+def get_taxon(request, scientific_name):
     all_taxa = get_taxon_list()
     try:
-        taxon = next(filter(lambda t: t["aphiaId"] == str(aphia_id), all_taxa))
+        taxon = next(filter(lambda t: t["scientific_name"] == str(scientific_name), all_taxa))
         return JsonResponse(taxon)
     except StopIteration:
         return JsonResponse({"message": "Taxon not found"}, status=404)
@@ -17,27 +17,6 @@ def get_taxon(request, aphia_id):
 # Dummy view for testing purposes
 def get_taxa(request):
     return JsonResponse({"taxa": get_taxon_list()})
-
-
-# Dummy view for testing purposes
-def get_taxa_by_filter(request):
-    return JsonResponse({"taxa": get_taxon_list()})
-
-
-# Dummy view for testing purposes
-def get_taxa_by_name(request):
-    name = request.GET.get("name", "").lower()
-    taxa = list(
-        filter(lambda t: name in t["scientificName"].lower(), get_taxon_list(),)
-    )
-    return JsonResponse({"taxa": taxa})
-
-
-# Dummy view for testing purposes
-def get_taxa_by_parent(request):
-    aphia_id = str(request.GET.get("aphiaId", "0"))
-    taxa = list(filter(lambda t: aphia_id == t["parentId"], get_taxon_list(),))
-    return JsonResponse({"taxa": taxa})
 
 
 def get_taxon_list():
@@ -52,12 +31,6 @@ def get_taxon_list():
         taxa_worms_cache = get_test_taxon_list()
         return taxa_worms_cache
 
-    rename_header = {
-        "aphia_id": "aphiaId",
-        "parent_name": "parentName",
-        "parent_id": "parentId",
-        "scientific_name": "scientificName",
-    }
     try:
         taxa_worms_cache = []
         with taxa_worms_path.open("r", encoding="cp1252", errors="ignore") as in_file:
@@ -66,10 +39,10 @@ def get_taxon_list():
                 row = [item.strip() for item in row.strip().split("\t")]
                 if row:
                     if header is None:
-                        header = [rename_header.get(item, item) for item in row]
+                        header = row
                     else:
                         row_dict = dict(zip(header, row))
-                        scientific_name = row_dict.get("scientificName", "")
+                        scientific_name = row_dict.get("scientific_name", "")
                         if scientific_name:
                             taxa_worms_cache.append(row_dict)
         print("DEBUG: Taxon list length: ", len(taxa_worms_cache))
@@ -82,11 +55,11 @@ def get_taxon_list():
 def get_test_taxon_list():
     return [
         {
-            "scientificName": "Acantharia",
+            "scientific_name": "Acantharia",
             "rank": "Class",
-            "aphiaId": "586732",
-            "parentName": "Radiozoa",
-            "parentId": "582421",
+            "aphia_id": "586732",
+            "parent_name": "Radiozoa",
+            "parent_id": "582421",
             "authority": "",
             "status": "accepted",
             "kingdom": "Chromista",
@@ -94,11 +67,11 @@ def get_test_taxon_list():
             "class": "Acantharia",
         },
         {
-            "scientificName": "Acantharia incertae sedis",
+            "scientific_name": "Acantharia incertae sedis",
             "rank": "Order",
-            "aphiaId": "711964",
-            "parentName": "Acantharia",
-            "parentId": "586732",
+            "aphia_id": "711964",
+            "parent_name": "Acantharia",
+            "parent_id": "586732",
             "authority": "",
             "status": "accepted",
             "kingdom": "Chromista",
@@ -107,11 +80,11 @@ def get_test_taxon_list():
             "order": "Acantharia incertae sedis",
         },
         {
-            "scientificName": "Acanthonida",
+            "scientific_name": "Acanthonida",
             "rank": "Order",
-            "aphiaId": "866438",
-            "parentName": "Acantharia",
-            "parentId": "586732",
+            "aphia_id": "866438",
+            "parent_name": "Acantharia",
+            "parent_id": "586732",
             "authority": "Haeckel, 1881",
             "status": "accepted",
             "kingdom": "Chromista",
@@ -120,11 +93,11 @@ def get_test_taxon_list():
             "order": "Acanthonida",
         },
         {
-            "scientificName": "Astrolonchidae",
+            "scientific_name": "Astrolonchidae",
             "rank": "Family",
-            "aphiaId": "866439",
-            "parentName": "Acanthonida",
-            "parentId": "866438",
+            "aphia_id": "866439",
+            "parent_name": "Acanthonida",
+            "parent_id": "866438",
             "authority": "Haeckel, 1881",
             "status": "accepted",
             "kingdom": "Chromista",
@@ -134,11 +107,11 @@ def get_test_taxon_list():
             "family": "Astrolonchidae",
         },
         {
-            "scientificName": "Zygacanthida",
+            "scientific_name": "Zygacanthida",
             "rank": "Subfamily",
-            "aphiaId": "866440",
-            "parentName": "Astrolonchidae",
-            "parentId": "866439",
+            "aphia_id": "866440",
+            "parent_name": "Astrolonchidae",
+            "parent_id": "866439",
             "authority": "Haeckel",
             "status": "accepted",
             "kingdom": "Chromista",
@@ -148,11 +121,11 @@ def get_test_taxon_list():
             "family": "Astrolonchidae",
         },
         {
-            "scientificName": "Acanthonia",
+            "scientific_name": "Acanthonia",
             "rank": "Genus",
-            "aphiaId": "866441",
-            "parentName": "Zygacanthida",
-            "parentId": "866440",
+            "aphia_id": "866441",
+            "parent_name": "Zygacanthida",
+            "parent_id": "866440",
             "authority": "Haeckel, 1881",
             "status": "accepted",
             "kingdom": "Chromista",
@@ -163,11 +136,11 @@ def get_test_taxon_list():
             "genus": "Acanthonia",
         },
         {
-            "scientificName": "Acanthonia echinoides",
+            "scientific_name": "Acanthonia echinoides",
             "rank": "Species",
-            "aphiaId": "866442",
-            "parentName": "Acanthonia",
-            "parentId": "866441",
+            "aphia_id": "866442",
+            "parent_name": "Acanthonia",
+            "parent_id": "866441",
             "authority": "(Claparède & Lachmann, 1858) Haeckel, 1881",
             "status": "accepted",
             "kingdom": "Chromista",
@@ -178,11 +151,11 @@ def get_test_taxon_list():
             "genus": "Acanthonia",
         },
         {
-            "scientificName": "Arthracanthida",
+            "scientific_name": "Arthracanthida",
             "rank": "Order",
-            "aphiaId": "367301",
-            "parentName": "Acantharia",
-            "parentId": "586732",
+            "aphia_id": "367301",
+            "parent_name": "Acantharia",
+            "parent_id": "586732",
             "authority": "Schewiakoff, 1926",
             "status": "accepted",
             "kingdom": "Chromista",
@@ -191,11 +164,11 @@ def get_test_taxon_list():
             "order": "Arthracanthida",
         },
         {
-            "scientificName": "Acanthostaurus",
+            "scientific_name": "Acanthostaurus",
             "rank": "Genus",
-            "aphiaId": "393198",
-            "parentName": "Arthracanthida",
-            "parentId": "367301",
+            "aphia_id": "393198",
+            "parent_name": "Arthracanthida",
+            "parent_id": "367301",
             "authority": "Haeckel, 1862",
             "status": "accepted",
             "kingdom": "Chromista",
@@ -206,11 +179,11 @@ def get_test_taxon_list():
             "genus": "Acanthostaurus",
         },
         {
-            "scientificName": "Acanthostaurus nordgaardi",
+            "scientific_name": "Acanthostaurus nordgaardi",
             "rank": "Species",
-            "aphiaId": "393199",
-            "parentName": "Acanthostaurus",
-            "parentId": "393198",
+            "aphia_id": "393199",
+            "parent_name": "Acanthostaurus",
+            "parent_id": "393198",
             "authority": "Jørgensen, 1899",
             "status": "accepted",
             "kingdom": "Chromista",
@@ -221,11 +194,11 @@ def get_test_taxon_list():
             "genus": "Acanthostaurus",
         },
         {
-            "scientificName": "Acanthostaurus pallidus",
+            "scientific_name": "Acanthostaurus pallidus",
             "rank": "Species",
-            "aphiaId": "866443",
-            "parentName": "Acanthostaurus",
-            "parentId": "393198",
+            "aphia_id": "866443",
+            "parent_name": "Acanthostaurus",
+            "parent_id": "393198",
             "authority": "(Claparède & Lachmann, 1858) Haeckel, 1862",
             "status": "accepted",
             "kingdom": "Chromista",
@@ -236,11 +209,11 @@ def get_test_taxon_list():
             "genus": "Acanthostaurus",
         },
         {
-            "scientificName": "Phyllacantha",
+            "scientific_name": "Phyllacantha",
             "rank": "Suborder",
-            "aphiaId": "367303",
-            "parentName": "Arthracanthida",
-            "parentId": "367301",
+            "aphia_id": "367303",
+            "parent_name": "Arthracanthida",
+            "parent_id": "367301",
             "authority": "Schewiakoff, 1926",
             "status": "accepted",
             "kingdom": "Chromista",
@@ -249,11 +222,11 @@ def get_test_taxon_list():
             "order": "Arthracanthida",
         },
         {
-            "scientificName": "Dictyacanthidae",
+            "scientific_name": "Dictyacanthidae",
             "rank": "Family",
-            "aphiaId": "367337",
-            "parentName": "Phyllacantha",
-            "parentId": "367303",
+            "aphia_id": "367337",
+            "parent_name": "Phyllacantha",
+            "parent_id": "367303",
             "authority": "Schewiakoff, 1926",
             "status": "accepted",
             "kingdom": "Chromista",
@@ -263,11 +236,11 @@ def get_test_taxon_list():
             "family": "Dictyacanthidae",
         },
         {
-            "scientificName": "Phyllostauridae",
+            "scientific_name": "Phyllostauridae",
             "rank": "Family",
-            "aphiaId": "367335",
-            "parentName": "Phyllacantha",
-            "parentId": "367303",
+            "aphia_id": "367335",
+            "parent_name": "Phyllacantha",
+            "parent_id": "367303",
             "authority": "Schewiakoff, 1926",
             "status": "accepted",
             "kingdom": "Chromista",
@@ -277,11 +250,11 @@ def get_test_taxon_list():
             "family": "Phyllostauridae",
         },
         {
-            "scientificName": "Stauracanthidae",
+            "scientific_name": "Stauracanthidae",
             "rank": "Infraorder",
-            "aphiaId": "367336",
-            "parentName": "Phyllacantha",
-            "parentId": "367303",
+            "aphia_id": "367336",
+            "parent_name": "Phyllacantha",
+            "parent_id": "367303",
             "authority": "Schewiakoff, 1926",
             "status": "accepted",
             "kingdom": "Chromista",
@@ -290,11 +263,11 @@ def get_test_taxon_list():
             "order": "Arthracanthida",
         },
         {
-            "scientificName": "Sphaenacantha",
+            "scientific_name": "Sphaenacantha",
             "rank": "Suborder",
-            "aphiaId": "367302",
-            "parentName": "Arthracanthida",
-            "parentId": "367301",
+            "aphia_id": "367302",
+            "parent_name": "Arthracanthida",
+            "parent_id": "367301",
             "authority": "Schewiakoff, 1926",
             "status": "accepted",
             "kingdom": "Chromista",
@@ -303,11 +276,11 @@ def get_test_taxon_list():
             "order": "Arthracanthida",
         },
         {
-            "scientificName": "Acanthometridae",
+            "scientific_name": "Acanthometridae",
             "rank": "Family",
-            "aphiaId": "235748",
-            "parentName": "Sphaenacantha",
-            "parentId": "367302",
+            "aphia_id": "235748",
+            "parent_name": "Sphaenacantha",
+            "parent_id": "367302",
             "authority": "Haeckel, 1887",
             "status": "accepted",
             "kingdom": "Chromista",
@@ -317,11 +290,11 @@ def get_test_taxon_list():
             "family": "Acanthometridae",
         },
         {
-            "scientificName": "Acanthometra",
+            "scientific_name": "Acanthometra",
             "rank": "Genus",
-            "aphiaId": "235749",
-            "parentName": "Acanthometridae",
-            "parentId": "235748",
+            "aphia_id": "235749",
+            "parent_name": "Acanthometridae",
+            "parent_id": "235748",
             "authority": "J. Müller, 1856",
             "status": "accepted",
             "kingdom": "Chromista",
@@ -332,11 +305,11 @@ def get_test_taxon_list():
             "genus": "Acanthometra",
         },
         {
-            "scientificName": "Acanthometra pellucida",
+            "scientific_name": "Acanthometra pellucida",
             "rank": "Species",
-            "aphiaId": "235750",
-            "parentName": "Acanthometra",
-            "parentId": "235749",
+            "aphia_id": "235750",
+            "parent_name": "Acanthometra",
+            "parent_id": "235749",
             "authority": "Müller, 1858",
             "status": "accepted",
             "kingdom": "Chromista",
@@ -347,11 +320,11 @@ def get_test_taxon_list():
             "genus": "Acanthometra",
         },
         {
-            "scientificName": "Acanthometron",
+            "scientific_name": "Acanthometron",
             "rank": "Genus",
-            "aphiaId": "391880",
-            "parentName": "Acanthometridae",
-            "parentId": "235748",
+            "aphia_id": "391880",
+            "parent_name": "Acanthometridae",
+            "parent_id": "235748",
             "authority": "",
             "status": "accepted",
             "kingdom": "Chromista",
@@ -362,11 +335,11 @@ def get_test_taxon_list():
             "genus": "Acanthometron",
         },
         {
-            "scientificName": "Acanthometron elastricum",
+            "scientific_name": "Acanthometron elastricum",
             "rank": "Species",
-            "aphiaId": "391881",
-            "parentName": "Acanthometron",
-            "parentId": "391880",
+            "aphia_id": "391881",
+            "parent_name": "Acanthometron",
+            "parent_id": "391880",
             "authority": "",
             "status": "accepted",
             "kingdom": "Chromista",
@@ -377,11 +350,11 @@ def get_test_taxon_list():
             "genus": "Acanthometron",
         },
         {
-            "scientificName": "Acanthometron pellucida",
+            "scientific_name": "Acanthometron pellucida",
             "rank": "Species",
-            "aphiaId": "391883",
-            "parentName": "Acanthometron",
-            "parentId": "391880",
+            "aphia_id": "391883",
+            "parent_name": "Acanthometron",
+            "parent_id": "391880",
             "authority": "",
             "status": "accepted",
             "kingdom": "Chromista",
@@ -392,11 +365,11 @@ def get_test_taxon_list():
             "genus": "Acanthometron",
         },
         {
-            "scientificName": "Amphilonche",
+            "scientific_name": "Amphilonche",
             "rank": "Genus",
-            "aphiaId": "235751",
-            "parentName": "Acanthometridae",
-            "parentId": "235748",
+            "aphia_id": "235751",
+            "parent_name": "Acanthometridae",
+            "parent_id": "235748",
             "authority": "",
             "status": "accepted",
             "kingdom": "Chromista",
@@ -407,11 +380,11 @@ def get_test_taxon_list():
             "genus": "Amphilonche",
         },
         {
-            "scientificName": "Amphilonche elongata",
+            "scientific_name": "Amphilonche elongata",
             "rank": "Species",
-            "aphiaId": "235752",
-            "parentName": "Amphilonche",
-            "parentId": "235751",
+            "aphia_id": "235752",
+            "parent_name": "Amphilonche",
+            "parent_id": "235751",
             "authority": "(Müller, 1858)",
             "status": "accepted",
             "kingdom": "Chromista",
@@ -422,11 +395,11 @@ def get_test_taxon_list():
             "genus": "Amphilonche",
         },
         {
-            "scientificName": "Diploconidae",
+            "scientific_name": "Diploconidae",
             "rank": "Family",
-            "aphiaId": "367340",
-            "parentName": "Sphaenacantha",
-            "parentId": "367302",
+            "aphia_id": "367340",
+            "parent_name": "Sphaenacantha",
+            "parent_id": "367302",
             "authority": "Haeckel, 1887",
             "status": "accepted",
             "kingdom": "Chromista",
@@ -436,11 +409,11 @@ def get_test_taxon_list():
             "family": "Diploconidae",
         },
         {
-            "scientificName": "Dorataspidae",
+            "scientific_name": "Dorataspidae",
             "rank": "Family",
-            "aphiaId": "367338",
-            "parentName": "Sphaenacantha",
-            "parentId": "367302",
+            "aphia_id": "367338",
+            "parent_name": "Sphaenacantha",
+            "parent_id": "367302",
             "authority": "Haeckel, 1887",
             "status": "accepted",
             "kingdom": "Chromista",
@@ -450,11 +423,11 @@ def get_test_taxon_list():
             "family": "Dorataspidae",
         },
         {
-            "scientificName": "Hexalaspidae",
+            "scientific_name": "Hexalaspidae",
             "rank": "Family",
-            "aphiaId": "367342",
-            "parentName": "Sphaenacantha",
-            "parentId": "367302",
+            "aphia_id": "367342",
+            "parent_name": "Sphaenacantha",
+            "parent_id": "367302",
             "authority": "Haeckel, 1887",
             "status": "accepted",
             "kingdom": "Chromista",
@@ -464,11 +437,11 @@ def get_test_taxon_list():
             "family": "Hexalaspidae",
         },
         {
-            "scientificName": "Lithopteridae",
+            "scientific_name": "Lithopteridae",
             "rank": "Family",
-            "aphiaId": "367341",
-            "parentName": "Sphaenacantha",
-            "parentId": "367302",
+            "aphia_id": "367341",
+            "parent_name": "Sphaenacantha",
+            "parent_id": "367302",
             "authority": "Haeckel, 1887",
             "status": "accepted",
             "kingdom": "Chromista",
@@ -478,11 +451,11 @@ def get_test_taxon_list():
             "family": "Lithopteridae",
         },
         {
-            "scientificName": "Phractopeltidae",
+            "scientific_name": "Phractopeltidae",
             "rank": "Family",
-            "aphiaId": "367339",
-            "parentName": "Sphaenacantha",
-            "parentId": "367302",
+            "aphia_id": "367339",
+            "parent_name": "Sphaenacantha",
+            "parent_id": "367302",
             "authority": "Haeckel, 1887",
             "status": "accepted",
             "kingdom": "Chromista",
