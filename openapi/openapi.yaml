@@ -54,6 +54,48 @@ paths:
           description: Taxon not found
       parameters:
       - $ref: '#/components/parameters/scientific-name'
+  /synonyms:
+    get:
+      tags:
+      - taxa
+      description: Returns a list of synonyms
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  synonyms:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Synonym'
+      parameters:
+      - $ref: '#/components/parameters/skip'
+      - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/name'
+  /synonyms/{scientific-name}:
+    get:
+      tags:
+      - taxa
+      description: Returns synonyms for a single taxon
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  synonyms:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Synonym'
+        404:
+          description: Taxon not found
+      parameters:
+      - $ref: '#/components/parameters/scientific-name'
   /facts/{scientific-name}:
     get:
       tags:
@@ -343,6 +385,23 @@ components:
         image:
           type: string
           example: e2773cc4-b088-4821-81ef-631a8a7c8135
+    Synonym:
+      type: object
+      properties:
+        scientific_name:
+          type: string
+          example: Dinophysis acuminata
+        current_name:
+          type: string
+          example: Dinophysis skagii
+        authority:
+          type: string
+        additional_info:
+          type: object
+          properties:
+            hint:
+              type: string
+              example: Valid name
     Article:
       type: object
       properties:
