@@ -50,6 +50,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Taxon'
+        301:
+          description: Redirect to current valid name
         404:
           description: Taxon not found
       parameters:

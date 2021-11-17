@@ -1,5 +1,6 @@
 from django.db.models import Q
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponsePermanentRedirect
+from django.urls import reverse
 
 from taxa.models import Synonym, Taxon
 
@@ -19,7 +20,16 @@ def get_taxon(request, scientific_name):
             'attributes': taxon.attributes,
         })
     except Taxon.DoesNotExist:
-        return JsonResponse({'message': 'Taxon not found'}, status=404)
+        try:
+           current_taxon = Synonym.objects.get(
+               scientific_name__iexact=scientific_name
+           ).current_name
+
+           return HttpResponsePermanentRedirect(reverse(
+               get_taxon, args=[current_taxon.scientific_name]
+           ))
+        except Synonym.DoesNotExist:
+            return JsonResponse({'message': 'Taxon not found'}, status=404)
 
 
 def get_taxa(request):
