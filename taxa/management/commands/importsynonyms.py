@@ -6,6 +6,7 @@ from django.core.management.base import BaseCommand
 from django.conf import settings
 
 from taxa.models import Synonym, Taxon
+from taxa.utils import transform_keys
 
 
 SYNONYMS_ALGAEBASE = pathlib.Path(
@@ -56,7 +57,10 @@ class Command(BaseCommand):
             synonym = Synonym(
                scientific_name=row['Synonym name'],
                authority=row['Synonym author'],
-               additional_info=json.loads(row.get('Info json', '{}')),
+               additional_info=json.loads(
+                   row.get('Info json', '{}'),
+                   object_hook=transform_keys
+                ),
             )
             synonym.current_name = taxon
             synonym.save()
