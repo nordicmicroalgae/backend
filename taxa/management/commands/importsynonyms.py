@@ -6,7 +6,7 @@ from django.core.management.base import BaseCommand
 from django.conf import settings
 
 from taxa.models import Synonym, Taxon
-from taxa.utils import transform_keys
+from core.utils import transform_keys
 
 
 SYNONYMS_ALGAEBASE = pathlib.Path(
