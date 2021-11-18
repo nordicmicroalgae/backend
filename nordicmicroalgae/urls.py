@@ -22,5 +22,6 @@ urlpatterns = [
     # REST API v1 routes
     path('api/v1/', include('pages.urls')),
     path('api/v1/', include('taxa.urls')),
+    path('api/v1/', include('facts.urls')),
     path('api/v1/', include('openapi.urls')),
 ]

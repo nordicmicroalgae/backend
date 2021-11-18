@@ -41,6 +41,7 @@ INSTALLED_APPS = [
 #    'django.contrib.admin',
     'nordicmicroalgae.apps.NordicMicroalgaeAdminConfig',
     'taxa',
+    'facts',
     'openapi',
     'django.contrib.auth',
     'django.contrib.contenttypes',
