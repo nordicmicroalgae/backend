@@ -1,11 +1,16 @@
 from django.urls import path
 
 
-from . import views
+from taxa.views import (
+   TaxonView,
+   TaxonCollectionView,
+   TaxonSynonymCollectionView,
+   SynonymCollectionView
+)
 
 urlpatterns = [
-    path('taxa/<str:scientific_name>/', views.get_taxon),
-    path('taxa/', views.get_taxa),
-    path('synonyms/<str:scientific_name>/', views.get_taxon_synonyms),
-    path('synonyms/', views.get_synonyms),
+    path('taxa/<str:scientific_name>/', TaxonView.as_view(), name='taxon'),
+    path('taxa/', TaxonCollectionView.as_view(), name='taxon-collection'),
+    path('synonyms/<str:scientific_name>/', TaxonSynonymCollectionView.as_view(), name='taxon-synonym-collection'),
+    path('synonyms/', SynonymCollectionView.as_view(), name='synonym-collection'),
 ]
