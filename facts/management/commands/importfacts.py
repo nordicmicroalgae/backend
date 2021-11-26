@@ -35,6 +35,11 @@ FACTS_REBECCA_CODES = pathlib.Path(
     'species', 'external_facts_rebecca_codes.txt'
 )
 
+FACTS_CULTURE_COLLECTIONS_SCCAP = pathlib.Path(
+    settings.CONTENT_DIR,
+    'species', 'external_facts_culture_collections_sccap.txt'
+)
+
 FACTS_HELCOM_PEG = pathlib.Path(
     settings.CONTENT_DIR,
     'species', 'peg_bvol2013.json'
@@ -147,6 +152,41 @@ class Command(BaseCommand):
                         'name': 'REBECCA Code',
                         'value': row['RebeccaID'],
                     }],
+                })
+
+        # 1.6 Read and prepare strains from SCCAP
+        #    (The Scandinavian Culture Collection of Algae
+        #     and Protozoa at the University of Copenhagen)
+        #     Provider: SCCAP
+        #     Collection: Culture collections
+        with FACTS_CULTURE_COLLECTIONS_SCCAP.open('r', encoding='cp1258') as in_file:
+            rows = csv.DictReader(in_file, dialect='excel-tab')
+
+            # One species may have multiple strains, so first step is
+            # to store a list of strains for each species.
+            strains_for_species = {} # keyed by species name.
+
+            for row in rows:
+                if row['SPECIES'] == 'sp.':
+                    species_name = row['GENUS']
+                else:
+                    species_name = row['GENUS'] + ' ' + row['SPECIES']
+
+                if not species_name in strains_for_species:
+                    strains_for_species[species_name] = []
+
+                strains_for_species[species_name].append(row['CUNR'])
+
+            # Then prepare a dict for each species, with found strains
+            # as a list of attributes like so: [{name, value}, ...].
+            for species_name, strains in strains_for_species.items():
+                prepare_facts(species_name, {
+                    'provider': 'SCCAP',
+                    'collection': 'Culture collections',
+                    'attributes': [{
+                        'name': 'cunr',
+                        'value': cunr
+                    } for cunr in strains],
                 })
 
         # 1.6: Read and prepare HELCOM-PEG data from JSON (translations from CSV)
