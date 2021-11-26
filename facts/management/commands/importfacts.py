@@ -78,7 +78,7 @@ class Command(BaseCommand):
             for row in rows:
                 prepare_facts(row['Scientific name'], {
                     'provider': 'Dyntaxa',
-                    'collection': 'Dyntaxa IDs',
+                    'collection': 'IDs in other systems',
                     'attributes': [{
                         'name': 'Dyntaxa ID',
                         'value': row['Dyntaxa id'],
@@ -94,7 +94,7 @@ class Command(BaseCommand):
             for row in rows:
                 prepare_facts(row['Scientific name'], {
                     'provider': 'AlgaeBase',
-                    'collection': 'AlgaeBase IDs',
+                    'collection': 'IDs in other systems',
                     'attributes': [{
                         'name': 'AlgaeBase ID',
                         'value': row['Algaebase id'],
@@ -110,7 +110,7 @@ class Command(BaseCommand):
             for row in rows:
                 prepare_facts(row['Scientific name'], {
                     'provider': 'IOC',
-                    'collection': 'IOC Harmfulness',
+                    'collection': 'Harmfulness',
                     'attributes': [{
                         'name': 'Harmfulness, IOC',
                         'value': row['Harmfulness, IOC'],
@@ -126,7 +126,7 @@ class Command(BaseCommand):
             for row in rows:
                 prepare_facts(row['Scientific name'], {
                     'provider': 'SLU',
-                    'collection': 'OMNIDIA Codes',
+                    'collection': 'Codes',
                     'attributes': [{
                         'name': 'OMNIDIA Code',
                         'value': row['OMNIDIA code'],
@@ -142,7 +142,7 @@ class Command(BaseCommand):
             for row in rows:
                 prepare_facts(row['AcceptedTaxon'], {
                     'provider': 'NIVA',
-                    'collection': 'REBECCA Codes',
+                    'collection': 'Codes',
                     'attributes': [{
                         'name': 'REBECCA Code',
                         'value': row['RebeccaID'],
