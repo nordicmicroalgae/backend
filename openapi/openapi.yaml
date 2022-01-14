@@ -38,6 +38,9 @@ paths:
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/name'
       - $ref: '#/components/parameters/rank'
+      - $ref: '#/components/parameters/group'
+      - $ref: '#/components/parameters/harmful-only'
+      - $ref: '#/components/parameters/helcom-peg-only'
   /taxa/{scientific-name}:
     get:
       tags:
@@ -297,6 +300,36 @@ components:
         - Variety
         - Form
         - Hybrid
+    group:
+      name: group
+      in: query
+      description: Limit the list to species that belongs to a certain group
+      required: false
+      schema:
+        type: string
+        example: diatoms
+        enum:
+        - all
+        - cyanobacteria
+        - diatoms
+        - dinoflagellates
+        - ciliates
+        - other-microalgae
+        - other-protozoa
+    harmful-only:
+      name: harmful-only
+      in: query
+      description: Limit the list to species considered to be harmful
+      required: false
+      schema:
+        type: boolean
+    helcom-peg-only:
+      name: helcom-peg-only
+      in: query
+      description: Limit the list to species found in the HELCOM-PEG list
+      required: false
+      schema:
+        type: boolean
     article-id:
       name: id
       in: path

@@ -38,32 +38,53 @@ class TaxonView(View):
 class TaxonCollectionView(View):
 
     def get(self, request):
-        conditions = Q()
-
+        queryset = Taxon.objects.filter()
 
         name_pattern = request.GET.get('name', None)
 
         if name_pattern != None:
-            conditions = conditions & Q(scientific_name__contains=name_pattern)
+            queryset = queryset.with_name_like(name_pattern)
 
 
-        rank = request.GET.get('rank', None)
+        group = request.GET.get('group', None)
 
-        if rank != None:
-            conditions = conditions & Q(rank__iexact=rank)
+        if group == 'all':
+            queryset = queryset.species_only()
+        elif group == 'cyanobacteria':
+            queryset = queryset.cyanobacteria_only()
+        elif group == 'diatoms':
+            queryset = queryset.diatoms_only()
+        elif group == 'dinoflagellates':
+            queryset = queryset.dinoflagellates_only()
+        elif group == 'ciliates':
+            queryset = queryset.ciliates_only()
+        elif group == 'other-microalgae':
+            queryset = queryset.other_microalgae_only()
+        elif group == 'other-protozoa':
+            queryset = queryset.other_protozoa_only()
+
+
+        harmful_only = request.GET.get('harmful-only') == 'true'
+
+        if harmful_only:
+            queryset = queryset.harmful_only()
+
+
+        helcom_peg_only = request.GET.get('helcom-peg-only') == 'true'
+
+        if helcom_peg_only:
+            queryset = queryset.helcom_peg_only()
 
 
         skip = abs(int(request.GET.get('skip', 0)))
         limit = abs(int(request.GET.get('limit', 0)))
 
-
-        taxa = Taxon.objects.filter(conditions)
-
         if skip > 0 or limit > 0:
-            taxa = taxa[skip:(skip + limit)]
+            queryset = queryset[skip:(skip + limit)]
+
 
         return JsonResponse({
-            'taxa': list(taxa.values(
+            'taxa': list(queryset.values(
                 'scientific_name',
                 'parent_name',
                 'authority',
