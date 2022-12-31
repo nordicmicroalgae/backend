@@ -6,11 +6,9 @@ from taxa.models import Taxon
 
 class TaxonFactsCollectionView(View):
 
-    def get(self, request, scientific_name):
+    def get(self, request, slug):
         try:
-            taxon = Taxon.objects.get(
-                scientific_name__iexact=scientific_name
-            )
+            taxon = Taxon.objects.get(slug=slug)
             return JsonResponse({'facts': taxon.facts.data})
         except Taxon.DoesNotExist:
             return JsonResponse({'message': 'Taxon not found'}, status=404)
