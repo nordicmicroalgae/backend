@@ -1,8 +1,32 @@
+import os
+import operator
+import yaml
+
+from functools import reduce
+
+from django.conf import settings
 from django.db import models
 from django.db.models import Q
 
 
+def get_filter_config():
+    config_path = os.path.join(
+        settings.BASE_DIR, 'taxa', 'config', 'filters.yaml'
+    )
+
+    config = {}
+    with open(config_path, 'r', encoding='utf8') as infile:
+        config = yaml.safe_load(infile)
+
+    return config
+
+
 class TaxonQuerySet(models.QuerySet):
+
+    class InvalidQuery(Exception):
+        pass
+
+    filter_config = get_filter_config()
 
     def with_name_like(self, name_pattern):
         return self.filter(scientific_name__contains=name_pattern)
@@ -10,75 +34,48 @@ class TaxonQuerySet(models.QuerySet):
     def with_rank(self, rank):
         return self.filter(rank__iexact=rank)
 
-    def harmful_only(self):
-        return self.filter(
-            facts__data__contains=[{'collection': 'Harmfulness'}]
-        )
-
     def helcom_peg_only(self):
         return self.filter(
             facts__data__contains=[{'provider': 'HELCOM-PEG'}]
         )
 
     def species_only(self):
+        ranks = self.filter_config['species_or_below']
+
         return self.filter(
-            Q(rank='Species') |
-            Q(rank='Subspecies') |
-            Q(rank='Variety') |
-            Q(rank='Form') |
-            Q(rank='Hybrid')
+            reduce(
+                operator.or_,
+                [Q(rank=rank) for rank in ranks]
+            )
         )
 
-    def cyanobacteria_only(self):
-        return self.species_only().filter(
-            classification__contains=[{'name': 'Cyanobacteria'}]
-        )
+    def within_group(self, group_name):
+        group_name = group_name.lower()
 
-    def diatoms_only(self):
-        return self.species_only().filter(
-            classification__contains=[{'name': 'Bacillariophyta'}]
-        )
+        if group_name == 'all':
+            return self.species_only()
+        
+        included_taxa_by_group = {
+            group['group_name'].lower(): group['included_taxa'] 
+            for group in self.filter_config['groups_of_organisms']
+        }
 
-    def dinoflagellates_only(self):
-        return self.species_only().filter(
-            classification__contains=[{'name': 'Dinophyceae'}]
-        )
+        if not group_name in included_taxa_by_group:
+            valid_groups = included_taxa_by_group.keys()
+            raise TaxonQuerySet.InvalidQuery(
+                'The provided value for group is not valid. Please '
+                'try one of the following: %s.' % ', '.join(valid_groups)
+            )
 
-    def ciliates_only(self):
-        return self.species_only().filter(
-            classification__contains=[{'name': 'Ciliophora'}]
-        )
+        parents = included_taxa_by_group[group_name]
 
-    def other_microalgae_only(self):
-        return self.species_only().filter(
-            Q(classification__contains=[{'name': 'Cryptophyceae'}]) |
-            Q(classification__contains=[{'name': 'Haptophyta'}]) |
-            Q(classification__contains=[{'name': 'Bolidophyceae'}]) |
-            Q(classification__contains=[{'name': 'Chrysophyceae'}]) |
-            Q(classification__contains=[{'name': 'Dictyochophyceae'}]) |
-            Q(classification__contains=[{'name': 'Eustigmatophyceae'}]) |
-            Q(classification__contains=[{'name': 'Pelagophyceae'}]) |
-            Q(classification__contains=[{'name': 'Raphidophyceae'}]) |
-            Q(classification__contains=[{'name': 'Synurophyceae'}]) |
-            Q(classification__contains=[{'name': 'Chlorophyta'}]) |
-            Q(classification__contains=[{'name': 'Glaucophyta'}]) |
-            Q(classification__contains=[{'name': 'Coleochaetophyceae'}]) |
-            Q(classification__contains=[{'name': 'Klebsormidiophyceae'}]) |
-            Q(classification__contains=[{'name': 'Mesostigmatophyceae'}]) |
-            Q(classification__contains=[{'name': 'Zygnematophyceae'}]) |
-            Q(classification__contains=[{'name': 'Euglenophyceae'}])
-        )
+        filters = [
+            Q(classification__contains=[{'name': parent}])
+            for parent in parents
+        ]
 
-    def other_protozoa_only(self):
         return self.species_only().filter(
-            Q(classification__contains=[{'name': 'Cryptophyta, ordines incertae sedis'}]) |
-            Q(classification__contains=[{'name': 'Bicosoecophyceae'}]) |
-            Q(classification__contains=[{'name': 'Bodonophyceae'}]) |
-            Q(classification__contains=[{'name': 'Heterokontophyta, ordines incertae sedis'}]) |
-            Q(classification__contains=[{'name': 'Cercozoa'}]) |
-            Q(classification__contains=[{'name': 'Craspedophyceae'}]) |
-            Q(classification__contains=[{'name': 'Ellobiopsea'}]) |
-            Q(classification__contains=[{'name': 'Protozoa, classes incertae sedis'}])
+            reduce(operator.or_, filters)
         )
 
 

@@ -1,0 +1,88 @@
+# Definition of ranks considered to be "species or below"
+species_or_below:
+  - Forma
+  - Species
+  - Subspecies
+  - Variety
+
+# Definition of "group of organisms". Each group consists of two elements:
+#     `group_name`
+#         The name or label of the group. This is for example the text being
+#         shown in the "quick view" user interface.
+#     `included_taxa`
+#         Should contain a list of scientific names. The names should be
+#         taxonomical parents, at any level, for which subordinate taxa to
+#         include in the group.
+groups_of_organisms:
+  - group_name: Ciliates
+    included_taxa:
+      - Litostomatea
+      - Oligohymenophorea
+      - Oligotrichea
+  - group_name: Cyanobacteria
+    included_taxa:
+      - Cyanophyceae
+  - group_name: Diatoms
+    included_taxa:
+      - Bacillariophyceae
+  - group_name: Dinoflagellates
+    included_taxa:
+      - Dinoflagellata incertae sedis
+      - Dinophyceae
+  - group_name: Other microalgae
+    included_taxa:
+      - Charophyceae
+      - Chlorodendrophyceae
+      - Chlorophyceae
+      - Chlorophyta incertae sedis
+      - Chrysophyceae
+      - Coleochaetophyceae
+      - Conjugatophyceae
+      - Cryptophyceae
+      - Cryptophyta incertae sedis
+      - Dictyochophyceae
+      - Euglenoidea
+      - Eustigmatophyceae
+      - Glaucophyceae
+      - Haptophyta incertae sedis
+      - Mamiellophyceae
+      - Mesostigmatophyceae
+      - Nephroselmidophyceae
+      - Pavlovophyceae
+      - Pedinophyceae
+      - Pelagophyceae
+      - Prasinophyceae
+      - Prymnesiophyceae
+      - Pyramimonadophyceae
+      - Raphidophyceae
+      - Synurophyceae
+      - Trebouxiophyceae
+      - Ulvophyceae
+      - Xanthophyceae
+  - group_name: Other protozoa
+    included_taxa:
+      - Bicoecea
+      - Bodonophyceae
+      - Choanoflagellatea
+      - Diplonemea
+      - Ebriophyceae
+      - Ellobiopsea
+      - Glissodiscea
+      - Globothalamea
+      - Heterolobosea
+      - Hypochytrea
+      - Imbricatea
+      - Jakobea
+      - Kinetoplastea
+      - Klebsormidiophyceae
+      - Metromonadea
+      - Monothalamea
+      - Oomycota incertae sedis
+      - Peranemea
+      - Percolatea
+      - Peronosporea
+      - Postgaardea
+      - Sarcomonadea
+      - Telonemea
+      - Thecofilosea
+      - Trepomonadea

@@ -37,26 +37,13 @@ class TaxonCollectionView(View):
 
         group = request.GET.get('group', None)
 
-        if group == 'all':
-            queryset = queryset.species_only()
-        elif group == 'cyanobacteria':
-            queryset = queryset.cyanobacteria_only()
-        elif group == 'diatoms':
-            queryset = queryset.diatoms_only()
-        elif group == 'dinoflagellates':
-            queryset = queryset.dinoflagellates_only()
-        elif group == 'ciliates':
-            queryset = queryset.ciliates_only()
-        elif group == 'other-microalgae':
-            queryset = queryset.other_microalgae_only()
-        elif group == 'other-protozoa':
-            queryset = queryset.other_protozoa_only()
-
-
-        harmful_only = request.GET.get('harmful-only') == 'true'
-
-        if harmful_only:
-            queryset = queryset.harmful_only()
+        if group != None:
+            try:
+                queryset = queryset.within_group(group)
+            except queryset.InvalidQuery as exc:
+                return JsonResponse({
+                    'message': str(exc)
+                }, status=400)
 
 
         helcom_peg_only = request.GET.get('helcom-peg-only') == 'true'
