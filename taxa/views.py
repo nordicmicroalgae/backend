@@ -1,9 +1,7 @@
-from django.db.models import Q
-from django.http import JsonResponse, HttpResponsePermanentRedirect
+from django.http import JsonResponse
 from django.views import View
-from django.urls import reverse
 
-from taxa.models import Synonym, Taxon
+from taxa.models import Taxon
 
 
 class TaxonView(View):
@@ -23,16 +21,7 @@ class TaxonView(View):
                 'children': taxon.children,
             })
         except Taxon.DoesNotExist:
-            try:
-                current_taxon = Synonym.objects.get(
-                    scientific_name__iexact=slug
-                ).current_name
-
-                return HttpResponsePermanentRedirect(reverse(
-                    'taxon', args=[current_taxon.scientific_name]
-                ))
-            except Synonym.DoesNotExist:
-                return JsonResponse({'message': 'Taxon not found'}, status=404)
+            return JsonResponse({'message': 'Taxon not found'}, status=404)
 
 
 class TaxonCollectionView(View):
@@ -90,54 +79,5 @@ class TaxonCollectionView(View):
                 'authority',
                 'rank',
                 'parent',
-            ))
-        })
-
-
-class TaxonSynonymCollectionView(View):
-
-    def get(self, request, scientific_name):
-        try:
-            taxon = Taxon.objects.get(
-                scientific_name__iexact=scientific_name
-            )
-            return JsonResponse({
-                'synonyms': list(taxon.synonym_set.all().values(
-                    'scientific_name',
-                    'authority',
-                    'current_name',
-                    'additional_info'
-                ))
-            })
-        except Taxon.DoesNotExist:
-            return JsonResponse({'message': 'Taxon not found'}, status=404)
-
-
-class SynonymCollectionView(View):
-
-    def get(self, request):
-        conditions = Q()
-
-        name_pattern = request.GET.get('name', None)
-        name_pattern = request.GET.get('q', name_pattern) # alias
-
-        if name_pattern != None:
-            conditions = conditions & Q(scientific_name__icontains=name_pattern)
-
-
-        skip = abs(int(request.GET.get('skip', 0)))
-        limit = abs(int(request.GET.get('limit', 0)))
-
-
-        synonyms = Synonym.objects.filter(conditions)
-
-        if skip > 0 or limit > 0:
-            synonyms = synonyms[skip:(skip + limit)]
-
-        return JsonResponse({
-            'synonyms': list(synonyms.values(
-                'scientific_name',
-                'authority',
-                'current_name'
             ))
         })

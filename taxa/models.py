@@ -94,9 +94,3 @@ class Taxon(models.Model):
     classification = models.JSONField(default=list)
     children = models.JSONField(default=list)
     objects = TaxonQuerySet.as_manager()
-
-class Synonym(models.Model):
-    scientific_name = models.CharField(max_length=200, primary_key=True)
-    authority = models.CharField(max_length=200)
-    current_name = models.ForeignKey(Taxon, db_column='current_name', on_delete=models.CASCADE)
-    additional_info = models.JSONField(default=dict)
