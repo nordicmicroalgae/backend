@@ -26,6 +26,16 @@ class TaxonView(View):
 
 class TaxonCollectionView(View):
 
+    fieldnames = [
+        'slug',
+        'scientific_name',
+        'authority',
+        'rank',
+        'parent',
+        'classification',
+        'children',
+    ]
+
     def get(self, request):
         queryset = Taxon.objects.filter()
 
@@ -59,12 +69,17 @@ class TaxonCollectionView(View):
             queryset = queryset[skip:(skip + limit)]
 
 
+        fields = request.GET.get('fields', None)
+
+        if fields == None:
+            fields = self.fieldnames
+        else:
+            fields = list(map(str.strip, fields.split(',')))
+            if not all(field in self.fieldnames for field in fields):
+                return JsonResponse({
+                    'message': 'Unkown value provided for fields.'
+                }, status=400)
+
         return JsonResponse({
-            'taxa': list(queryset.values(
-                'slug',
-                'scientific_name',
-                'authority',
-                'rank',
-                'parent',
-            ))
+            'taxa': list(queryset.values(*fields))
         })
