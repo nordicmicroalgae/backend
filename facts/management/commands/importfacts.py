@@ -1,5 +1,4 @@
 import csv
-import json
 import pathlib
 
 from django.core.management.base import BaseCommand
@@ -7,49 +6,12 @@ from django.conf import settings
 
 from facts.models import Facts
 from taxa.models import Taxon
-from core.utils import make_attribute_list
 
-
-FACTS_DYNTAXA = pathlib.Path(
-    settings.CONTENT_DIR,
-    'species', 'taxa_dyntaxa.txt'
-)
-
-FACTS_ALGAEBASE = pathlib.Path(
-    settings.CONTENT_DIR,
-    'species', 'external_links_algaebase.txt'
-)
-
-FACTS_IOC_HAB = pathlib.Path(
-    settings.CONTENT_DIR,
-    'species', 'external_facts_ioc_hab.txt'
-)
-
-FACTS_OMNIDIA_CODES = pathlib.Path(
-    settings.CONTENT_DIR,
-    'species', 'external_facts_omnidia_codes.txt'
-)
-
-FACTS_REBECCA_CODES = pathlib.Path(
-    settings.CONTENT_DIR,
-    'species', 'external_facts_rebecca_codes.txt'
-)
-
-FACTS_CULTURE_COLLECTIONS_SCCAP = pathlib.Path(
-    settings.CONTENT_DIR,
-    'species', 'external_facts_culture_collections_sccap.txt'
-)
 
 FACTS_HELCOM_PEG = pathlib.Path(
     settings.CONTENT_DIR,
-    'species', 'peg_bvol2013.json'
+    'species', 'bvol_nomp_version_2022.txt'
 )
-
-FACTS_HELCOM_PEG_TRANSLATE = pathlib.Path(
-    settings.CONTENT_DIR,
-    'species', 'peg_to_dyntaxa.txt'
-)
-
 
 
 class Command(BaseCommand):
@@ -65,175 +27,114 @@ class Command(BaseCommand):
             self.stdout.write(' done.')
 
         # 1: Start by preparing lists of facts from various sources,
-        #    keyed by scientific name
+        #    keyed by taxon identifier
         prepared_facts = {}
 
-        def prepare_facts(scientific_name, facts_dict):
-            if scientific_name not in prepared_facts:
-                prepared_facts[scientific_name] = []
-            prepared_facts[scientific_name].append(facts_dict)
+        def prepare_facts(taxon_id, facts_dict):
+            if taxon_id not in prepared_facts:
+                prepared_facts[taxon_id] = []
+            prepared_facts[taxon_id].append(facts_dict)
 
-
-        # 1.1: Read and prepare Dyntaxa IDs from CSV
-        #      Provider: Dyntaxa
-        #      Collection: Dyntaxa IDs
-        with FACTS_DYNTAXA.open('r', encoding='utf16') as in_file:
-            rows = csv.DictReader(in_file, dialect='excel-tab')
-
-            for row in rows:
-                prepare_facts(row['Scientific name'], {
-                    'provider': 'Dyntaxa',
-                    'collection': 'IDs in other systems',
-                    'attributes': [{
-                        'name': 'Dyntaxa ID',
-                        'value': row['Dyntaxa id'],
-                    }],
-                })
-
-        # 1.2: Read and prepare AlagaeBase IDs from CSV
-        #      Provider: AlgaeBase
-        #      Collection: AlgaeBase IDs
-        with FACTS_ALGAEBASE.open('r', encoding='utf16') as in_file:
-            rows = csv.DictReader(in_file, dialect='excel-tab')
-
-            for row in rows:
-                prepare_facts(row['Scientific name'], {
-                    'provider': 'AlgaeBase',
-                    'collection': 'IDs in other systems',
-                    'attributes': [{
-                        'name': 'AlgaeBase ID',
-                        'value': row['Algaebase id'],
-                    }],
-                })
-
-        # 1.3: Read and prepare IOC Harmfulness from CSV
-        #      Provider: IOC
-        #      Collection: IOC Harmfulness
-        with FACTS_IOC_HAB.open('r', encoding='utf16') as in_file:
-            rows = csv.DictReader(in_file, dialect='excel-tab')
-
-            for row in rows:
-                prepare_facts(row['Scientific name'], {
-                    'provider': 'IOC',
-                    'collection': 'Harmfulness',
-                    'attributes': [{
-                        'name': 'Harmfulness, IOC',
-                        'value': row['Harmfulness, IOC'],
-                    }],
-                })
-
-        # 1.4: Read and prepare OMNIDIA codes from CSV
-        #      Provider: SLU
-        #      Collection: OMNIDIA Codes
-        with FACTS_OMNIDIA_CODES.open('r', encoding='utf16') as in_file:
-            rows = csv.DictReader(in_file, dialect='excel-tab')
-
-            for row in rows:
-                prepare_facts(row['Scientific name'], {
-                    'provider': 'SLU',
-                    'collection': 'Codes',
-                    'attributes': [{
-                        'name': 'OMNIDIA Code',
-                        'value': row['OMNIDIA code'],
-                    }],
-                })
-
-        # 1.5: Read and prepare REBECCA codes from CSV
-        #      Provider: NIVA
-        #      Collection: REBECCA Codes
-        with FACTS_REBECCA_CODES.open('r', encoding='utf16') as in_file:
-            rows = csv.DictReader(in_file, dialect='excel-tab')
-
-            for row in rows:
-                prepare_facts(row['AcceptedTaxon'], {
-                    'provider': 'NIVA',
-                    'collection': 'Codes',
-                    'attributes': [{
-                        'name': 'REBECCA Code',
-                        'value': row['RebeccaID'],
-                    }],
-                })
-
-        # 1.6 Read and prepare strains from SCCAP
-        #    (The Scandinavian Culture Collection of Algae
-        #     and Protozoa at the University of Copenhagen)
-        #     Provider: SCCAP
-        #     Collection: Culture collections
-        with FACTS_CULTURE_COLLECTIONS_SCCAP.open('r', encoding='cp1258') as in_file:
-            rows = csv.DictReader(in_file, dialect='excel-tab')
-
-            # One species may have multiple strains, so first step is
-            # to store a list of strains for each species.
-            strains_for_species = {} # keyed by species name.
-
-            for row in rows:
-                if row['SPECIES'] == 'sp.':
-                    species_name = row['GENUS']
-                else:
-                    species_name = row['GENUS'] + ' ' + row['SPECIES']
-
-                if not species_name in strains_for_species:
-                    strains_for_species[species_name] = []
-
-                strains_for_species[species_name].append(row['CUNR'])
-
-            # Then prepare a dict for each species, with found strains
-            # as a list of attributes like so: [{name, value}, ...].
-            for species_name, strains in strains_for_species.items():
-                prepare_facts(species_name, {
-                    'provider': 'SCCAP',
-                    'collection': 'Culture collections',
-                    'attributes': [{
-                        'name': 'cunr',
-                        'value': cunr
-                    } for cunr in strains],
-                })
-
-        # 1.6: Read and prepare HELCOM-PEG data from JSON (translations from CSV)
+        # 1.1: Read and prepare HELCOM-PEG data from CSV
         #      Provider: HELCOM-PEG
         #      Collection: Biolvolumes
-        peg_translate = {}
-
-        with FACTS_HELCOM_PEG_TRANSLATE.open('r', encoding='utf16') as in_file:
+        with FACTS_HELCOM_PEG.open('r', encoding='cp1252') as in_file:
             rows = csv.DictReader(in_file, dialect='excel-tab')
 
-            peg_translate = {
-                row['PEG taxon name']: row['DynTaxa taxon name']
-                for row in rows
+            general_fields_mappings = {
+                'Division': 'division',
+                'Class': 'class',
+                'Order': 'order',
+                'Genus': 'genus',
+                'Species': 'species',
+                'SFLAG': 'sflag',
+                'Author': 'authority',
+                'Trophy': 'trophy',
+                'Geometric_shape': 'geometric_shape',
+                'FORMULA': 'formula',
             }
 
-        with FACTS_HELCOM_PEG.open('r', encoding='utf8') as in_file:
-            items = json.load(in_file)
+            size_class_fields_mappings = {
+                'SizeClassNo': 'size_class_no',
+                'Nonvalid_SIZCL': 'non_valid_size_class',
+                'Unit': 'unit',
+                'SizeRange': 'size_range',
+                'Length(l1)µm': 'length1',
+                'Length(l2)µm': 'length2',
+                'Width(w)µm': 'width',
+                'Height(h)µm': 'height',
+                'Diameter(d1)µm': 'diameter1',
+                'Diameter(d2)µm': 'diameter2',
+                'No_of_cells/counting_unit': 'no_of_cells_per_counting_unit',
+                'Calculated_volume_um3': 'calculated_volume',
+                'Comment': 'comment',
+                'Filament_length_of_cell(µm)': 'filament_lengt_of_cell',
+                'Calculated_Carbon_pg/counting_unit': 'calculated_carbon_pg_per_counting_unit',
+                'Comment_on_Carbon_calculation': 'comment_on_carbon_calculation',
+                'STAGE': 'stage',
+            }
 
-            for item in items:
-                prepare_facts(
-                    peg_translate.get(item['Species'], item['Species']), {
-                        'provider': 'HELCOM-PEG',
-                        'collection': 'Biovolumes',
-                        'attributes': json.loads(
-                            json.dumps(item),
-                            object_hook=make_attribute_list
-                        ),
+            biovolumes_by_id = {}
+
+            for row in rows:
+
+                if row['AphiaID'] == '':
+                    self.stdout.write(self.style.WARNING(
+                        'WARNING: Missing AphiaID for: %s. Skipping row.'% ' -> '.join(
+                            [row[col] for col in ['Class', 'Order', 'Genus', 'Species']
+                        ])))
+                    continue
+
+                if not row['AphiaID'] in biovolumes_by_id.keys():
+                    biovolumes_by_id[row['AphiaID']] = {
+                        'size_classes': [],
                     }
-                )
+
+                    for column, key in general_fields_mappings.items():
+                        value = row[column].strip()
+
+                        if value == '':
+                            continue
+
+                        biovolumes_by_id[row['AphiaID']][key] = value
+
+
+                size_class_info = {}
+                for column, key in size_class_fields_mappings.items():
+                    value = row[column].strip()
+
+                    if value == '':
+                        continue
+
+                    size_class_info[key] = value
+
+                biovolumes_by_id[row['AphiaID']]['size_classes'].append(size_class_info)
+
+
+            for taxon_id, biovolumes in biovolumes_by_id.items():
+                prepare_facts(taxon_id, {
+                    'provider': 'HELCOM-PEG',
+                    'collection': 'Biovolumes',
+                    'attributes': biovolumes,
+                })
+
 
 
         # 2: Iterate over prepared facts and write to database
-        for scientific_name, data in prepared_facts.items():
+        for taxon_id, data in prepared_facts.items():
             # Integrity check
             try:
-                taxon = Taxon.objects.get(pk=scientific_name)
+                taxon = Taxon.objects.get(pk=taxon_id)
             except Taxon.DoesNotExist:
                 self.stdout.write(self.style.WARNING(
-                   'WARNING: Taxon name: "%s" not found in database. '
+                   'WARNING: Taxon with id: "%s" not found in database. '
                    'Skipping import of facts.'
-                   % scientific_name
+                   % taxon_id
                 ))
                 continue
 
             facts = Facts(taxon=taxon,data=data)
             facts.save()
-
 
         number_of_created_rows = Facts.objects.all().count()
 
