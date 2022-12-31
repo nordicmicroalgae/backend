@@ -9,7 +9,7 @@ from taxa.views import (
 )
 
 urlpatterns = [
-    path('taxa/<str:scientific_name>/', TaxonView.as_view(), name='taxon'),
+    path('taxa/<str:slug>/', TaxonView.as_view(), name='taxon'),
     path('taxa/', TaxonCollectionView.as_view(), name='taxon-collection'),
     path('synonyms/<str:scientific_name>/', TaxonSynonymCollectionView.as_view(), name='taxon-synonym-collection'),
     path('synonyms/', SynonymCollectionView.as_view(), name='synonym-collection'),

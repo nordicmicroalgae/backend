@@ -84,14 +84,15 @@ class TaxonQuerySet(models.QuerySet):
 
 
 class Taxon(models.Model):
-    scientific_name = models.CharField(max_length=200, primary_key=True)
-    parent_name = models.CharField(max_length=200)
-    authority = models.CharField(max_length=200)
-    rank = models.CharField(max_length=64)
+    id = models.AutoField(primary_key=True, editable=False)
+    parent_id = models.IntegerField(blank=True, null=True, editable=False)
+    slug = models.SlugField(max_length=255, editable=False)
+    scientific_name = models.CharField(max_length=200)
+    authority = models.CharField(max_length=200, blank=True, null=True)
+    rank = models.CharField(max_length=64, blank=True, null=True)
+    parent = models.JSONField(default=dict)
     classification = models.JSONField(default=list)
     children = models.JSONField(default=list)
-    attributes = models.JSONField(default=dict)
-
     objects = TaxonQuerySet.as_manager()
 
 class Synonym(models.Model):

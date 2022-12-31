@@ -8,24 +8,24 @@ from taxa.models import Synonym, Taxon
 
 class TaxonView(View):
 
-    def get(self, request, scientific_name):
+    def get(self, request, slug):
         try:
             taxon = Taxon.objects.get(
-                scientific_name__iexact=scientific_name
+                slug__iexact=slug
             )
             return JsonResponse({
+                'slug': taxon.slug,
                 'scientific_name': taxon.scientific_name,
-                'parent_name': taxon.parent_name,
                 'authority': taxon.authority,
                 'rank': taxon.rank,
+                'parent': taxon.parent,
                 'classification': taxon.classification,
                 'children': taxon.children,
-                'attributes': taxon.attributes,
             })
         except Taxon.DoesNotExist:
             try:
                 current_taxon = Synonym.objects.get(
-                    scientific_name__iexact=scientific_name
+                    scientific_name__iexact=slug
                 ).current_name
 
                 return HttpResponsePermanentRedirect(reverse(
@@ -85,10 +85,11 @@ class TaxonCollectionView(View):
 
         return JsonResponse({
             'taxa': list(queryset.values(
+                'slug',
                 'scientific_name',
-                'parent_name',
                 'authority',
                 'rank',
+                'parent',
             ))
         })
 
