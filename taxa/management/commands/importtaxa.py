@@ -80,10 +80,10 @@ class Command(BaseCommand):
                         'rank': parent_info['rank'],
                     }
                     parent_info['children'].append({
-                        'slug': parent_info['slug'],
-                        'name': parent_info['scientific_name'],
-                        'authority': parent_info['authority'],
-                        'rank': parent_info['rank'],
+                        'slug': taxon_info['slug'],
+                        'name': taxon_info['scientific_name'],
+                        'authority': taxon_info['authority'],
+                        'rank': taxon_info['rank'],
                     })
 
                 # Add classification
