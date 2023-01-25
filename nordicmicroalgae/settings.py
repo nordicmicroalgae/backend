@@ -17,7 +17,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 CONTENT_DIR = os.environ.get(
     'DJANGO_CONTENT_DIR',
-    os.path.join(os.path.dirname(BASE_DIR), 'nua-content')
+    os.path.join(os.path.dirname(BASE_DIR), 'content')
 )
 
 # Quick-start development settings - unsuitable for production
