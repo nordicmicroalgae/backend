@@ -1,3 +1,13 @@
 from django.contrib import admin
 
-# Register your models here.
+from media.models import Media, Image
+
+
+class MediaAdmin(admin.ModelAdmin):
+    pass
+
+class ImageAdmin(MediaAdmin):
+    pass
+
+
+admin.site.register(Image, ImageAdmin)
