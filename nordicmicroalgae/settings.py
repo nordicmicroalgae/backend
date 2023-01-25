@@ -20,6 +20,11 @@ CONTENT_DIR = os.environ.get(
     os.path.join(os.path.dirname(BASE_DIR), 'content')
 )
 
+MEDIA_ROOT = os.environ.get(
+    'DJANGO_MEDIA_ROOT',
+    os.path.join(os.path.dirname(BASE_DIR), 'media')
+)
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
