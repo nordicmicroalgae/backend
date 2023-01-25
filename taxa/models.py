@@ -90,4 +90,11 @@ class Taxon(models.Model):
     parent = models.JSONField(default=dict)
     classification = models.JSONField(default=list)
     children = models.JSONField(default=list)
+
     objects = TaxonQuerySet.as_manager()
+
+    class Meta:
+        ordering = ('scientific_name',)
+
+    def __str__(self):
+        return self.scientific_name
