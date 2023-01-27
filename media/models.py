@@ -1,3 +1,4 @@
+import os
 import itertools
 
 from django.db import models
@@ -25,6 +26,10 @@ def available_slugs(name_base='untitled'):
         incrementing_slugs()
     )
 
+def primary_path_for_media(instance, filename):
+    _file_root, file_ext = os.path.splitext(filename)
+    return str(instance.slug) + str(file_ext)
+
 
 class MediaManager(models.Manager):
     pass
@@ -44,7 +49,7 @@ class Media(models.Model):
     )
 
     slug = models.SlugField(editable=False, max_length=255, unique=True)
-    file = models.FileField()
+    file = models.FileField(upload_to=primary_path_for_media)
     type = models.CharField(max_length=32)
 
     created_by = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
