@@ -22,7 +22,7 @@ class Media(models.Model):
         null=True
     )
 
-    slug = models.SlugField(editable=False, max_length=255)
+    slug = models.SlugField(editable=False, max_length=255, unique=True)
     file = models.FileField()
     type = models.CharField(max_length=32)
 
