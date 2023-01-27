@@ -1,0 +1,261 @@
+# Definitions of fields for the image media type
+image:
+
+  - label: Title
+    key: title
+    help_text: Usually the name of the organism.
+    required: True
+    type: CharField
+
+  - label: Photographer/artist
+    key: photographer_artist
+    help_text: Photographer or artist
+    required: True
+    type: CharField
+
+  - label: Copyright holder
+    key: copyright_holder
+    required: False
+    type: CharField
+
+  - label: Copyright stamp
+    key: copyright_stamp
+    help_text:
+      This text will be used for stamping images with the name of
+      the copyright holder. Leave empty if no stamp is needed. Fill in
+      the name of the Copyright holder if you want a stamp. Keep the
+      text as short as possible
+    required: False
+    type: CharField
+
+  - label: Institute
+    key: institute
+    help_text: Usually your institute, university or company.
+    required: False
+    type: CharField
+
+  - label: Contributing organisation
+    key: contributing_organisation
+    help_text:
+      This could be e.g. HELCOM-PEG, the name of an institute or a
+      company. Maximum number of characters is 28. The text is shown
+      e.g. under the author name in Galleries and Latest images.
+    required: False
+    type: CharField
+
+  - label: Caption
+    key: caption
+    help_text:
+      The text describing the illustration. Caption is not saved in
+      templates.
+    required: False
+    type: CharField
+    widget: Textarea
+
+  - label: Sampling date
+    key: sampling_date
+    required: False
+    type: DateField
+
+  - label: Geographic area
+    key: geographic_area
+    help_text: Choose the area where the organism was collected.
+    required: False
+    type: ChoiceField
+    choices:
+      - Baltic Sea - Bothnian Bay
+      - Baltic Sea - The Quark
+      - Baltic Sea - Bothnian Sea
+      - Baltic Sea - Archipelago Sea
+      - Baltic Sea - Åland Sea
+      - Baltic Sea - Gulf of Finland
+      - Baltic Sea - Gulf of Riga
+      - Baltic Sea - Northern Baltic Proper
+      - Baltic Sea - Central Baltic Proper
+      - Baltic Sea - Southern Baltic Proper
+      - Baltic Sea - The Gulf of Gdansk
+      - Baltic Sea - Arkona Basin
+      - Baltic Sea - Mecklenburger Bight
+      - Baltic Sea - Kiel Bay
+      - Baltic Sea - S Little Belt
+      - Baltic Sea - S Great Belt
+      - Baltic Sea - S part of the sound
+      - Kattegat - off shore
+      - Kattegat - Swedish coast
+      - Kattegat - Danish coast
+      - Kattegat - N Little Belt
+      - Kattegat - N Great Belt
+      - Kattegat - N part of the sound
+      - Limfjorden
+      - Skagerrak - off shore
+      - Skagerrak - Swedish coast
+      - Skagerrak - Oslo fjord
+      - Skagerrak - Norwegian coast
+      - North Sea - off shore
+      - North Sea - Norwegian coast
+      - North Sea - Danish coast
+      - Norwegian Sea - off shore
+      - Norwegian Sea - coast
+      - Barent Sea - off shore
+      - Barent Sea - Norwegian coast
+      - Barent Sea - Svalbard
+      - Iceland - NE
+      - Iceland - SW
+      - Greenland Sea - off shore
+      - Greenland Sea - Greenland coast
+      - Arctic ocean - off shore
+      - Arctic ocean - Svalbard coast
+      - Arctic ocean - Greenland coast
+      - Atlantic ocean - off shore
+      - Lake - Denmark
+      - Lake - Estonia
+      - Lake - Finland
+      - Lake - Greenland
+      - Lake - Iceland
+      - Lake - Germany
+      - Lake - Latvia
+      - Lake - Lithuania
+      - Lake - Norway
+      - Lake - Poland
+      - Lake - Russia
+      - Lake - Sweden
+      - River - Denmark
+      - River - Estonia
+      - River - Finland
+      - River - Greenland
+      - River - Iceland
+      - River - Germany
+      - River - Latvia
+      - River - Lithuania
+      - River - Norway
+      - River - Poland
+      - River - Russia
+      - River - Sweden
+
+  - label: Location
+    key: location
+    help_text: Where the water sample/organism was collected.
+    required: False
+    type: CharField
+
+  - label: Latitude degree
+    key: latitude_degree
+    help_text: 'Example: 57 (use - for the West of Greenwhich).'
+    required: False
+    type: CharField
+
+  - label: Latitude minute
+    key: latitude_minute
+    help_text: 'Example: 59.2'
+    required: False
+    type: CharField
+
+  - label: Longitude degree
+    key: longitude_degree
+    help_text: 'Example: 10 (use - for the Southern hemisphere).'
+    required: False
+    type: CharField
+
+  - label: Longitude minute
+    key: longitude_minute
+    help_text: 'Example 59.2'
+    required: False
+    type: CharField
+
+  - label: License
+    key: license
+    help_text:
+      "'Creative Commons Attribution-NoDerivs 3.0 Unported' is 
+      recommended. This license is the most restrictive of our
+      licenses, only allowing others to download your works and
+      share them with others as long as they credit you, but they
+      can't change them in any way."
+    required: True
+    initial: Creative Commons Attribution-NoDerivs 3.0 Unported
+    type: ChoiceField
+    widget: RadioSelect
+    choices:
+      - Creative Commons Attribution 3.0 Unported
+      - Creative Commons Attribution-NoDerivs 3.0 Unported
+      - Creative Commons Attribution-ShareAlike 3.0 Unported
+      - Public domain
+
+  - label: Preservation
+    key: preservation
+    required: False
+    type: MultipleChoiceField
+    widget: CheckboxSelectMultiple
+    choices:
+      - Not described
+      - No preservation
+      - Lugols iodine
+      - Formaldehyde
+      - Glutardialdehyde
+      - Osmium tetroxide
+      - Other preservative
+
+  - label: Stain
+    key: stain
+    required: False
+    type: MultipleChoiceField
+    widget: CheckboxSelectMultiple
+    choices:
+      - Not described
+      - No stain
+      - DAPI
+      - Primulin
+      - Proflavin
+      - Calcofluor-Fluorescent brightener
+      - Uranyl acetate
+      - Shadow cast
+      - Sputter coated
+      - Other stain
+
+  - label: Contrast enhancement
+    key: contrast_enhancement
+    required: False
+    type: MultipleChoiceField
+    widget: CheckboxSelectMultiple
+    choices:
+      - Not described
+      - No contrast enhancement
+      - DIC/Nomarski
+      - Phase contrast
+      - Acid cleaned and mounted in resin with high refractive index
+      - Other
+
+  - label: Technique
+    key: technique
+    required: False
+    type: MultipleChoiceField
+    widget: CheckboxSelectMultiple
+    choices:
+      - Not described
+      - Drawing
+      - Painting
+      - Light microscopy
+      - Fluorescence microscopy
+      - TEM Transmission Electron Microscopy
+      - SEM Scanning Electron Microscopy
+      - Photography from land
+      - Photography from ship
+      - Photography from air
+      - Satellite remote sensing
+      - Other technique
+
+  - label: Galleries
+    key: galleries
+    required: False
+    type: MultipleChoiceField
+    widget: CheckboxSelectMultiple
+    choices:
+      - HELCOM-PEG
+      - Kuylenstierna
+      - Skagerrak-Kattegat
+      - Norwegian Sea
+      - Marine Research Institute - Iceland
+      - Freshwater
+      - Swedish benthic freshwater diatoms
+      - Diatom resting stages
+      - Dinoflagellate cysts
+      - Other resting stages
