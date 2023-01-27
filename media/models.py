@@ -1,8 +1,29 @@
+import itertools
+
 from django.db import models
 from django.contrib.auth import get_user_model
+from django.utils.text import slugify
 
 
 from taxa.models import Taxon
+
+
+def available_slugs(name_base='untitled'):
+    slug_mask = slugify(name_base) + '-%d'
+
+    def incrementing_slugs():
+        counter = itertools.count(1)
+        for number in counter:
+            yield slug_mask % number
+
+    preexisting_slugs = (
+        Media.objects.all().values_list('slug', flat=True)
+    )
+
+    return filter(
+        lambda s: s not in preexisting_slugs,
+        incrementing_slugs()
+    )
 
 
 class MediaManager(models.Manager):
@@ -34,6 +55,16 @@ class Media(models.Model):
     attributes = models.JSONField(default=dict)
 
     objects = MediaManager()
+
+    @property
+    def title(self):
+        return self.attributes.get('title', 'Untitled')
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            setattr(self, 'slug', next(available_slugs(self.title)))
+
+        return super().save(*args, **kwargs)
 
 class Image(Media):
     objects = ImageManager()
