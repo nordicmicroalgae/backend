@@ -76,7 +76,7 @@ class ImageUploadField(forms.ImageField):
 class MediaForm(forms.ModelForm):
 
     class Meta:
-        exclude = ('attributes', 'type',)
+        exclude = ('attributes', 'created_by', 'type',)
 
     def __init__(self, *args, **kwargs):
         instance = kwargs.get('instance', None)
