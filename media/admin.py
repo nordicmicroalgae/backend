@@ -9,7 +9,9 @@ class MediaAdmin(admin.ModelAdmin):
 
 class ImageAdmin(MediaAdmin):
     form = ImageForm
-    pass
+
+    list_display = ('slug', 'title', 'taxon')
+
 
 
 admin.site.register(Image, ImageAdmin)
