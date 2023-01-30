@@ -65,6 +65,14 @@ def configure_form(form_cls, form_config):
     form_cls.configured_fields = form_config
 
 
+class ImageFileInput(forms.widgets.ClearableFileInput):
+    pass
+
+class ImageUploadField(forms.ImageField):
+    widget = ImageFileInput
+
+
+
 class MediaForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         instance = kwargs.get('instance', None)
@@ -87,6 +95,7 @@ class MediaForm(forms.ModelForm):
 
 
 class ImageForm(MediaForm):
-    pass
+    file = ImageUploadField()
+
 
 configure_form(ImageForm, get_fields_config('image'))
