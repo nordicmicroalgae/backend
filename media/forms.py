@@ -76,7 +76,7 @@ class ImageUploadField(forms.ImageField):
 class MediaForm(forms.ModelForm):
 
     class Meta:
-        exclude = ('attributes',)
+        exclude = ('attributes', 'type',)
 
     def __init__(self, *args, **kwargs):
         instance = kwargs.get('instance', None)
@@ -88,6 +88,8 @@ class MediaForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
     def save(self, *args, **kwargs):
+        self.instance.type = getattr(self.instance.file.file, 'content_type')
+
         if hasattr(self, 'configured_fields'):
             for configured_field in self.configured_fields:
                 field_key = configured_field['key']
