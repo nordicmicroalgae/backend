@@ -47,7 +47,8 @@ class MediaAdmin(admin.ModelAdmin):
         return qs.filter(created_by=request.user)
 
     def save_model(self, request, obj, form, change):
-        obj.created_by = request.user
+        if not hasattr(obj, 'created_by'):
+            obj.created_by = request.user
         super().save_model(request, obj, form, change)
 
 
