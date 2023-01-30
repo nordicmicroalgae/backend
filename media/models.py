@@ -2,6 +2,7 @@ import os
 import itertools
 
 from django.db import models
+from django.dispatch import receiver
 from django.contrib.auth import get_user_model
 from django.utils.text import slugify
 
@@ -76,3 +77,12 @@ class Image(Media):
 
     class Meta:
         proxy = True
+
+
+@receiver(models.signals.post_delete, sender=Image)
+def remove_file_on_delete(sender, instance, **kwargs):
+    if not instance.file:
+        return
+
+    if hasattr(instance.file, 'delete') and callable(instance.file.delete):
+        instance.file.delete(save=False)
