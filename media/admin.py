@@ -12,6 +12,11 @@ class ImageAdmin(MediaAdmin):
 
     list_display = ('slug', 'title', 'taxon')
 
+    search_fields = (
+        'attributes__title',
+        'taxon__scientific_name',
+    )
+
 
 
 admin.site.register(Image, ImageAdmin)
