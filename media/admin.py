@@ -31,11 +31,6 @@ class TaxonListFilter(admin.SimpleListFilter):
 
 
 class MediaAdmin(admin.ModelAdmin):
-    pass
-
-class ImageAdmin(MediaAdmin):
-    form = ImageForm
-
     list_display = ('slug', 'title', 'taxon')
 
     search_fields = (
@@ -45,6 +40,9 @@ class ImageAdmin(MediaAdmin):
 
     list_filter = (TaxonListFilter,)
 
+
+class ImageAdmin(MediaAdmin):
+    form = ImageForm
 
 
 admin.site.register(Image, ImageAdmin)
