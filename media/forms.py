@@ -78,6 +78,11 @@ class MediaForm(forms.ModelForm):
     class Meta:
         exclude = ('attributes', 'created_by', 'type',)
 
+    class Media:
+        css = {
+            'screen': ('admin/css/media_form.css',)
+        }
+
     def __init__(self, *args, **kwargs):
         instance = kwargs.get('instance', None)
 

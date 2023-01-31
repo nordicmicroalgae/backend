@@ -1,0 +1,8 @@
+.aligned label + div {
+  float: left;
+}
+
+.aligned label + div label {
+  float: none;
+  width: auto;
+}
