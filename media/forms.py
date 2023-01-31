@@ -88,7 +88,17 @@ class MediaForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
     def save(self, *args, **kwargs):
-        self.instance.type = getattr(self.instance.file.file, 'content_type')
+        # TODO: Implement better solution for determining content_type.
+        #
+        # Do not rely on values provided by the client, which is the case
+        # for content_type for uploaded files. At least the value needs to
+        # be verified.
+        #
+        # This is fine for now since ImageField is the only one being used
+        # at the moment and in that case the value for content_type is
+        # derived from the image type received by Pillow upon validation.
+        if 'file' in self.changed_data:
+            self.instance.type = self.cleaned_data['file'].content_type
 
         if hasattr(self, 'configured_fields'):
             for configured_field in self.configured_fields:
