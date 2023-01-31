@@ -82,6 +82,9 @@ class MediaForm(forms.ModelForm):
         css = {
             'screen': ('admin/css/media_form.css',)
         }
+        js = (
+            'admin/js/MediaFormEnhancements.js',
+        )
 
     def __init__(self, *args, **kwargs):
         instance = kwargs.get('instance', None)
