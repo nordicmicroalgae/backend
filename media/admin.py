@@ -51,6 +51,20 @@ class MediaAdmin(admin.ModelAdmin):
             obj.created_by = request.user
         super().save_model(request, obj, form, change)
 
+    def add_view(self, request, form_url='', extra_context=False):
+        extra_context = self._extra_context_with_defaults(extra_context)
+        return super().add_view(request, form_url, extra_context)
+
+    def change_view(self, request, object_id, form_url='', extra_context=False):
+        extra_context = self._extra_context_with_defaults(extra_context)
+        return super().change_view(request, object_id, form_url, extra_context)
+
+    def _extra_context_with_defaults(self, extra_context):
+        return {
+            'show_save_and_continue': False,
+            'show_save_and_add_another': False,
+            **(extra_context or {})
+        }
 
 class ImageAdmin(MediaAdmin):
     form = ImageForm
