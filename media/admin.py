@@ -49,7 +49,11 @@ class MediaAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         if not hasattr(obj, 'created_by'):
             obj.created_by = request.user
+
         super().save_model(request, obj, form, change)
+
+        if hasattr(obj, 'create_renditions') and callable(obj.create_renditions):
+            obj.create_renditions()
 
     def add_view(self, request, form_url='', extra_context=False):
         extra_context = self._extra_context_with_defaults(extra_context)

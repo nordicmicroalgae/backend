@@ -7,6 +7,7 @@ from django.contrib.auth import get_user_model
 from django.utils.text import slugify
 
 
+from media import renditions
 from taxa.models import Taxon
 
 
@@ -40,8 +41,7 @@ class ImageManager(MediaManager):
         return super().get_queryset().filter(type__startswith='image/')
 
 
-
-class Media(models.Model):
+class Media(models.Model, renditions.ModelActionsMixin):
     taxon = models.ForeignKey(
         Taxon,
         on_delete=models.CASCADE,
@@ -59,6 +59,7 @@ class Media(models.Model):
     sort_order = models.IntegerField()
 
     attributes = models.JSONField(default=dict)
+    renditions = models.JSONField(default=dict)
 
     objects = MediaManager()
 
@@ -72,6 +73,11 @@ class Media(models.Model):
 
         return super().save(*args, **kwargs)
 
+@renditions.register(
+    s=(renditions.ResizedImage, 240, 240),
+    m=(renditions.ResizedImage, 480, 480),
+    l=(renditions.ResizedImage, 1024, 1024),
+)
 class Image(Media):
     objects = ImageManager()
 

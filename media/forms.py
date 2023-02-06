@@ -76,7 +76,7 @@ class ImageUploadField(forms.ImageField):
 class MediaForm(forms.ModelForm):
 
     class Meta:
-        exclude = ('attributes', 'created_by', 'type',)
+        exclude = ('attributes', 'created_by', 'type', 'renditions',)
 
     class Media:
         css = {
