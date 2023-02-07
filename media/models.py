@@ -28,6 +28,18 @@ def available_slugs(name_base='untitled'):
         incrementing_slugs()
     )
 
+def available_priorities(taxon=None):
+    incrementing_priority = itertools.count(0)
+
+    preexisting_priorities = (
+        Media.objects.filter(taxon=taxon).values_list('priority', flat=True)
+    )
+
+    return filter(
+        lambda p: p not in preexisting_priorities,
+        incrementing_priority
+    )
+
 def primary_path_for_media(instance, filename):
     _file_root, file_ext = os.path.splitext(filename)
     return str(instance.slug) + str(file_ext)
@@ -49,6 +61,8 @@ class Media(models.Model, renditions.ModelActionsMixin):
         null=True
     )
 
+    priority = models.IntegerField(editable=False)
+
     slug = models.SlugField(editable=False, max_length=255, unique=True)
     file = models.FileField(upload_to=primary_path_for_media)
     type = models.CharField(max_length=32)
@@ -56,12 +70,14 @@ class Media(models.Model, renditions.ModelActionsMixin):
     created_by = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
     created_at = models.DateTimeField(editable=False, auto_now_add=True)
     updated_at = models.DateTimeField(editable=False, auto_now=True)
-    sort_order = models.IntegerField()
 
     attributes = models.JSONField(default=dict)
     renditions = models.JSONField(default=dict)
 
     objects = MediaManager()
+
+    class Meta:
+        unique_together = ('taxon', 'priority')
 
     @property
     def title(self):
@@ -70,6 +86,8 @@ class Media(models.Model, renditions.ModelActionsMixin):
     def save(self, *args, **kwargs):
         if not self.slug:
             setattr(self, 'slug', next(available_slugs(self.title)))
+        if self.priority is None:
+            setattr(self, 'priority', next(available_priorities(self.taxon)))
 
         return super().save(*args, **kwargs)
 
