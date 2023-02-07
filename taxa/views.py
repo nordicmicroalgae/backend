@@ -1,7 +1,9 @@
+from django.db.models import Count, OuterRef, Subquery
 from django.http import JsonResponse
 from django.views import View
 
 from taxa.models import Taxon
+from media.models import Image
 
 
 class TaxonView(View):
@@ -34,6 +36,7 @@ class TaxonCollectionView(View):
         'parent',
         'classification',
         'children',
+        'image',
     ]
 
     def get(self, request):
@@ -62,6 +65,29 @@ class TaxonCollectionView(View):
             queryset = queryset.helcom_peg_only()
 
 
+        illustrated_only = (
+            request.GET.get('illustrated-only') == 'true'
+        )
+        not_illustrated_only = (
+            request.GET.get('not-illustrated-only') == 'true'
+        )
+
+        if illustrated_only and not_illustrated_only:
+            return JsonResponse({
+                'message': (
+                    'It is not possible to combine '
+                    'illustrated-only and not-illustrated-only.'
+                )
+            }, status=400)
+
+        if illustrated_only or not_illustrated_only:
+            queryset = queryset.annotate(image_count=Count('media'))
+            if illustrated_only:
+                queryset = queryset.filter(image_count__gt=0)
+            elif not_illustrated_only:
+                queryset = queryset.filter(image_count=0)
+
+
         skip = abs(int(request.GET.get('skip', 0)))
         limit = abs(int(request.GET.get('limit', 0)))
 
@@ -79,6 +105,14 @@ class TaxonCollectionView(View):
                 return JsonResponse({
                     'message': 'Unkown value provided for fields.'
                 }, status=400)
+
+        if 'image' in fields:
+            subqueryset = (
+                Image.objects.filter(taxon=OuterRef('pk')).order_by('priority')
+            )
+            queryset = queryset.annotate(
+                image=Subquery(subqueryset.values('renditions')[:1])
+            )
 
         return JsonResponse({
             'taxa': list(queryset.values(*fields))
