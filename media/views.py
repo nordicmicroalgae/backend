@@ -15,6 +15,8 @@ class MediaCollectionView(View):
         'slug',
         'file',
         'type',
+        'created_at',
+        'updated_at',
         'attributes',
         'renditions',
     ]
