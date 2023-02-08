@@ -1,3 +1,4 @@
+from django.db.models import Count, F
 from django.http import JsonResponse
 from django.views import View
 
@@ -74,3 +75,23 @@ class MediaCollectionView(View):
         return JsonResponse({
             'media': list(queryset.values(*fields))
         })
+
+
+class ArtistCollectionView(View):
+
+    def get(self, request):
+        queryset = Media.objects.all()
+
+        queryset = queryset.values(
+            artist=F('attributes__photographer_artist')
+        )
+
+        queryset = queryset.annotate(
+            number_of_contributions=Count(
+                'attributes__photographer_artist'
+            )
+        )
+
+        queryset = queryset.order_by('-number_of_contributions')
+
+        return JsonResponse({'artists': list(queryset)})
