@@ -55,6 +55,11 @@ class MediaCollectionView(View):
         if taxon != None:
             queryset = queryset.filter(taxon__slug=taxon)
 
+
+        queryset = queryset.order_by(
+            'priority' if taxon else '-created_at'
+        )
+
         skip = abs(int(request.GET.get('skip', 0)))
         limit = abs(int(request.GET.get('limit', 0)))
 
