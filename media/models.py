@@ -4,6 +4,7 @@ import itertools
 from django.db import models
 from django.dispatch import receiver
 from django.contrib.auth import get_user_model
+from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.text import slugify
 
 
@@ -71,7 +72,7 @@ class Media(models.Model, renditions.ModelActionsMixin):
     created_at = models.DateTimeField(editable=False, auto_now_add=True)
     updated_at = models.DateTimeField(editable=False, auto_now=True)
 
-    attributes = models.JSONField(default=dict)
+    attributes = models.JSONField(default=dict, encoder=DjangoJSONEncoder)
     renditions = models.JSONField(default=dict)
 
     objects = MediaManager()
