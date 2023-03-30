@@ -112,12 +112,19 @@ class Specification:
     def get(cls, model):
         return cls._registry.get(model)
 
+    @classmethod
+    def get_registered_models(cls):
+        return list(cls._registry.keys())
+
 
 def register(**specs):
     def _register_model_spec_wrapper(model):
         Specification.register(model, **specs)
         return model
     return _register_model_spec_wrapper
+
+def get_registered_models():
+    return Specification.get_registered_models()
 
 
 class ModelActionsMixin:
