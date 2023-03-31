@@ -46,6 +46,12 @@ class MediaAdmin(admin.ModelAdmin):
             return qs
         return qs.filter(created_by=request.user)
 
+    def get_ordering(self, request):
+        is_filtered_by_taxon = (
+            TaxonListFilter.parameter_name in request.GET
+        )
+        return ('priority',) if is_filtered_by_taxon else ('-created_at',)
+
     def save_model(self, request, obj, form, change):
         if not hasattr(obj, 'created_by'):
             obj.created_by = request.user
