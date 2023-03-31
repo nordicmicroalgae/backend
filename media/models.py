@@ -2,7 +2,6 @@ import os
 import itertools
 
 from django.db import models
-from django.dispatch import receiver
 from django.contrib.auth import get_user_model
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.text import slugify
@@ -104,7 +103,7 @@ class Image(Media):
         proxy = True
 
 
-@receiver(models.signals.post_delete, sender=Image)
+# Signal receivers. Connected to senders in MediaConfig ready.
 def remove_file_on_delete(sender, instance, **kwargs):
     if not instance.file:
         return
