@@ -91,6 +91,9 @@ class Media(models.Model, renditions.ModelActionsMixin):
 
         return super().save(*args, **kwargs)
 
+    def __str__(self):
+        return self.title
+
 @renditions.register(
     s=(renditions.ResizedImage, 240, 240),
     m=(renditions.ResizedImage, 480, 480),
