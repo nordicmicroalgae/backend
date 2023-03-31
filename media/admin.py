@@ -1,7 +1,7 @@
 from django.contrib import admin
 
-from media.forms import MediaForm, ImageForm
-from media.models import Media, Image
+from media.forms import ImageForm
+from media.models import Image
 
 
 class TaxonListFilter(admin.SimpleListFilter):
