@@ -1,0 +1,15 @@
+:root {
+  --primary: #666666;
+  --secondary: #3c3c3c;
+  --accent: #f59d5d;
+  --header-color: #ffe9cc;
+  --breadcrumbs-fg: #aaaaaa;
+  --selected-row: #ebf8ff;
+  --button-hover-bg: #3c3c3c;
+  --default-button-hover-bg: #000000;
+}
+
+#changelist-filter ul {
+  max-height: 30vh;
+  overflow-y: auto;
+}
