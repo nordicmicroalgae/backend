@@ -6,3 +6,9 @@
   float: none;
   width: auto;
 }
+
+.field-taxon .select2-selection__clear {
+  margin-right: .25rem;
+  width: 1rem;
+  text-align: center;
+}

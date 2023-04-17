@@ -83,6 +83,7 @@ class MediaForm(forms.ModelForm):
             'screen': ('admin/css/media_form.css',)
         }
         js = (
+            'admin/js/jquery.init.js',
             'admin/js/MediaFormEnhancements.js',
         )
 
