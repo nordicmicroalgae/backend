@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.urls import path, reverse
+from django.utils.html import format_html
 
 from media.forms import ImageForm
 from media.models import Image
@@ -66,7 +67,15 @@ class TaxonSelect(admin.widgets.AutocompleteSelect):
 
 
 class MediaAdmin(admin.ModelAdmin):
-    list_display = ('slug', 'title', 'taxon')
+
+    class Media:
+        css = {
+            'screen': (
+                'admin/css/media_preview.css',
+            )
+        }
+
+    list_display = ('preview', 'title', 'taxon')
 
     search_fields = (
         'attributes__title',
@@ -74,6 +83,18 @@ class MediaAdmin(admin.ModelAdmin):
     )
 
     list_filter = (TaxonListFilter,)
+
+    def preview(self, obj):
+        return format_html(
+            '<div class="preview-container">'
+            '  <div class="preview preview-{}">{}</div>'
+            '</div>',
+            self.model._meta.model_name,
+            self.get_preview_html(obj)
+        )
+
+    def get_preview_html(self, obj):
+        return format_html('<span class="not-available">?</span>')
 
     def get_urls(self):
         urls = [
@@ -163,6 +184,14 @@ class MediaAdmin(admin.ModelAdmin):
 
 class ImageAdmin(MediaAdmin):
     form = ImageForm
+
+    def get_preview_html(self, obj):
+        small_rendition = obj.renditions.get('s')
+
+        if small_rendition:
+            return format_html('<img src={} />', small_rendition['url'])
+
+        return super().get_preview_html(obj)
 
 
 admin.site.register(Image, ImageAdmin)

@@ -1,0 +1,40 @@
+#changelist table .column-preview,
+#changelist table .field-preview {
+  width: 12.5rem;
+  text-align: center;
+}
+
+#changelist table .field-preview a {
+  display: inline-block;
+}
+
+#changelist .preview-container {
+  --max-width: 6.25rem;
+  --max-height: 5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--max-width);
+  height: var(--max-height);
+}
+
+#changelist .preview {
+  box-shadow: .0625rem .0625rem .25rem rgba(0, 0, 0, .5);
+}
+
+#changelist .preview > .not-available {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--max-width);
+  height: var(--max-height);
+  font-size: 2rem;
+}
+
+#changelist .preview-image > img {
+  display: block;
+  margin: 0;
+  padding: 0;
+  max-width: var(--max-width);
+  max-height: var(--max-height);
+}
