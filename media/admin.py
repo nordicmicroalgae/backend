@@ -1,11 +1,21 @@
+import json
+
 from django.contrib import admin
+from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
 from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_protect
+from django.views.decorators.http import require_POST
 from django.urls import path, reverse
+from django.utils.decorators import method_decorator
 from django.utils.html import format_html
 
 from media.forms import ImageForm
 from media.models import Image
+
+
+class InvalidPriorityListJson(Exception):
+    pass
 
 
 class TaxonListFilter(admin.SimpleListFilter):
@@ -28,11 +38,15 @@ class TaxonListFilter(admin.SimpleListFilter):
     def queryset(self, request, queryset):
         taxon_id = self.value()
         if taxon_id is not None:
-            if taxon_id.lower() == 'none':
-                taxon_id = None
+            taxon_id = self.normalize_value(taxon_id)
             return queryset.filter(taxon=taxon_id)
         return queryset
 
+    @classmethod
+    def normalize_value(cls, value):
+        if str(value).lower() == 'none':
+            value = None
+        return value
 
 class TaxonSelect(admin.widgets.AutocompleteSelect):
     """
@@ -72,10 +86,11 @@ class MediaAdmin(admin.ModelAdmin):
         css = {
             'screen': (
                 'admin/css/media_preview.css',
+                'admin/css/media_priority.css',
             )
         }
 
-    list_display = ('preview', 'title', 'taxon')
+    list_display = ('preview', 'title', 'taxon', 'priority_actions')
 
     search_fields = (
         'attributes__title',
@@ -83,6 +98,10 @@ class MediaAdmin(admin.ModelAdmin):
     )
 
     list_filter = (TaxonListFilter,)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.enable_priority_sorting = False
 
     def preview(self, obj):
         return format_html(
@@ -96,6 +115,23 @@ class MediaAdmin(admin.ModelAdmin):
     def get_preview_html(self, obj):
         return format_html('<span class="not-available">?</span>')
 
+    @admin.display(ordering='priority', description='Priority')
+    def priority_actions(self, obj):
+        boolean_attrs = (
+            'disabled' if not self.enable_priority_sorting else ''
+        )
+        return format_html(
+            '<div class="priority-actions" data-pk="{0}" data-priority="{1}">'
+            '  <button type="button" class="button" {2} data-action="decrement" title="Move up">'
+            '    Move up'
+            '  </button>'
+            '  <button type="button" class="button" {2} data-action="increment" title="Move down">'
+            '    Move down'
+            '  </button>'
+            '</div>',
+            obj.pk, obj.priority, boolean_attrs
+        )
+
     def get_urls(self):
         urls = [
             path(
@@ -107,9 +143,76 @@ class MediaAdmin(admin.ModelAdmin):
                     self.model._meta.app_label,
                     self.model._meta.model_name
                 )
-            )
+            ),
+            path(
+                '<int:taxon_id>/update_priority_list',
+                self.admin_site.admin_view(
+                    self.update_priority_list_json_view
+                ),
+                name='%s_%s_update_priority_list' % (
+                    self.model._meta.app_label,
+                    self.model._meta.model_name
+                )
+            ),
         ]
         return urls + super().get_urls()
+
+    def get_update_priority_list_url(self, taxon_id):
+        return reverse(
+            '%s:%s_%s_update_priority_list' % (
+                self.admin_site.name,
+                self.model._meta.app_label,
+                self.model._meta.model_name
+        ), args=[taxon_id])
+
+    @method_decorator(require_POST, csrf_protect)
+    def update_priority_list_json_view(self, request, taxon_id):
+        if not self.has_change_permission(request):
+            raise PermissionDenied
+
+        try:
+            posted_data = json.loads(request.body)
+            if not (
+                type(posted_data) is list and
+                all(type(v) is int for v in posted_data)
+            ):
+                raise InvalidPriorityListJson
+        except (json.JSONDecodeError, InvalidPriorityListJson):
+            return JsonResponse({
+                'error': (
+                    'Request body MUST only contain valid '
+                    'JSON in the form of a list with integers.'
+                )
+            }, status=400)
+
+        queryset = self.get_queryset(request).filter(
+            taxon_id=taxon_id,
+            pk__in=posted_data
+        )
+
+        priority_slots = tuple(
+            [obj.priority for obj in queryset.order_by('priority')]
+        )
+
+        objects_to_update = []
+
+        for object_to_update in queryset:
+            object_to_update.priority = priority_slots[
+                posted_data.index(object_to_update.pk)
+            ]
+            objects_to_update.append(object_to_update)
+
+        _result = queryset.bulk_update(
+            objects_to_update,
+            fields=['priority']
+        )
+
+        return JsonResponse({
+            'results': [
+                {'id': obj.pk, 'priority': obj.priority}
+                for obj in queryset.order_by('priority')
+            ]
+        })
 
     def taxon_options_json_view(self, request):
         term = request.GET.get('term', '')
@@ -154,9 +257,36 @@ class MediaAdmin(admin.ModelAdmin):
 
     def get_ordering(self, request):
         is_filtered_by_taxon = (
-            TaxonListFilter.parameter_name in request.GET
+            self.get_taxon_filter_value(request.GET) != None
         )
         return ('priority',) if is_filtered_by_taxon else ('-created_at',)
+
+    def get_changelist_instance(self, request):
+        cl = super().get_changelist_instance(request)
+
+        primary_ordering_field, *other_ordering_fields = (
+            cl.get_ordering(request, cl.get_queryset(request))
+        )
+        _, _, primary_ordering_field_name = (
+            primary_ordering_field.rpartition('-')
+        )
+
+        is_ordered_by_priority = (
+            primary_ordering_field_name == 'priority'
+        )
+
+        is_filtered_by_taxon = (
+            self.get_taxon_filter_value(cl.get_filters_params()) != None
+        )
+
+        self.enable_priority_sorting = (
+            is_ordered_by_priority and is_filtered_by_taxon
+        )
+
+        # annotate for usage in templates etc.
+        cl.enable_priority_sorting = self.enable_priority_sorting
+
+        return cl
 
     def save_model(self, request, obj, form, change):
         if not hasattr(obj, 'created_by'):
@@ -175,12 +305,30 @@ class MediaAdmin(admin.ModelAdmin):
         extra_context = self._extra_context_with_defaults(extra_context)
         return super().change_view(request, object_id, form_url, extra_context)
 
+    def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+
+        filtered_by_taxon_id = self.get_taxon_filter_value(request.GET)
+
+        if filtered_by_taxon_id is not None:
+            extra_context['update_priority_list_url'] = (
+                self.get_update_priority_list_url(filtered_by_taxon_id)
+            )
+
+        return super().changelist_view(request, extra_context)
+
     def _extra_context_with_defaults(self, extra_context):
         return {
             'show_save_and_continue': False,
             'show_save_and_add_another': False,
             **(extra_context or {})
         }
+
+    @classmethod
+    def get_taxon_filter_value(cls, parameters):
+        return TaxonListFilter.normalize_value(
+            parameters.get(TaxonListFilter.parameter_name)
+        )
 
 class ImageAdmin(MediaAdmin):
     form = ImageForm

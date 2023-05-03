@@ -1,0 +1,40 @@
+#changelist .column-priority_actions {
+  text-align: end;
+}
+
+#changelist .priority-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: end;
+}
+
+#changelist .priority-actions .button {
+  position: relative;
+  width: 1rem;
+  height: 1rem;
+  text-indent: -3000px;
+}
+
+#changelist .priority-actions .button {
+  --arrow-width: .5rem;
+  --arrow-height: .3125rem;
+}
+
+#changelist .priority-actions .button::before {
+  content: '';
+  display: block;
+  position: absolute;
+  top: calc(50% - var(--arrow-height) / 2);
+  left: calc(50% - var(--arrow-width) / 2);
+  border-style: solid;
+}
+
+#changelist .priority-actions .button[data-action='decrement']::before {
+  border-color:  transparent transparent var(--button-fg) transparent;
+  border-width: 0 calc(var(--arrow-width) / 2) var(--arrow-height) calc(var(--arrow-width) / 2);
+}
+
+#changelist .priority-actions .button[data-action='increment']::before {
+  border-color: var(--button-fg) transparent transparent transparent;
+  border-width: var(--arrow-height) calc(var(--arrow-width) / 2) 0 calc(var(--arrow-width) / 2);
+}
