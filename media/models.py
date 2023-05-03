@@ -77,7 +77,13 @@ class Media(models.Model, renditions.ModelActionsMixin):
     objects = MediaManager()
 
     class Meta:
-        unique_together = ('taxon', 'priority')
+        constraints = [
+            models.UniqueConstraint(
+                fields=['taxon', 'priority'],
+                name='unique_media_priority',
+                deferrable=models.Deferrable.DEFERRED
+            ),
+        ]
 
     @property
     def title(self):
