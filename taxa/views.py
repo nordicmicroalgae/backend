@@ -88,11 +88,14 @@ class TaxonCollectionView(View):
                 queryset = queryset.filter(image_count=0)
 
 
-        skip = abs(int(request.GET.get('skip', 0)))
+        offset = abs(int(request.GET.get('offset', 0)))
         limit = abs(int(request.GET.get('limit', 0)))
 
-        if skip > 0 or limit > 0:
-            queryset = queryset[skip:(skip + limit)]
+        if offset > 0 or limit > 0:
+            if limit > 0:
+                queryset = queryset[offset:(offset + limit)]
+            else:
+                queryset = queryset[offset:]
 
 
         fields = request.GET.get('fields', None)

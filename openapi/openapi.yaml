@@ -34,7 +34,7 @@ paths:
                     items:
                       $ref: '#/components/schemas/Taxon'
       parameters:
-      - $ref: '#/components/parameters/skip'
+      - $ref: '#/components/parameters/offset'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/name'
       - $ref: '#/components/parameters/rank'
@@ -77,7 +77,7 @@ paths:
                     items:
                       $ref: '#/components/schemas/Synonym'
       parameters:
-      - $ref: '#/components/parameters/skip'
+      - $ref: '#/components/parameters/offset'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/name'
   /synonyms/{scientific-name}:
@@ -243,8 +243,8 @@ components:
       schema:
         type: string
         example: e2773cc4-b088-4821-81ef-631a8a7c8135
-    skip:
-      name: skip
+    offset:
+      name: offset
       in: query
       description: Number of records to skip for pagination
       schema:
