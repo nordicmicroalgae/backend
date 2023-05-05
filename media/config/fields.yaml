@@ -43,6 +43,11 @@ image:
     required: False
     type: CharField
 
+  - label: Contributor
+    key: contributor
+    required: True
+    type: CharField
+
   - label: Caption
     key: caption
     help_text:
