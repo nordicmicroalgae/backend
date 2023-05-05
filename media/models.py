@@ -56,7 +56,7 @@ class ImageManager(MediaManager):
 class Media(models.Model, renditions.ModelActionsMixin):
     taxon = models.ForeignKey(
         Taxon,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         blank=True,
         null=True
     )
