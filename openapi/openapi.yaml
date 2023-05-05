@@ -12,11 +12,11 @@ tags:
 - name: facts
   description: Collections of facts, traits and various description of taxa
 - name: media
-  description: Information about pictures and operations for contributing media
+  description: Information about contributed media (e.g. pictures)
 - name: articles
   description: Generic content such as pages, news, etc
 paths:
-  /taxa:
+  /taxa/:
     get:
       tags:
       - taxa
@@ -37,11 +37,11 @@ paths:
       - $ref: '#/components/parameters/offset'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/name'
-      - $ref: '#/components/parameters/rank'
       - $ref: '#/components/parameters/group'
-      - $ref: '#/components/parameters/harmful-only'
       - $ref: '#/components/parameters/helcom-peg-only'
-  /taxa/{scientific-name}:
+      - $ref: '#/components/parameters/illustrated-only'
+      - $ref: '#/components/parameters/not-illustrated-only'
+  /taxa/{slug}/:
     get:
       tags:
       - taxa
@@ -53,55 +53,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Taxon'
-        301:
-          description: Redirect to current valid name
         404:
           description: Taxon not found
       parameters:
-      - $ref: '#/components/parameters/scientific-name'
-  /synonyms:
-    get:
-      tags:
-      - taxa
-      description: Returns a list of synonyms
-      responses:
-        200:
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  synonyms:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Synonym'
-      parameters:
-      - $ref: '#/components/parameters/offset'
-      - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/name'
-  /synonyms/{scientific-name}:
-    get:
-      tags:
-      - taxa
-      description: Returns synonyms for a single taxon
-      responses:
-        200:
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  synonyms:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Synonym'
-        404:
-          description: Taxon not found
-      parameters:
-      - $ref: '#/components/parameters/scientific-name'
-  /facts/{scientific-name}:
+      - $ref: '#/components/parameters/slug'
+  /facts/{slug}/:
     get:
       tags:
       - facts
@@ -118,78 +74,56 @@ paths:
         404:
           description: Facts not found
       parameters:
-      - $ref: '#/components/parameters/scientific-name'
-  /media:
-    post:
-      tags:
-      - media
-      description: Upload a media file
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                file:
-                  type: string
-                  format: binary
-      responses:
-        201:
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Media'
-        422:
-          description: Invalid file upload
-  /media/{media-id}:
+      - $ref: '#/components/parameters/slug'
+  /media/:
     get:
       tags:
       - media
-      description: Returns a single media item
+      description: Returns a list of media
       responses:
         200:
           description: Successful operation
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Media'
-        404:
-          description: Media item not found
+                type: object
+                properties:
+                  media:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Media'
       parameters:
-      - $ref: '#/components/parameters/media-id'
-    patch:
+      - $ref: '#/components/parameters/offset'
+      - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/media-type'
+      - $ref: '#/components/parameters/media-artist'
+      - $ref: '#/components/parameters/media-gallery'
+      - $ref: '#/components/parameters/media-taxon'
+  /media/artists/:
+    get:
       tags:
       - media
-      description: Update attributes for a media item
+      description: Returns a list of photographers/artists along with their statistics for number of media.
       responses:
-        204:
+        200:
           description: Successful operation
-        404:
-          description: Media item not found
-      parameters:
-      - $ref: '#/components/parameters/media-id'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: array
-              items:
-                $ref: '#/components/schemas/Attribute'
-    delete:
-      tags:
-      - media
-      description: Delete a media item
-      responses:
-        204:
-          description: Successful operation
-        404:
-          description: Media item not found
-      parameters:
-      - $ref: '#/components/parameters/media-id'
-  /articles:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  artists:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        artist:
+                          type: string
+                          example: Marie Johansen
+                        number_of_contributions:
+                          type: int
+                          example: 200
+  /articles/:
     get:
       tags:
       - articles
@@ -209,7 +143,7 @@ paths:
       parameters:
       - $ref: '#/components/parameters/article-type'
       - $ref: '#/components/parameters/article-limit'
-  /articles/{id}:
+  /articles/{id}/:
     get:
       tags:
       - articles
@@ -227,22 +161,14 @@ paths:
       - $ref: '#/components/parameters/article-id'
 components:
   parameters:
-    scientific-name:
-      name: scientific-name
+    slug:
+      name: slug
       in: path
-      description: Scientific name for the taxon
+      description: Slug for the taxon
       required: true
       schema:
         type: string
-        example: Dinophysis arctica
-    media-id:
-      name: media-id
-      in: path
-      description: ID for the media item
-      required: true
-      schema:
-        type: string
-        example: e2773cc4-b088-4821-81ef-631a8a7c8135
+        example: dinophysis-arctica
     offset:
       name: offset
       in: query
@@ -269,37 +195,6 @@ components:
       schema:
         type: string
         example: Dinophysis arctica
-    rank:
-      name: rank
-      in: query
-      description: Taxonomical rank
-      schema:
-        type: string
-        example: Phylum
-        enum:
-        - Domain
-        - Kingdom
-        - Subkingdom
-        - Phylum
-        - Subphylum
-        - Superclass
-        - Infraclass
-        - Superorder
-        - Order
-        - Suborder
-        - Infraorder
-        - Superfamily
-        - Family
-        - Subfamily
-        - Tribe
-        - Genus
-        - Subgenus
-        - Species pair
-        - Species
-        - Subspecies
-        - Variety
-        - Form
-        - Hybrid
     group:
       name: group
       in: query
@@ -310,23 +205,30 @@ components:
         example: diatoms
         enum:
         - all
+        - ciliates
         - cyanobacteria
         - diatoms
         - dinoflagellates
-        - ciliates
-        - other-microalgae
-        - other-protozoa
-    harmful-only:
-      name: harmful-only
-      in: query
-      description: Limit the list to species considered to be harmful
-      required: false
-      schema:
-        type: boolean
+        - other microalgae
+        - other protozoa
     helcom-peg-only:
       name: helcom-peg-only
       in: query
       description: Limit the list to species found in the HELCOM-PEG list
+      required: false
+      schema:
+        type: boolean
+    illustrated-only:
+      name: illustrated-only
+      in: query
+      description: Limit the list to illustrated species only
+      required: false
+      schema:
+        type: boolean
+    not-illustrated-only:
+      name: not-illustrated-only
+      in: query
+      description: Limit the list to species not illustrated only
       required: false
       schema:
         type: boolean
@@ -356,14 +258,50 @@ components:
       schema:
         type: int
         example: 10
+    media-type:
+      name: type
+      in: query
+      description: Media type
+      schema:
+        type: string
+        example: image
+        enum:
+        - all
+        - image
+        default: all
+    media-artist:
+      name: artist
+      in: query
+      description: Limit the list to media for a specific photographer/artist
+      schema:
+        type: string
+        example: Maria Karlberg
+    media-gallery:
+      name: gallery
+      in: query
+      description: Limit the list to media within a specific gallery
+      schema:
+        type: string
+        example: HELCOM-PEG
+        enum:
+        - HELCOM-PEG
+        - Kuylenstierna
+        - Skagerrak-Kattegat
+        - Norwegian Sea
+        - Marine Research Institute - Iceland
+        - Freshwater
+        - Swedish benthic freshwater diatoms
+        - Diatom resting stages
+        - Dinoflagellate cysts
+        - Other resting stages
+    media-taxon:
+      name: taxon
+      in: query
+      description: Limit the list to media related to a specific taxon
+      schema:
+        type: string
+        example: dinophysis-arctica
   schemas:
-    Attribute:
-      type: object
-      properties:
-        name:
-          type: string
-        value:
-          type: string
     Facts:
       type: object
       properties:
@@ -374,69 +312,176 @@ components:
           type: string
           example: Biovolumes
         attributes:
-          type: array
-          items:
-            $ref: '#/components/schemas/Attribute'
+          type: object
     Media:
       type: object
       properties:
-        media_id:
+        slug:
           type: string
-          example: e2773cc4-b088-4821-81ef-631a8a7c8135
-        file_name:
+          example: dinophysis-arctica-1
+        file:
           type: string
-          example: Dinophysis arctica.jpg
-        file_type:
+          example: dinophysis-arctica-1.jpg
+        type:
           type: string
           example: image/jpeg
-        file_size:
-          type: integer
-          example: 334207
-        checksum:
+        created_at:
           type: string
-          example: 4338b10b1545efd8b3bb6250831aaaf06dafa21f966fccb40edb808c0606582f
-        user_name:
+          example: 2023-05-05T10:22:44:442Z
+        updated_at:
           type: string
-          example: Bengt Karlson
+          example: 2023-05-05T12:10:16:312Z
         attributes:
-          type: array
-          items:
-            $ref: '#/components/schemas/Attribute'
+          type: object
+          properties:
+            title:
+              type: string
+              example: Dinophysis arctica
+            photographer_artist:
+              type: string
+              example: Bengt Karlson
+            copyright_holder:
+              type: string
+              example: Bengt Karlson
+            institute:
+              type: string
+              example: SMHI
+            contributing_organisation:
+              type: string
+              example: SMHI
+            contributor:
+              type: string
+              example: Bengt Karlson
+            caption:
+              type: string
+              example: The text describing the illustration.
+            sampling_date:
+              type: string
+              example: '2023-05-05'
+            geographic_area:
+              type: string
+              example: Skagerrak - off shore
+            location:
+              type: string
+              example: Where the water sample/organism was collected.
+            latitude_degree:
+              type: int
+              example: 57
+            latitude_minute:
+              type: float
+              example: 59.2
+            longitude_degree:
+              type: int
+              example: 10
+            longitude_minute:
+              type: float
+              example: 59.2
+            license:
+              type: string
+              example: Creative Commons Attribution 3.0 Unported
+            preservation:
+              type: array
+              items:
+                type: string
+                example: Lugols iodine
+            stain:
+              type: array
+              items:
+                type: string
+                example: Calcofluor-Fluorescent brightener
+            contrast_enhancement:
+              type: array
+              items:
+                type: string
+                example: DIC/Nomarski
+            technique:
+              type: array
+              items:
+                type: string
+                example: Fluorescence microscopy
+            galleries:
+              type: array
+              items:
+                type: string
+                example: HELCOM-PEG
+        renditions:
+          type: object
+          properties:
+            l:
+              type: object
+              properties:
+                url:
+                  type: string
+                  example: '/media/l/dinophysis-arctica-1.jpg'
+            m:
+              type: object
+              properties:
+                url:
+                  type: string
+                  example: '/media/m/dinophysis-arctica-1.jpg'
+            s:
+              type: object
+              properties:
+                url:
+                  type: string
+                  example: '/media/s/dinophysis-arctica-1.jpg'
     Taxon:
       type: object
       properties:
+        slug:
+          type: string
+          example: dinophysis-arctica
         scientific_name:
           type: string
           example: Dinophysis arctica
-        parent_name:
-          type: string
-          example: Dinophysis
         authority:
           type: string
           example: Mereschkowsky, 1879
         rank:
           type: string
           example: Species
+        parent:
+          $ref: '#/components/schemas/RelatedTaxon'
+        classification:
+          type: array
+          items:
+            $ref: '#/components/schemas/RelatedTaxon'
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/RelatedTaxon'
         image:
-          type: string
-          example: e2773cc4-b088-4821-81ef-631a8a7c8135
-    Synonym:
-      type: object
-      properties:
-        scientific_name:
-          type: string
-          example: Dinophysis acuminata
-        current_name:
-          type: string
-          example: Dinophysis skagii
-        authority:
-          type: string
-        additional_info:
           type: object
           properties:
-            hint:
-              type: string
-              example: Valid name
+            l:
+              type: object
+              properties:
+                url:
+                  type: string
+                  example: '/media/l/dinophysis-arctica-1.jpg'
+            m:
+              type: object
+              properties:
+                url:
+                  type: string
+                  example: '/media/m/dinophysis-arctica-1.jpg'
+            s:
+              type: object
+              properties:
+                url:
+                  type: string
+                  example: '/media/s/dinophysis-arctica-1.jpg'
+    RelatedTaxon:
+      type: object
+      properties:
+        slug:
+          type: string
+        name:
+          type: string
+        authority:
+          type: string
+        rank:
+          type: string
     Article:
       type: object
       properties:
