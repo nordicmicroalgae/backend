@@ -34,6 +34,7 @@ paths:
                     items:
                       $ref: '#/components/schemas/Taxon'
       parameters:
+      - $ref: '#/components/parameters/taxon-list-fields'
       - $ref: '#/components/parameters/offset'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/name'
@@ -57,6 +58,7 @@ paths:
           description: Taxon not found
       parameters:
       - $ref: '#/components/parameters/slug'
+      - $ref: '#/components/parameters/taxon-fields'
   /facts/{slug}/:
     get:
       tags:
@@ -96,6 +98,7 @@ paths:
       - $ref: '#/components/parameters/offset'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/media-type'
+      - $ref: '#/components/parameters/media-fields'
       - $ref: '#/components/parameters/media-artist'
       - $ref: '#/components/parameters/media-gallery'
       - $ref: '#/components/parameters/media-taxon'
@@ -269,6 +272,23 @@ components:
         - all
         - image
         default: all
+    media-fields:
+      name: fields
+      in: query
+      explode: false
+      description: Fields to include in the response
+      schema:
+        type: array
+        items:
+          type: string
+          enum:
+            - slug
+            - file
+            - type
+            - created_at
+            - updated_at
+            - attributes
+            - renditions
     media-artist:
       name: artist
       in: query
@@ -301,6 +321,41 @@ components:
       schema:
         type: string
         example: dinophysis-arctica
+    taxon-fields:
+      name: fields
+      in: query
+      explode: false
+      description: Fields to include in the response
+      schema:
+        type: array
+        items:
+          type: string
+          enum:
+            - slug
+            - scientific_name
+            - authority
+            - rank
+            - parent
+            - classification
+            - children
+    taxon-list-fields:
+      name: fields
+      in: query
+      explode: false
+      description: Fields to include in the response
+      schema:
+        type: array
+        items:
+          type: string
+          enum:
+            - slug
+            - scientific_name
+            - authority
+            - rank
+            - parent
+            - classification
+            - children
+            - image
   schemas:
     Facts:
       type: object
