@@ -1,17 +1,12 @@
 from django.db.models import Count, F
-from django.http import JsonResponse
-from django.views import View
 
+from core.views.generics import CollectionView, ClientError
 from media.models import Media, Image
 
-class MediaCollectionView(View):
 
-    model_types = {
-        'all': Media,
-        'image': Image,
-    }
+class MediaCollectionView(CollectionView):
 
-    fieldnames = [
+    fields = (
         'slug',
         'file',
         'type',
@@ -19,22 +14,27 @@ class MediaCollectionView(View):
         'updated_at',
         'attributes',
         'renditions',
-    ]
+    )
 
-    def get(self, request):
-        model_type = request.GET.get('type', 'all')
+    model_types = {
+        'all': Media,
+        'image': Image,
+    }
+
+    plural_key = 'media'
+
+    def get_queryset(self, *args, **kwargs):
+        model_type = self.request.GET.get('type', 'all')
 
         try:
             model = self.model_types[model_type]
         except KeyError:
-            return JsonResponse({
-                'message': 'Unknown value provided for type.'
-            }, status=400)
+            raise ClientError('Unknown value provided for type.')
+
+        queryset = model.objects.all()
 
 
-        queryset = model.objects.filter()
-
-        artist = request.GET.get('artist', None)
+        artist = self.request.GET.get('artist')
 
         if artist != None:
             queryset = queryset.filter(
@@ -43,7 +43,7 @@ class MediaCollectionView(View):
                 }
             )
 
-        gallery = request.GET.get('gallery', None)
+        gallery = self.request.GET.get('gallery')
 
         if gallery != None:
             queryset = queryset.filter(
@@ -52,7 +52,7 @@ class MediaCollectionView(View):
                 }
             )
 
-        taxon = request.GET.get('taxon', None)
+        taxon = self.request.GET.get('taxon')
 
         if taxon != None:
             queryset = queryset.filter(taxon__slug=taxon)
@@ -62,35 +62,22 @@ class MediaCollectionView(View):
             'priority' if taxon else '-created_at'
         )
 
-        offset = abs(int(request.GET.get('offset', 0)))
-        limit = abs(int(request.GET.get('limit', 0)))
 
-        if offset > 0 or limit > 0:
-            if limit > 0:
-                queryset = queryset[offset:(offset + limit)]
-            else:
-                queryset = queryset[offset:]
-
-        fields = request.GET.get('fields', None)
-
-        if fields == None:
-            fields = self.fieldnames
-        else:
-            fields = list(map(str.strip, fields.split(',')))
-            if not all(field in self.fieldnames for field in fields):
-                return JsonResponse({
-                    'message': 'Unkown value(s) provided for fields.'
-                }, status=400)
-
-        return JsonResponse({
-            'media': list(queryset.values(*fields))
-        })
+        return queryset
 
 
-class ArtistCollectionView(View):
+class ArtistCollectionView(CollectionView):
+    queryset = Media.objects
 
-    def get(self, request):
-        queryset = Media.objects.all()
+    fields = (
+        'artist',
+        'number_of_contributions',
+    )
+
+    plural_key = 'artists'
+
+    def get_queryset(self, *args, **kwargs):
+        queryset = super().get_queryset(*args, **kwargs)
 
         queryset = queryset.values(
             artist=F('attributes__photographer_artist')
@@ -104,4 +91,4 @@ class ArtistCollectionView(View):
 
         queryset = queryset.order_by('-number_of_contributions')
 
-        return JsonResponse({'artists': list(queryset)})
+        return queryset
