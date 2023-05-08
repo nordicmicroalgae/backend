@@ -1,5 +1,5 @@
 from django.core.exceptions import BadRequest
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.views import View
 
 
@@ -79,6 +79,13 @@ class ResourceView(SingleObjectMixin, View):
 class CollectionView(MultipleObjectMixin, View):
     plural_key = 'results'
 
+    def head(self, request, *args, **kwargs):
+        response_headers = {
+            'X-Total': self.get_queryset().count(),
+        }
+        return HttpResponse(headers=response_headers)
+
+
     def get(self, request, *args, **kwargs):
         try:
             queryset = self.get_queryset()
@@ -92,8 +99,12 @@ class CollectionView(MultipleObjectMixin, View):
         except ClientError as exc:
             return JsonResponse({'message': str(exc)}, status=400)
 
-        response_objects = {
-            self.plural_key: object_list
+        response_headers = {
+            'X-Total': queryset.count(),
         }
 
-        return JsonResponse(response_objects)
+        response_objects = {
+            self.plural_key: object_list,
+        }
+
+        return JsonResponse(response_objects, headers=response_headers)
