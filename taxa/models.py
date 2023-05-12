@@ -31,7 +31,7 @@ class TaxonQuerySet(models.QuerySet):
     def with_name_like(self, name_pattern):
         return self.filter(scientific_name__icontains=name_pattern)
 
-    def with_rank(self, rank):
+    def within_rank(self, rank):
         return self.filter(rank__iexact=rank)
 
     def helcom_peg_only(self):

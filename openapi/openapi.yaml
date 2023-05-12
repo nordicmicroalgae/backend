@@ -43,6 +43,7 @@ paths:
       - $ref: '#/components/parameters/offset'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/name'
+      - $ref: '#/components/parameters/rank'
       - $ref: '#/components/parameters/group'
       - $ref: '#/components/parameters/helcom-peg-only'
       - $ref: '#/components/parameters/illustrated-only'
@@ -213,6 +214,42 @@ components:
       schema:
         type: string
         example: Dinophysis arctica
+    rank:
+      name: rank
+      in: query
+      description: Limit the list to taxa within a certain taxonomical rank
+      schema:
+        type: string
+        example: Genus
+        enum:
+        - Class
+        - Family
+        - Form
+        - Forma
+        - Genus
+        - Infraclass
+        - Infrakingdom
+        - Infraorder
+        - Infraphylum
+        - Kingdom
+        - Order
+        - Phylum
+        - Phylum (Division)
+        - Species
+        - Subclass
+        - Subfamily
+        - Subgenus
+        - Subkingdom
+        - Suborder
+        - Subphylum
+        - Subphylum (Subdivision)
+        - Subspecies
+        - Subterclass
+        - Superclass
+        - Superfamily
+        - Superorder
+        - Tribe
+        - Variety
     group:
       name: group
       in: query

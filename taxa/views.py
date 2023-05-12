@@ -57,6 +57,12 @@ class TaxonCollectionView(CollectionView):
             queryset = queryset.with_name_like(name_pattern)
 
 
+        rank = self.request.GET.get('rank')
+
+        if rank != None:
+            queryset = queryset.within_rank(rank)
+
+
         group = self.request.GET.get('group')
 
         if group != None:
