@@ -2,12 +2,13 @@ import os
 from io import BytesIO
 
 from PIL import Image as PillowImage
-from django.core.files.storage import default_storage
+
+from media.storages import default_rendition_storage
 
 
 class Rendition:
 
-    storage = default_storage
+    storage = default_rendition_storage
 
     def __init__(self, label, instance, *options):
         self.label = label

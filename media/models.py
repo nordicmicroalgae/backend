@@ -8,6 +8,7 @@ from django.utils.text import slugify
 
 
 from media import renditions
+from media import storages
 from taxa.models import Taxon
 
 
@@ -64,7 +65,12 @@ class Media(models.Model, renditions.ModelActionsMixin):
     priority = models.IntegerField(editable=False)
 
     slug = models.SlugField(editable=False, max_length=255, unique=True)
-    file = models.FileField(upload_to=primary_path_for_media)
+
+    file = models.FileField(
+        upload_to=primary_path_for_media,
+        storage=storages.default_origin_storage,
+    )
+
     type = models.CharField(max_length=32)
 
     created_by = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
