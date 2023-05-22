@@ -70,7 +70,7 @@ class TaxonQuerySet(models.QuerySet):
         parents = included_taxa_by_group[group_name]
 
         filters = [
-            Q(classification__contains=[{'name': parent}])
+            Q(classification__contains=[{'scientific_name': parent}])
             for parent in parents
         ]
 

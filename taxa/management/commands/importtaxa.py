@@ -75,13 +75,13 @@ class Command(BaseCommand):
                 if parent_info != None:
                     taxon_info['parent'] = {
                         'slug': parent_info['slug'],
-                        'name': parent_info['scientific_name'],
+                        'scientific_name': parent_info['scientific_name'],
                         'authority': parent_info['authority'],
                         'rank': parent_info['rank'],
                     }
                     parent_info['children'].append({
                         'slug': taxon_info['slug'],
-                        'name': taxon_info['scientific_name'],
+                        'scientific_name': taxon_info['scientific_name'],
                         'authority': taxon_info['authority'],
                         'rank': taxon_info['rank'],
                     })
@@ -90,7 +90,7 @@ class Command(BaseCommand):
                 while parent_info != None:
                     taxon_info['classification'] = [{
                         'slug': parent_info['slug'],
-                        'name': parent_info['scientific_name'],
+                        'scientific_name': parent_info['scientific_name'],
                         'authority': parent_info['authority'],
                         'rank': parent_info['rank'],
                     }] + taxon_info['classification']

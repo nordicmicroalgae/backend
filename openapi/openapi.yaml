@@ -583,7 +583,7 @@ components:
       properties:
         slug:
           type: string
-        name:
+        scientific_name:
           type: string
         authority:
           type: string
