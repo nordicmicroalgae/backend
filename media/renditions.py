@@ -3,7 +3,7 @@ from io import BytesIO
 
 from PIL import Image as PillowImage
 
-from media.storages import default_rendition_storage
+from media.storage import default_rendition_storage
 
 
 class Rendition:

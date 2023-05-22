@@ -8,7 +8,7 @@ from django.utils.text import slugify
 
 
 from media import renditions
-from media import storages
+from media.storage import default_origin_storage
 from taxa.models import Taxon
 
 
@@ -68,7 +68,7 @@ class Media(models.Model, renditions.ModelActionsMixin):
 
     file = models.FileField(
         upload_to=primary_path_for_media,
-        storage=storages.default_origin_storage,
+        storage=default_origin_storage,
     )
 
     type = models.CharField(max_length=32)
