@@ -83,7 +83,7 @@ class TaxonQuerySet(models.QuerySet):
 class Taxon(models.Model):
     id = models.PositiveBigIntegerField(primary_key=True, editable=False)
     parent_id = models.PositiveBigIntegerField(blank=True, null=True, editable=False)
-    slug = models.SlugField(max_length=255, editable=False)
+    slug = models.SlugField(max_length=255, editable=False, unique=True)
     scientific_name = models.CharField(max_length=200)
     authority = models.CharField(max_length=200, blank=True, null=True)
     rank = models.CharField(max_length=64, blank=True, null=True)
