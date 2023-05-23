@@ -1,63 +1,145 @@
 import csv
 import itertools
-import pathlib
+import os
 
-from django.core.management.base import BaseCommand
+from django.db import transaction
+from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
 from django.utils.text import slugify
 
 from taxa.models import Taxon
 
 
-TAXA = pathlib.Path(settings.CONTENT_DIR, 'species', 'taxa_worms.txt')
+DEFAULT_TAXA_FILE = os.path.join(
+    settings.CONTENT_DIR,
+    'species',
+    'taxa_worms.txt'
+)
+
+DEFAULT_TAXA_FILE_ENCODING = 'cp1252'
+
+
+class SlugGenerator:
+
+    def __init__(self, used_slugs = []):
+        self.used_slugs = used_slugs
+        self.slug_base = None
+        self.counter_by_base = {}
+
+    def __call__(self, scientific_name, authority):
+        self.slug_base = (scientific_name, authority)
+        return self
+
+    def __next__(self):
+        scientific_name, authority = self.slug_base
+
+        slug = slugify(scientific_name)
+
+        if slug in self.used_slugs and authority:
+            slug = '%s-%s' % (slug, slugify(authority))
+
+        while slug in self.used_slugs:
+            slug = '%s-%d' % (slug, next(self.counter))
+
+        self.used_slugs.append(slug)
+
+        return slug
+
+    @property
+    def counter(self):
+        if not self.slug_base in self.counter_by_base:
+            self.counter_by_base[self.slug_base] = itertools.count(1)
+        return self.counter_by_base[self.slug_base]
+
+
+def get_used_slugs():
+    queryset = Taxon.objects.all()
+    return list(queryset.values_list('slug', flat=True))
+
+
+def transform_row(row):
+    for field, value in row.items():
+        if value == '':
+            row[field] = None
+    return row
 
 
 class Command(BaseCommand):
     help = 'Import taxa from CSV file'
 
+    def add_arguments(self, parser):
+        parser.add_argument(
+            'file',
+            default=DEFAULT_TAXA_FILE,
+            nargs='?',
+            help=(
+                'Path to CSV file containing taxa. '
+                'If this isn\'t provided, the path "%s" will be used.'
+                % DEFAULT_TAXA_FILE
+            ),
+        )
+        parser.add_argument(
+            '-c',
+            '--clear',
+            action='store_true',
+            help=(
+                'Clear any existing objects from '
+                'database before writing new ones.'
+            ),
+        )
+        parser.add_argument(
+            '-e',
+            '--encoding',
+            default=DEFAULT_TAXA_FILE_ENCODING,
+            help=(
+                'Encoding used in CSV file containing taxa. '
+                'Default is "%s".' % DEFAULT_TAXA_FILE_ENCODING
+            ),
+        )
+        parser.add_argument(
+            '--id-field',
+            default='aphia_id',
+            help=(
+                'Name of the field in the CSV file to use as '
+                'taxon identifier. Default is "aphia_id".'
+            ),
+        )
+        parser.add_argument(
+            '--parent-id-field',
+            default='parent_id',
+            help=(
+                'Name of the field in the CSV file to use as '
+                'parent taxon identifier. Default is "parent_id".'
+            ),
+        )
+
     def handle(self, *args, **options):
-        number_of_existing_rows = Taxon.objects.all().count()
+        filepath = options['file']
+        encoding = options['encoding']
+        clear_existing_objects = options['clear']
+        id_field = options['id_field']
+        parent_id_field = options['parent_id_field']
+        verbosity = options['verbosity']
 
-        # Clear existing taxa
-        if number_of_existing_rows > 0:
-            self.stdout.write('Clearing existing records from database...', ending='')
-            Taxon.objects.all().delete()
-            self.stdout.write(' done.')
+        taxa_by_id = {}
 
-        used_slugs = []
+        if clear_existing_objects:
+            preexisting_slugs = []
+        else:
+            preexisting_slugs = get_used_slugs()
 
-        def make_slug(scientific_name, authority):
-            slug = slugify(scientific_name)
+        slugs = SlugGenerator(used_slugs=preexisting_slugs)
 
-            if slug in used_slugs and authority:
-                slug = '%s-%s' % (slug, slugify(authority))
-
-            counter = itertools.count(1)
-            while slug in used_slugs:
-                slug = '%s-%d' % (slug, next(counter))
-
-            used_slugs.append(slug)
-
-            return slug
-
-
-        def transform_row(row):
-            for column, value in row.items():
-                if value == '':
-                    row[column] = None
-            return row
-            
-
-        # Read CSV to dict
-        with TAXA.open('r', encoding='cp1252') as in_file:
+        # Part 1: Load rows from CSV file into dicts.
+        with open(filepath, 'r', encoding=encoding) as in_file:
             rows = map(transform_row, csv.DictReader(in_file, dialect='excel-tab'))
 
             # Translate keys and store row dicts by id for easier lookup
             taxa_by_id = {
-                row['aphia_id'] : {
-                    'id': row['aphia_id'],
-                    'parent_id': row['parent_id'],
-                    'slug': make_slug(row['scientific_name'], row['authority']),
+                row[id_field] : {
+                    'id': row[id_field],
+                    'parent_id': row[parent_id_field],
+                    'slug': next(slugs(row['scientific_name'], row['authority'])),
                     'scientific_name': row['scientific_name'],
                     'authority': row['authority'],
                     'rank': row['rank'],
@@ -67,9 +149,9 @@ class Command(BaseCommand):
                 } for row in rows
             }
 
-            # First iteration - Build up hierachial data for each taxon
+            # Build up hierachial data for each taxon
             for taxon_info in taxa_by_id.values():
-                parent_info = taxa_by_id.get(taxon_info['parent_id'], None)
+                parent_info = taxa_by_id.get(taxon_info['parent_id'])
 
                 # Add parent and children
                 if parent_info != None:
@@ -97,27 +179,43 @@ class Command(BaseCommand):
 
                     # Special insertae sedis cases, break the loop
                     if parent_info['parent_id'] == parent_info['id']:
-                        self.stdout.write(self.style.WARNING(
-                           'WARNING: Cannot build full classification. '
-                           'Breaking out of infinite loop for: %s.' % ' -> '.join(
-                               [c['name'] for c in taxon_info['classification']] +
-                               [taxon_info['scientific_name']]
-                           )
-                        ))
+                        if verbosity > 1:
+                            incomplete_classification = list(map(
+                                lambda t: t['scientific_name'],
+                                taxon_info['classification'] + [taxon_info]
+                            ))
+                            self.stdout.write(self.style.WARNING(
+                                'Cannot build full classification. '
+                                'Breaking out of infinite loop for: %s.'
+                                % ' -> '.join(incomplete_classification)
+                            ))
+
                         break
 
                     # Move up to next parent
-                    parent_info = taxa_by_id.get(parent_info['parent_id'], None)
+                    parent_info = taxa_by_id.get(parent_info['parent_id'])
 
 
-            # Second iteration - Write each taxon to database
-            for taxon_info in taxa_by_id.values():
-                taxon = Taxon(**taxon_info)
-                taxon.save()
+        # Part 2: Create models and write in one atomic operation.
+        number_of_saved_objects = 0
 
+        try:
+            with transaction.atomic(savepoint=False):
+                if clear_existing_objects:
+                    Taxon.objects.all().delete()
 
-            number_of_created_rows = Taxon.objects.all().count()
+                for taxon_info in taxa_by_id.values():
+                    taxon = Taxon(**taxon_info)
+                    taxon.save(force_insert=True)
+                    number_of_saved_objects = number_of_saved_objects + 1
+        except Exception as e:
+            raise CommandError(
+                'Failed to write to database. '
+                'Import aborted. Error was: %s' % e
+            )
 
+        if verbosity > 0:
             self.stdout.write(self.style.SUCCESS(
-                'Successfully imported %d taxa.' % number_of_created_rows
+                'Successfully imported %u taxa.'
+                % number_of_saved_objects
             ))
