@@ -12,3 +12,6 @@ class Facts(models.Model):
    )
 
    data = models.JSONField(default=list)
+
+   class Meta:
+      db_table = 'taxon_facts'

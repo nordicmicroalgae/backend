@@ -94,6 +94,7 @@ class Taxon(models.Model):
     objects = TaxonQuerySet.as_manager()
 
     class Meta:
+        db_table = 'taxon'
         ordering = ('scientific_name',)
 
     def __str__(self):

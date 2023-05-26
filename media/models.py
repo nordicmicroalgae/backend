@@ -109,6 +109,8 @@ class Media(models.Model, renditions.ModelActionsMixin):
     objects = MediaManager()
 
     class Meta:
+        db_table = 'taxon_media'
+
         constraints = [
             models.UniqueConstraint(
                 fields=['taxon', 'priority'],
