@@ -1,7 +1,8 @@
 from django.db.models import Count, F
+from django.http import Http404
 
 from core.views.generics import CollectionView, ClientError
-from media.models import Media, Image
+from media.models import Media, Image, InvalidTagset
 
 
 class MediaCollectionView(CollectionView):
@@ -90,5 +91,20 @@ class ArtistCollectionView(CollectionView):
         )
 
         queryset = queryset.order_by('-number_of_contributions')
+
+        return queryset
+
+
+class TagCollectionView(CollectionView):
+    fields = ('name',)
+    plural_key = 'tags'
+
+    def get_queryset(self, *args, **kwargs):
+        try: 
+            queryset = Media.objects.get_tagset(
+                self.request.resolver_match.kwargs.get('tagset')
+            )
+        except InvalidTagset:
+            raise Http404()
 
         return queryset

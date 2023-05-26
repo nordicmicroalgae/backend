@@ -18,6 +18,38 @@ class InvalidPriorityListJson(Exception):
     pass
 
 
+class TagListFilter(admin.SimpleListFilter):
+
+    def lookups(self, request, model_admin):
+        qs = model_admin.model.objects.get_tagset(self.parameter_name)
+        return list(map(
+            lambda tag: (str(tag), str(tag)),
+            qs.values_list('name', flat=True)
+        ))
+
+    def queryset(self, request, queryset):
+        tag_value = self.value()
+        if tag_value is not None:
+            queryset = queryset.filter(
+                attributes__contains={self.parameter_name: [tag_value]}
+            )
+        return queryset
+
+    @classmethod
+    def factory(cls, parameter_name):
+        title = parameter_name.replace('_', ' ')
+
+        class_name = '%sListFilter' % ''.join(
+            map(str.title, parameter_name.split('_'))
+        )
+        class_attr = dict(
+            title=title,
+            parameter_name=parameter_name
+        )
+
+        return type(class_name, (cls,), class_attr)
+
+
 class TaxonListFilter(admin.SimpleListFilter):
     title = 'taxon'
     parameter_name = 'taxon'
@@ -97,7 +129,14 @@ class MediaAdmin(admin.ModelAdmin):
         'taxon__scientific_name',
     )
 
-    list_filter = (TaxonListFilter,)
+    list_filter = (
+        TaxonListFilter,
+        TagListFilter.factory('galleries'),
+        TagListFilter.factory('contrast_enhancement'),
+        TagListFilter.factory('preservation'),
+        TagListFilter.factory('stain'),
+        TagListFilter.factory('technique'),
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

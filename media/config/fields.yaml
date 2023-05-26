@@ -188,9 +188,8 @@ image:
   - label: Preservation
     key: preservation
     required: False
-    type: MultipleChoiceField
-    widget: CheckboxSelectMultiple
-    choices:
+    type: TagField
+    suggestions:
       - Not described
       - No preservation
       - Lugols iodine
@@ -202,9 +201,8 @@ image:
   - label: Stain
     key: stain
     required: False
-    type: MultipleChoiceField
-    widget: CheckboxSelectMultiple
-    choices:
+    type: TagField
+    suggestions:
       - Not described
       - No stain
       - DAPI
@@ -219,9 +217,8 @@ image:
   - label: Contrast enhancement
     key: contrast_enhancement
     required: False
-    type: MultipleChoiceField
-    widget: CheckboxSelectMultiple
-    choices:
+    type: TagField
+    suggestions:
       - Not described
       - No contrast enhancement
       - DIC/Nomarski
@@ -232,9 +229,8 @@ image:
   - label: Technique
     key: technique
     required: False
-    type: MultipleChoiceField
-    widget: CheckboxSelectMultiple
-    choices:
+    type: TagField
+    suggestions:
       - Not described
       - Drawing
       - Painting
@@ -251,9 +247,8 @@ image:
   - label: Galleries
     key: galleries
     required: False
-    type: MultipleChoiceField
-    widget: CheckboxSelectMultiple
-    choices:
+    type: TagField
+    suggestions:
       - HELCOM-PEG
       - Kuylenstierna
       - Skagerrak-Kattegat

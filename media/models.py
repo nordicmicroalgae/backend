@@ -46,8 +46,34 @@ def primary_path_for_media(instance, filename):
     return str(instance.slug) + str(file_ext)
 
 
-class MediaManager(models.Manager):
+class InvalidTagset(Exception):
     pass
+
+class Tag(models.Func):
+    tagsets = (
+        'contrast_enhancement',
+        'galleries',
+        'preservation',
+        'stain',
+        'technique',
+    )
+
+    function = 'JSONB_ARRAY_ELEMENTS_TEXT'
+
+    def __init__(self, tagset):
+        if tagset not in self.tagsets:
+            raise InvalidTagset(
+                'Expected one of: "%s", but got "%s".'
+                % ('","'.join(self.tagsets), tagset)
+            )
+
+        super().__init__(models.F('attributes__%s' % tagset))
+
+
+class MediaManager(models.Manager):
+    def get_tagset(self, tagset):
+        annotated_qs = self.get_queryset().annotate(name=Tag(tagset))
+        return annotated_qs.values('name').order_by('name').distinct()
 
 class ImageManager(MediaManager):
     def get_queryset(self):

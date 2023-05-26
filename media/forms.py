@@ -4,6 +4,29 @@ import yaml
 from django import forms
 from django.conf import settings
 
+from media import widgets
+from media.models import Media, Image
+
+
+class ImageUploadField(forms.ImageField):
+    widget = widgets.ImageFileInput
+
+
+class TagField(forms.MultipleChoiceField):
+    widget = widgets.Tag
+
+    def valid_value(self, value):
+        return isinstance(value, str)
+
+
+FORM_FIELDS = {
+    'TagField': TagField,
+}
+
+def get_field_class(field_type):
+    if field_type in FORM_FIELDS:
+        return FORM_FIELDS[field_type]
+    return getattr(forms, field_type)
 
 def get_fields_config(media_type):
     config_path = os.path.join(
@@ -16,12 +39,18 @@ def get_fields_config(media_type):
 
     return config[media_type]
 
+def tagchoices_factory(model, tagset, choices=[]):
+    def get_choices():
+        qs = model.objects.get_tagset(tagset)
+        return set(choices + [(tag['name'], tag['name']) for tag in qs])
+
+    return get_choices
 
 def configure_form(form_cls, form_config):
     declared_fields = {}
 
     for field_config in form_config:
-        field_cls = getattr(forms, field_config.get('type', 'CharField'))
+        field_cls = get_field_class(field_config.get('type', 'CharField'))
 
         field_kwargs = {}
 
@@ -49,6 +78,18 @@ def configure_form(form_cls, form_config):
             field_kwargs['initial'] = field_config['initial']
 
 
+        is_tag_widget = field_cls == TagField
+
+        if is_tag_widget:
+            field_kwargs['choices'] = tagchoices_factory(
+                getattr(form_cls.Meta, 'model'),
+                field_config['key'],
+                choices=[
+                    (choice, choice) for choice
+                    in field_config.get('suggestions', [])
+                ]
+            )
+
         is_select_widget = (
             field_cls == forms.ChoiceField and
             field_kwargs.get('widget', None) in [forms.widgets.Select, None]
@@ -65,18 +106,11 @@ def configure_form(form_cls, form_config):
     form_cls.configured_fields = form_config
 
 
-class ImageFileInput(forms.widgets.ClearableFileInput):
-    pass
-
-class ImageUploadField(forms.ImageField):
-    widget = ImageFileInput
-
-
-
 class MediaForm(forms.ModelForm):
 
     class Meta:
         exclude = ('attributes', 'created_by', 'type', 'renditions',)
+        model = Media
 
     class Media:
         css = {
@@ -120,6 +154,9 @@ class MediaForm(forms.ModelForm):
 
 
 class ImageForm(MediaForm):
+    class Meta(MediaForm.Meta):
+        model = Image
+
     file = ImageUploadField()
 
 

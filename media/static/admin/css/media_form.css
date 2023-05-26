@@ -12,3 +12,7 @@
   width: 1rem;
   text-align: center;
 }
+
+.media-tag-widget {
+  min-width: 24rem;
+}

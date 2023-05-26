@@ -142,6 +142,34 @@ paths:
                         number_of_contributions:
                           type: int
                           example: 200
+  /media/tags/{tagset}/:
+    get:
+      tags:
+      - media
+      description: Returns a list of tags
+      responses:
+        200:
+          description: Successful operation
+          headers:
+            X-Total:
+              schema:
+                type: integer
+              description: Total number of tags for given tagset
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tags:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          example: HELCOM-PEG
+      parameters:
+      - $ref: '#/components/parameters/media-tagset'
   /articles/:
     get:
       tags:
@@ -313,6 +341,20 @@ components:
       schema:
         type: int
         example: 10
+    media-tagset:
+      name: tagset
+      in: path
+      description: Tagset
+      required: true
+      schema:
+        type: string
+        example: galleries
+        enum:
+        - contrast_enhancement
+        - galleries
+        - preservation
+        - stain
+        - technique
     media-type:
       name: type
       in: query
