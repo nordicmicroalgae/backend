@@ -41,12 +41,12 @@ urlpatterns = [
         name='admin_password_reset_complete',
     ),
     path('admin/', admin.site.urls),
-    # REST API v1 routes
-    path('api/v1/', include('pages.urls')),
-    path('api/v1/', include('taxa.urls')),
-    path('api/v1/', include('facts.urls')),
-    path('api/v1/', include('media.urls')),
-    path('api/v1/', include('openapi.urls')),
+    # REST API routes
+    path('api/', include('pages.urls')),
+    path('api/', include('taxa.urls')),
+    path('api/', include('facts.urls')),
+    path('api/', include('media.urls')),
+    path('api/', include('openapi.urls')),
 ]
 
 

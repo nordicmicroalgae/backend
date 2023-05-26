@@ -4,7 +4,7 @@ info:
   title: Nordic Microalgae
   description: API for Nordic Microalgae. __Under development__.
 servers:
-- url: /api/v1/
+- url: /api/
   description: Development & Testing purposes
 tags:
 - name: taxa
