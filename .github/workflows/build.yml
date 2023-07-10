@@ -1,0 +1,60 @@
+name: Build
+
+on: [push, workflow_call]
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v3
+              with:
+                path: src
+
+            - name: Install Django app files
+              run: |
+                mkdir -p ${GITHUB_WORKSPACE}/dist/app
+                rsync -av \
+                    --exclude=.git \
+                    --exclude=.github \
+                    --exclude=.gitignore \
+                    --exclude=.editorconfig \
+                    ${GITHUB_WORKSPACE}/src/ \
+                    ${GITHUB_WORKSPACE}/dist/app/
+
+            - name: Setup Python
+              uses: actions/setup-python@v4
+              with:
+                python-version: '3.11'
+                architecture: 'x64'
+
+            - name: Build wheel archives for dependencies
+              run: |
+                mkdir -p ${GITHUB_WORKSPACE}/dist/wheels
+                python -m pip install --upgrade pip
+                python -m pip wheel -v \
+                  -r ${GITHUB_WORKSPACE}/src/requirements.txt \
+                  -w ${GITHUB_WORKSPACE}/dist/wheels
+                cat ${GITHUB_WORKSPACE}/src/requirements.txt >> \
+                    ${GITHUB_WORKSPACE}/dist/requirements.txt
+
+            - name: Install dependencies from wheel archives
+              run: |
+                python -m pip install -v --no-index \
+                  -f ${GITHUB_WORKSPACE}/dist/wheels \
+                  -r ${GITHUB_WORKSPACE}/dist/requirements.txt
+
+            - name: Install Django static files
+              run: |
+                python ${GITHUB_WORKSPACE}/src/manage.py \
+                  collectstatic --no-input
+                rsync -av \
+                  ${GITHUB_WORKSPACE}/static/ \
+                  ${GITHUB_WORKSPACE}/dist/static/
+
+            - name: Upload Artifact
+              uses: actions/upload-artifact@v3
+              with:
+                name: backend
+                path: dist

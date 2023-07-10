@@ -25,6 +25,11 @@ MEDIA_ROOT = os.environ.get(
     os.path.join(os.path.dirname(BASE_DIR), 'media')
 )
 
+STATIC_ROOT = os.environ.get(
+    'DJANGO_STATIC_ROOT',
+    os.path.join(os.path.dirname(BASE_DIR), 'static')
+)
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
