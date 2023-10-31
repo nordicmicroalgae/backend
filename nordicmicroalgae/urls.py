@@ -46,6 +46,7 @@ urlpatterns = [
     path('api/', include('taxa.urls')),
     path('api/', include('facts.urls')),
     path('api/', include('media.urls')),
+    path('api/', include('contributors.urls')),
     path('api/', include('openapi.urls')),
 ]
 

@@ -13,9 +13,33 @@ tags:
   description: Collections of facts, traits and various description of taxa
 - name: media
   description: Information about contributed media (e.g. pictures)
+- name: contributors
+  description: Information about contributors and their contributions
 - name: articles
   description: Generic content such as pages, news, etc
 paths:
+  /contributors/:
+    get:
+      tags:
+      - contributors
+      description: Returns a list of contributors
+      responses:
+        200:
+          description: Successfull operation
+          headers:
+            X-Total:
+              schema:
+                type: integer
+              description: Total number of contributors returned for the query
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  contributors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Contributor'
   /taxa/:
     get:
       tags:
@@ -451,6 +475,18 @@ components:
             - children
             - image
   schemas:
+    Contributor:
+      type: object
+      properties:
+        first_name:
+          type: string
+          example: Karl
+        last_name:
+          type: string
+          example: Bengtson
+        date_joined:
+          type: string
+          example: 2023-11-02T15:10:44:442Z
     Facts:
       type: object
       properties:

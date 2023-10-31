@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'taxa',
     'facts',
     'media',
+    'contributors',
     'openapi',
     'django.contrib.auth',
     'django.contrib.contenttypes',
