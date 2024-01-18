@@ -1,6 +1,6 @@
-name: Build
+name: Build & Deploy
 
-on: [push, workflow_call]
+on: push
 
 jobs:
     build:
@@ -8,7 +8,7 @@ jobs:
 
         steps:
             - name: Checkout
-              uses: actions/checkout@v3
+              uses: actions/checkout@v4
               with:
                 path: src
 
@@ -24,9 +24,9 @@ jobs:
                     ${GITHUB_WORKSPACE}/dist/app/
 
             - name: Setup Python
-              uses: actions/setup-python@v4
+              uses: actions/setup-python@v5
               with:
-                python-version: '3.11'
+                python-version: '3.10'
                 architecture: 'x64'
 
             - name: Build wheel archives for dependencies
@@ -53,8 +53,16 @@ jobs:
                   ${GITHUB_WORKSPACE}/static/ \
                   ${GITHUB_WORKSPACE}/dist/static/
 
-            - name: Upload Artifact
-              uses: actions/upload-artifact@v3
+            - name: Archive Artifact
+              uses: actions/upload-artifact@v4
               with:
                 name: backend
                 path: dist
+
+    staging:
+        if: github.ref == 'refs/heads/next'
+        needs: build
+        uses: ./.github/workflows/deploy.yml
+        with:
+            environment: staging
+        secrets: inherit

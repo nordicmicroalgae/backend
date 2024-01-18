@@ -1,0 +1,74 @@
+name: Deploy to cloud provider
+
+on:
+    workflow_call:
+        inputs:
+            environment:
+                required: true
+                type: string
+
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+        environment: ${{ inputs.environment }}
+
+        env:
+            REMOTE_HOST: ${{ vars.DEPLOY_HOSTNAME }}
+            REMOTE_USER: ${{ vars.DEPLOY_USERNAME }}
+            REMOTE_DEST: ${{ vars.DEPLOY_DESTINATION }}
+            FINGERPRINT: ${{ vars.DEPLOY_FINGERPRINT }}
+            PRIVATE_KEY: ${{ secrets.DEPLOY_PRIVATE_KEY }}
+
+        steps:
+            - name: Activate ssh-agent with deploy key
+              run: |
+                eval "$( ssh-agent )"
+                ssh-add - <<< "${{ env.PRIVATE_KEY }}"
+                printenv|egrep -e SSH_AUTH_SOCK -e SSH_AGENT_PID >> $GITHUB_ENV
+                mkdir ~/.ssh
+                echo "${{ env.FINGERPRINT }}" >> ~/.ssh/known_hosts
+
+            - name: Prepare remote target for deploy
+              run: |
+                ssh ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }} " \
+                  rm -rf ${{ env.REMOTE_DEST }}/release.old; \
+                  rm -rf ${{ env.REMOTE_DEST }}/release.new; \
+                  mkdir -p ${{ env.REMOTE_DEST }}/release;
+                  mkdir ${{ env.REMOTE_DEST }}/release.new"
+
+            - name: Download artifact from build job
+              uses: actions/download-artifact@v4
+              with:
+                name: backend
+                path: ./backend
+
+            - name: Copy build to remote target
+              run: |
+                rsync -av --delete-after \
+                  ./backend/ \
+                  ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }}:${{ env.REMOTE_DEST }}/release.new/.
+
+            - name: Stop service
+              run: |
+                ssh ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }} " \
+                  sudo systemctl stop uwsgi"
+
+            - name: Switch release folders
+              run: |
+                ssh ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }} " \
+                  mv ${{ env.REMOTE_DEST }}/release ${{ env.REMOTE_DEST }}/release.old && \ 
+                  mv ${{ env.REMOTE_DEST }}/release.new ${{ env.REMOTE_DEST }}/release"
+
+            - name: Setup environment on remote
+              run: |
+                ssh ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }} " \
+                  python3 -m venv --upgrade-deps ${{ env.REMOTE_DEST }}/release/env && \
+                  source ${{ env.REMOTE_DEST }}/release/env/bin/activate && \
+                  python3 -m pip install -v --no-index \
+                    -f ${{ env.REMOTE_DEST }}/release/wheels \
+                    -r ${{ env.REMOTE_DEST }}/release/requirements.txt"
+
+            - name: Start service
+              run: |
+                ssh ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }} " \
+                  sudo systemctl start uwsgi"
