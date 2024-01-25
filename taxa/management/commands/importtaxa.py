@@ -3,6 +3,7 @@ import itertools
 import os
 
 from django.db import transaction
+from django.core.exceptions import ValidationError
 from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
 from django.utils.text import slugify
@@ -206,6 +207,27 @@ class Command(BaseCommand):
 
                 for taxon_info in taxa_by_id.values():
                     taxon = Taxon(**taxon_info)
+
+                    try:
+                        taxon.full_clean(
+                            # safe-to-exclude components built for convenience
+                            exclude=['classification', 'children', 'parent']
+                        )
+                    except ValidationError as e:
+                        validation_messages = ', '.join([
+                            '%s: %s' % (field, ', '.join(errors))
+                            for field, errors in e.message_dict.items()
+                        ])
+                        if verbosity > 1:
+                            self.stdout.write(self.style.WARNING(
+                                'Skipping invalid taxon %s (%u). Error(s) was: %s' % (
+                                    taxon.scientific_name or 'unkown',
+                                    taxon.id or 'unkown',
+                                    validation_messages
+                                )
+                            ))
+                        continue
+
                     taxon.save(force_insert=True)
                     number_of_saved_objects = number_of_saved_objects + 1
         except Exception as e:
