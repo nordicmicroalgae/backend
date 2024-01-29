@@ -10,7 +10,7 @@ from taxa.models import Taxon
 
 FACTS_HELCOM_PEG = pathlib.Path(
     settings.CONTENT_DIR,
-    'species', 'bvol_nomp_version_2022.txt'
+    'species', 'bvol_nomp_version_2023.txt'
 )
 
 
@@ -66,7 +66,7 @@ class Command(BaseCommand):
                 'Diameter(d1)µm': 'diameter1',
                 'Diameter(d2)µm': 'diameter2',
                 'No_of_cells/counting_unit': 'no_of_cells_per_counting_unit',
-                'Calculated_volume_um3': 'calculated_volume',
+                'Calculated_volume_µm3': 'calculated_volume',
                 'Comment': 'comment',
                 'Filament_length_of_cell(µm)': 'filament_lengt_of_cell',
                 'Calculated_Carbon_pg/counting_unit': 'calculated_carbon_pg_per_counting_unit',
