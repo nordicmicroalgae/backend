@@ -60,7 +60,7 @@ def get_used_slugs():
 
 def transform_row(row):
     for field, value in row.items():
-        if value == '':
+        if value.lower() in ['', 'na', 'n/a', 'null']:
             row[field] = None
     return row
 
