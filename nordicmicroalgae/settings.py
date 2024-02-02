@@ -11,37 +11,53 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
+import yaml
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-CONTENT_DIR = os.environ.get(
-    'DJANGO_CONTENT_DIR',
-    os.path.join(os.path.dirname(BASE_DIR), 'content')
+DATA_DIR = os.environ.get(
+    'NORDICMICROALGAE_DATA_DIR',
+    os.path.join(os.path.dirname(BASE_DIR), 'shared')
 )
 
-MEDIA_ROOT = os.environ.get(
-    'DJANGO_MEDIA_ROOT',
-    os.path.join(os.path.dirname(BASE_DIR), 'media')
-)
+CONTENT_DIR = os.path.join(DATA_DIR, 'content')
+
+MEDIA_ROOT = os.path.join(DATA_DIR, 'media')
 
 STATIC_ROOT = os.environ.get(
     'DJANGO_STATIC_ROOT',
     os.path.join(os.path.dirname(BASE_DIR), 'static')
 )
 
+# Load environment specific configuration from file in DATA_DIR
+try:
+    with open(
+        os.path.join(DATA_DIR, 'config', 'environment.yaml'),
+        encoding='utf8'
+    ) as fid:
+        config = yaml.safe_load(fid)
+except OSError:
+    config = {}
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
+SECRET_KEY = os.environ.get(
+    'DJANGO_SECRET_KEY',
+    config.get('secret_key')
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DJANGO_DEBUG', 'no').lower() in ['yes', 'on', 'true']
+DEBUG = os.environ.get(
+    'DJANGO_DEBUG',
+    str(config.get('debug', 'no'))
+).lower() in ['yes', 'on', 'true']
 
 ALLOWED_HOSTS = os.environ.get(
     'DJANGO_ALLOWED_HOSTS',
-    '.nordicmicroalgae.org'
+    str(config.get('allowed_hosts', '.nordicmicroalgae.org'))
 ).split(' ')
 
 
@@ -101,9 +117,18 @@ WSGI_APPLICATION = 'nordicmicroalgae.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DJANGO_DATABASE_NAME'),
-        'USER': os.environ.get('DJANGO_DATABASE_USER'),
-        'PASSWORD': os.environ.get('DJANGO_DATABASE_PASSWORD'),
+        'NAME': os.environ.get(
+            'DJANGO_DATABASE_NAME',
+            config.get('database_name')
+        ),
+        'USER': os.environ.get(
+            'DJANGO_DATABASE_USER',
+            config.get('database_user')
+        ),
+        'PASSWORD': os.environ.get(
+            'DJANGO_DATABASE_PASSWORD',
+            config.get('database_password')
+        ),
         'HOST': '127.0.0.1',
         'PORT': '5432',
     }
