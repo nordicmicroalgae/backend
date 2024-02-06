@@ -56,7 +56,8 @@ jobs:
             - name: Switch release folders
               run: |
                 ssh ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }} " \
-                  mv ${{ env.REMOTE_DEST }}/release ${{ env.REMOTE_DEST }}/release.old && \ 
+                  ln -s ../shared ${{ env.REMOTE_DEST }}/release.new && \
+                  mv ${{ env.REMOTE_DEST }}/release ${{ env.REMOTE_DEST }}/release.old && \
                   mv ${{ env.REMOTE_DEST }}/release.new ${{ env.REMOTE_DEST }}/release"
 
             - name: Setup environment on remote
