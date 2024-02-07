@@ -63,7 +63,7 @@ class Image(Rendition):
 
         return output_buffer
 
-    def process(image):
+    def process(self, image):
         return image
 
 class ResizedImage(Image):
