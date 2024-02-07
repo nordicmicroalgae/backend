@@ -62,17 +62,28 @@ class Rendition:
 
 class Image(Rendition):
 
+    format = 'webp'
+
     def render(self, input_buffer):
         output_buffer = BytesIO()
 
         with PillowImage.open(input_buffer) as image:
             processed_image = self.process(image)
-            processed_image.save(output_buffer, format=image.format)
+            processed_image.save(output_buffer, format=self.format)
 
         return output_buffer
 
     def process(self, image):
         return image
+
+    @property
+    def name(self):
+        root, _ = os.path.splitext(self.source.name)
+        return '%s.%s' % (root, self.format)
+
+    @property
+    def type(self):
+        return 'image/%s' % self.format
 
 class ResizedImage(Image):
 
