@@ -34,7 +34,7 @@ class Rendition:
         )
 
     def to_dict(self):
-        return {'url': self.url}
+        return {'url': self.url, 'type': self.type}
 
     @property
     def source(self):
@@ -45,6 +45,10 @@ class Rendition:
         return self.storage.path(
             os.path.join(self.label, self.source.name)
         )
+
+    @property
+    def type(self):
+        return self.instance.type
 
     @property
     def url(self):
