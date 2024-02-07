@@ -43,8 +43,12 @@ class Rendition:
     @property
     def path(self):
         return self.storage.path(
-            os.path.join(self.label, self.source.name)
+            os.path.join(self.label, self.name)
         )
+
+    @property
+    def name(self):
+        return self.source.name
 
     @property
     def type(self):
@@ -53,7 +57,7 @@ class Rendition:
     @property
     def url(self):
         return self.storage.url(
-            os.path.join(self.label, self.source.name)
+            os.path.join(self.label, self.name)
         )
 
 class Image(Rendition):
