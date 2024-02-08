@@ -22,8 +22,11 @@ class Rendition:
 
         with BytesIO(self.source.read()) as input_buffer:
             output_buffer = self.render(input_buffer)
-            self.storage.save(self.path, output_buffer)
+            self.save(output_buffer)
             output_buffer.close()
+
+    def save(self, output_buffer):
+        self.storage.save(self.path, output_buffer)
 
     def delete(self):
         self.storage.delete(self.path)
