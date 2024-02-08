@@ -135,6 +135,7 @@ class Media(models.Model, renditions.ModelActionsMixin):
         return self.title
 
 @renditions.register(
+    p=(renditions.EmbededPreviewImage,),
     s=(renditions.ResizedImage, 240, 240),
     m=(renditions.ResizedImage, 480, 480),
     l=(renditions.ResizedImage, 1024, 1024),

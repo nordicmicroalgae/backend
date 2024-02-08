@@ -1,7 +1,7 @@
 import os
+import base64
 from io import BytesIO
-
-from PIL import Image as PillowImage
+from PIL import Image as PillowImage, ImageFilter
 
 from media.storage import default_rendition_storage
 
@@ -104,6 +104,34 @@ class ResizedImage(Image):
         )
 
         return resized_image
+
+class EmbededPreviewImage(Image):
+
+    def process(self, image):
+        preview_image = image.copy()
+
+        preview_image.thumbnail((80, 80))
+
+        preview_image = preview_image.filter(
+            ImageFilter.GaussianBlur(radius=4)
+        )
+
+        return preview_image
+
+    def save(self, output_buffer):
+        self.encoded_preview = base64.b64encode(
+            output_buffer.getvalue()
+        )
+
+    def delete(self):
+        self.encoded_preview = None
+
+    @property
+    def url(self):
+        return (
+            'data:image/webp;base64,%s'
+            % self.encoded_preview.decode('ascii')
+        )
 
 
 class Specification:
