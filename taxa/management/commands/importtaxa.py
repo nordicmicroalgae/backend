@@ -14,7 +14,7 @@ from taxa.models import Taxon
 DEFAULT_TAXA_FILE = os.path.join(
     settings.CONTENT_DIR,
     'species',
-    'taxa_worms.txt'
+    'taxa.txt'
 )
 
 DEFAULT_TAXA_FILE_ENCODING = 'cp1252'
@@ -99,10 +99,10 @@ class Command(BaseCommand):
         )
         parser.add_argument(
             '--id-field',
-            default='aphia_id',
+            default='taxon_id',
             help=(
                 'Name of the field in the CSV file to use as '
-                'taxon identifier. Default is "aphia_id".'
+                'taxon identifier. Default is "taxon_id".'
             ),
         )
         parser.add_argument(
