@@ -89,6 +89,32 @@ paths:
       parameters:
       - $ref: '#/components/parameters/slug'
       - $ref: '#/components/parameters/taxon-fields'
+  /synonyms/:
+    get:
+      tags:
+      - taxa
+      description: Returns a list of synonyms
+      responses:
+        200:
+          description: Successfull operation
+          headers:
+            X-Total:
+              schema:
+                type: integer
+              description: Total number of synonyms returned for the query
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  synonyms:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Synonym'
+      parameters:
+      - $ref: '#/components/parameters/offset'
+      - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/synonym-taxon'
   /facts/{slug}/:
     get:
       tags:
@@ -474,6 +500,13 @@ components:
             - classification
             - children
             - image
+    synonym-taxon:
+      name: taxon
+      in: query
+      description: Limit the list to synonyms for a specific taxon
+      schema:
+        type: string
+        example: acanthoceras-zachariasii
   schemas:
     Contributor:
       type: object
@@ -667,6 +700,15 @@ components:
           type: string
         rank:
           type: string
+    Synonym:
+      type: object
+      properties:
+        authority:
+          type: string
+          example: Brun, 1894
+        synonym_name:
+          type: string
+          example: Attheya zachariasii
     Article:
       type: object
       properties:

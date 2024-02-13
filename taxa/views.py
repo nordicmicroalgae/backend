@@ -1,7 +1,7 @@
 from django.db.models import Count, OuterRef, Subquery
 
 from core.views.generics import CollectionView, ResourceView, ClientError
-from taxa.models import Taxon
+from taxa.models import Taxon, Synonym
 from media.models import Image
 
 
@@ -99,5 +99,26 @@ class TaxonCollectionView(CollectionView):
                 queryset = queryset.filter(image_count__gt=0)
             elif not_illustrated_only:
                 queryset = queryset.filter(image_count=0)
+
+        return queryset
+
+
+class SynonymCollectionView(CollectionView):
+    queryset = Synonym.objects
+
+    fields = (
+        'authority',
+        'synonym_name',
+    )
+
+    plural_key = 'synonyms'
+
+    def get_queryset(self, *args, **kwargs):
+        queryset = super().get_queryset(*args, **kwargs)
+
+        taxon = self.request.GET.get('taxon')
+
+        if taxon != None:
+            queryset = queryset.filter(taxon__slug=taxon)
 
         return queryset

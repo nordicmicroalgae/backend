@@ -99,3 +99,27 @@ class Taxon(models.Model):
 
     def __str__(self):
         return self.scientific_name
+
+
+class Synonym(models.Model):
+    id = models.BigAutoField(
+        primary_key=True,
+    )
+    taxon = models.ForeignKey(
+        Taxon,
+        on_delete=models.CASCADE,
+    )
+    authority = models.CharField(
+        max_length=200,
+        null=True,
+    )
+    synonym_name = models.CharField(
+        max_length=200,
+    )
+
+    class Meta:
+        db_table = 'taxon_synonym'
+        ordering = ('synonym_name',)
+
+    def __str__(self):
+        return self.synonym_name
