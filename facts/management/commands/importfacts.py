@@ -10,7 +10,7 @@ from taxa.models import Taxon
 
 FACTS_HELCOM_PEG = pathlib.Path(
     settings.CONTENT_DIR,
-    'species', 'bvol_nomp_version_2023.txt'
+    'species', 'facts_biovolumes_nomp.txt'
 )
 
 
