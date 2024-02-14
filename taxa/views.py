@@ -1,7 +1,7 @@
 from django.db.models import Count, OuterRef, Subquery
 
 from core.views.generics import CollectionView, ResourceView, ClientError
-from taxa.models import Taxon, Synonym
+from taxa.models import Taxon, RelatedTaxon, Synonym
 from media.models import Image
 
 
@@ -109,9 +109,20 @@ class SynonymCollectionView(CollectionView):
     fields = (
         'authority',
         'synonym_name',
+        'related_taxon',
     )
 
     plural_key = 'synonyms'
+
+    def get_fields(self, *args, **kwargs):
+        fields, expressions = super().get_fields(*args, **kwargs)
+
+        if 'related_taxon' in fields:
+            expressions.update(dict(
+                related_taxon=RelatedTaxon()
+            ))
+
+        return fields, expressions
 
     def get_queryset(self, *args, **kwargs):
         queryset = super().get_queryset(*args, **kwargs)

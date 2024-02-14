@@ -3,6 +3,7 @@ from django.http import Http404
 
 from core.views.generics import CollectionView, ClientError
 from media.models import Media, Image, InvalidTagset
+from taxa.models import RelatedTaxon
 
 
 class MediaCollectionView(CollectionView):
@@ -15,6 +16,7 @@ class MediaCollectionView(CollectionView):
         'updated_at',
         'attributes',
         'renditions',
+        'related_taxon',
     )
 
     model_types = {
@@ -23,6 +25,17 @@ class MediaCollectionView(CollectionView):
     }
 
     plural_key = 'media'
+
+    def get_fields(self, *args, **kwargs):
+        fields, expressions = super().get_fields(*args, **kwargs)
+
+        if 'related_taxon' in fields:
+            related_taxon = RelatedTaxon()
+            expressions.update(dict(
+                related_taxon=related_taxon.nullable()
+            ))
+
+        return fields, expressions
 
     def get_queryset(self, *args, **kwargs):
         model_type = self.request.GET.get('type', 'all')

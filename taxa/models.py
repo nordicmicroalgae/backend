@@ -7,6 +7,7 @@ from functools import reduce
 from django.conf import settings
 from django.db import models
 from django.db.models import Q
+from django.db.models.functions import JSONObject, NullIf
 
 
 def get_filter_config():
@@ -78,6 +79,30 @@ class TaxonQuerySet(models.QuerySet):
             reduce(operator.or_, filters)
         )
 
+
+# For annotations
+class RelatedTaxon(JSONObject):
+    fields = (
+        'slug',
+        'scientific_name',
+        'authority',
+        'rank',
+    )
+
+    arity = None
+
+    def __init__(self, **fields):
+        fields = (
+            fields or
+            {f: 'taxon__%s' % f for f in self.fields}
+        )
+        super().__init__(**fields)
+
+    def nullable(self):
+        return NullIf(
+            models.Func(self, function='JSONB_STRIP_NULLS'),
+            JSONObject()
+        )
 
 
 class Taxon(models.Model):

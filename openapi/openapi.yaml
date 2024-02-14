@@ -433,6 +433,7 @@ components:
             - updated_at
             - attributes
             - renditions
+            - related_taxon
     media-artist:
       name: artist
       in: query
@@ -643,6 +644,8 @@ components:
                 url:
                   type: string
                   example: '/media/s/dinophysis-arctica-1.jpg'
+        related_taxon:
+          $ref: '#/components/schemas/RelatedTaxon'
     Taxon:
       type: object
       properties:
@@ -709,6 +712,8 @@ components:
         synonym_name:
           type: string
           example: Attheya zachariasii
+        related_taxon:
+          $ref: '#/components/schemas/RelatedTaxon'
     Article:
       type: object
       properties:
