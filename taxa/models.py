@@ -37,7 +37,9 @@ class TaxonQuerySet(models.QuerySet):
 
     def helcom_peg_only(self):
         return self.filter(
-            facts__data__contains=[{'provider': 'HELCOM-PEG'}]
+            facts__data__contains=[{
+                'attributes': {'provider': 'PEG_BVOL'}
+            }]
         )
 
     def species_only(self):

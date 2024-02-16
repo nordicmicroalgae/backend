@@ -150,6 +150,8 @@ class Command(BaseCommand):
 
                     biovolumes_by_taxon[taxon_id][key] = value
 
+                    if key == 'list':
+                        biovolumes_by_taxon[taxon_id]['provider'] = value[:-4]
 
             size_class_info = {}
             for key, column in SIZE_CLASS_FIELD_MAPPINGS.items():
