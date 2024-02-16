@@ -51,7 +51,7 @@ NOMP = (
         'species', 'facts_biovolumes_nomp.txt'
     ),
     dict(
-        encoding='iso-8859-1',
+        encoding='utf_8_sig',
         provider='NOMP',
         id_field='AphiaID',
     )
