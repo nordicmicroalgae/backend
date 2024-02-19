@@ -100,6 +100,8 @@ class TaxonCollectionView(CollectionView):
             elif not_illustrated_only:
                 queryset = queryset.filter(image_count=0)
 
+        queryset = queryset.order_by('scientific_name')
+
         return queryset
 
 
