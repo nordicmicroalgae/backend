@@ -282,23 +282,21 @@ components:
       schema:
         type: integer
         format: int32
-        minimum: 0
-        maximum: 50
-        default: 50
+        minimum: 1
+        example: 500
     name:
       name: name
       in: query
       description: Scientific name
       schema:
         type: string
-        example: Dinophysis arctica
     rank:
       name: rank
       in: query
       description: Limit the list to taxa within a certain taxonomical rank
       schema:
         type: string
-        example: Genus
+        example: Species
         enum:
         - Class
         - Family
@@ -335,7 +333,7 @@ components:
       required: false
       schema:
         type: string
-        example: diatoms
+        example: cyanobacteria
         enum:
         - all
         - ciliates
@@ -440,7 +438,6 @@ components:
       description: Limit the list to media for a specific photographer/artist
       schema:
         type: string
-        example: Maria Karlberg
     media-gallery:
       name: gallery
       in: query
@@ -465,7 +462,6 @@ components:
       description: Limit the list to media related to a specific taxon
       schema:
         type: string
-        example: dinophysis-arctica
     taxon-fields:
       name: fields
       in: query
