@@ -129,8 +129,14 @@ DATABASES = {
             'DJANGO_DATABASE_PASSWORD',
             config.get('database_password')
         ),
-        'HOST': '127.0.0.1',
-        'PORT': '5432',
+        'HOST': os.environ.get(
+            'DJANGO_DATABASE_HOST',
+            config.get('database_host', '127.0.0.1')
+        ),
+        'PORT': os.environ.get(
+            'DJANGO_DATABASE_PORT',
+            config.get('database_port', '5432')
+        ),
     }
 }
 
