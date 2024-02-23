@@ -108,7 +108,7 @@ class ResizedImage(Image):
 class EmbededPreviewImage(Image):
 
     def process(self, image):
-        preview_image = image.copy()
+        preview_image = image.convert('RGB')
 
         preview_image.thumbnail((80, 80))
 
