@@ -5,6 +5,7 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.text import slugify
+from django.utils import timezone
 
 
 from media import renditions
@@ -100,8 +101,8 @@ class Media(models.Model, renditions.ModelActionsMixin):
     type = models.CharField(max_length=32)
 
     created_by = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
-    created_at = models.DateTimeField(editable=False, auto_now_add=True)
-    updated_at = models.DateTimeField(editable=False, auto_now=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(default=timezone.now)
 
     attributes = models.JSONField(default=dict, encoder=DjangoJSONEncoder)
     renditions = models.JSONField(default=dict)

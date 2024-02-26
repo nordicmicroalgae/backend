@@ -5,6 +5,7 @@ import django.core.serializers.json
 from django.db import migrations, models
 import django.db.models.constraints
 import django.db.models.deletion
+import django.utils.timezone
 import media.models
 import media.renditions
 import media.storage
@@ -28,8 +29,8 @@ class Migration(migrations.Migration):
                 ('slug', models.SlugField(editable=False, max_length=255, unique=True)),
                 ('file', models.FileField(storage=media.storage.MediaOriginFileStorage(), upload_to=media.models.primary_path_for_media)),
                 ('type', models.CharField(max_length=32)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
+                ('created_at', models.DateTimeField(default=django.utils.timezone.now)),
+                ('updated_at', models.DateTimeField(default=django.utils.timezone.now)),
                 ('attributes', models.JSONField(default=dict, encoder=django.core.serializers.json.DjangoJSONEncoder)),
                 ('renditions', models.JSONField(default=dict)),
                 ('created_by', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),

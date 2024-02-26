@@ -109,7 +109,14 @@ def configure_form(form_cls, form_config):
 class MediaForm(forms.ModelForm):
 
     class Meta:
-        exclude = ('attributes', 'created_by', 'type', 'renditions',)
+        exclude = (
+            'attributes',
+            'created_by',
+            'created_at',
+            'updated_at',
+            'type',
+            'renditions',
+        )
         model = Media
 
     class Media:

@@ -9,6 +9,7 @@ from django.views.decorators.http import require_POST
 from django.urls import path, reverse
 from django.utils.decorators import method_decorator
 from django.utils.html import format_html
+from django.utils import timezone
 
 from media.forms import ImageForm
 from media.models import Image
@@ -330,6 +331,9 @@ class MediaAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         if not hasattr(obj, 'created_by'):
             obj.created_by = request.user
+
+        if change:
+            obj.updated_at = timezone.now()
 
         super().save_model(request, obj, form, change)
 
