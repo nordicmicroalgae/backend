@@ -4,6 +4,10 @@ from pathlib import Path
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.conf import settings
+from django.db import transaction
+
+
+from facts.models import Facts
 
 
 ALGAEBASE = (
@@ -64,23 +68,25 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         verbosity = options['verbosity']
 
-        nomp_file, nomp_opts = NOMP
-        if verbosity > 0:
-            self.stdout.write('Importing NOMP biovolumes...')
-        call_command('importbiovolumes', nomp_file, verbosity=verbosity, **nomp_opts)
+        with transaction.atomic(savepoint=False):
+            Facts.objects.all().delete()
 
-        algaebase_file, algaebase_opts = ALGAEBASE
-        if verbosity > 0:
-            self.stdout.write('Importing AlgaeBase external links...')
-        call_command('importlinks', algaebase_file, verbosity=verbosity, **algaebase_opts)
+            nomp_file, nomp_opts = NOMP
+            if verbosity > 0:
+                self.stdout.write('Importing NOMP biovolumes...')
+            call_command('importbiovolumes', nomp_file, verbosity=verbosity, **nomp_opts)
 
-        dyntaxa_file, dyntaxa_opts = DYNTAXA
-        if verbosity > 0:
-            self.stdout.write('Importing Dyntaxa external links...')
-        call_command('importlinks', dyntaxa_file, verbosity=verbosity, **dyntaxa_opts)
+            algaebase_file, algaebase_opts = ALGAEBASE
+            if verbosity > 0:
+                self.stdout.write('Importing AlgaeBase external links...')
+            call_command('importlinks', algaebase_file, verbosity=verbosity, **algaebase_opts)
 
-        norcca_file, norcca_opts = NORCCA
-        if verbosity > 0:
-            self.stdout.write('Importing NORCCA external links...')
-        call_command('importlinks', norcca_file, verbosity=verbosity, **norcca_opts)
+            dyntaxa_file, dyntaxa_opts = DYNTAXA
+            if verbosity > 0:
+                self.stdout.write('Importing Dyntaxa external links...')
+            call_command('importlinks', dyntaxa_file, verbosity=verbosity, **dyntaxa_opts)
 
+            norcca_file, norcca_opts = NORCCA
+            if verbosity > 0:
+                self.stdout.write('Importing NORCCA external links...')
+            call_command('importlinks', norcca_file, verbosity=verbosity, **norcca_opts)
