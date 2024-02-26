@@ -72,6 +72,24 @@ class TaxonCollectionView(CollectionView):
                 raise ClientError(str(exc)) from exc
 
 
+        culture_collection = (
+            self.request.GET.get('culture-collection')
+        )
+
+        if culture_collection:
+            queryset = (
+                queryset.with_culture_collection(culture_collection)
+            )
+
+
+        harmful_only = (
+            self.request.GET.get('harmful-only') == 'true'
+        )
+
+        if harmful_only:
+            queryset = queryset.harmful_only()
+
+
         helcom_peg_only = (
             self.request.GET.get('helcom-peg-only') == 'true'
         )

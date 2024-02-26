@@ -69,6 +69,8 @@ paths:
       - $ref: '#/components/parameters/name'
       - $ref: '#/components/parameters/rank'
       - $ref: '#/components/parameters/group'
+      - $ref: '#/components/parameters/culture-collection'
+      - $ref: '#/components/parameters/harmful-only'
       - $ref: '#/components/parameters/helcom-peg-only'
       - $ref: '#/components/parameters/illustrated-only'
       - $ref: '#/components/parameters/not-illustrated-only'
@@ -342,6 +344,19 @@ components:
         - dinoflagellates
         - other microalgae
         - other protozoa
+    culture-collection:
+      name: culture-collection
+      in: query
+      description: Limit list to species found within a specific culture collection
+      schema:
+        type: string
+    harmful-only:
+      name: harmful-only
+      in: query
+      description: Limit the list to species considered to have harmful impact
+      required: false
+      schema:
+        type: boolean
     helcom-peg-only:
       name: helcom-peg-only
       in: query

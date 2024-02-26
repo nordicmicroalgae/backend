@@ -35,10 +35,25 @@ class TaxonQuerySet(models.QuerySet):
     def within_rank(self, rank):
         return self.filter(rank__iexact=rank)
 
+    def with_culture_collection(self, provider):
+        return self.filter(
+            facts__data__contains=[{
+                'collection': 'Culture collection',
+                'provider': provider,
+            }]
+        )
+
     def helcom_peg_only(self):
         return self.filter(
             facts__data__contains=[{
                 'attributes': {'provider': 'PEG_BVOL'}
+            }]
+        )
+
+    def harmful_only(self):
+        return self.filter(
+            facts__data__contains=[{
+                'collection': 'Harmful algae blooms',
             }]
         )
 
