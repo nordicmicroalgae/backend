@@ -49,6 +49,19 @@ NORCCA = (
     )
 )
 
+WORMS = (
+    Path(
+        settings.CONTENT_DIR,
+        'species', 'facts_external_links_worms.txt'
+    ),
+    dict(
+        encoding='utf8',
+        provider='WORMS',
+        url_template='https://www.marinespecies.org/aphia.php?p=taxdetails&id=<replace_id>',
+        external_id_field='taxon_id',
+    )
+)
+
 NOMP = (
     Path(
         settings.CONTENT_DIR,
@@ -90,3 +103,8 @@ class Command(BaseCommand):
             if verbosity > 0:
                 self.stdout.write('Importing NORCCA external links...')
             call_command('importlinks', norcca_file, verbosity=verbosity, **norcca_opts)
+
+            worms_file, worms_opts = WORMS
+            if verbosity > 0:
+                self.stdout.write('Importing WORMS external links...')
+            call_command('importlinks', worms_file, verbosity=verbosity, **worms_opts)
