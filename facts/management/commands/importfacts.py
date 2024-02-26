@@ -36,6 +36,21 @@ DYNTAXA = (
     )
 )
 
+IOC = (
+    Path(
+        settings.CONTENT_DIR,
+        'species', 'facts_hab_ioc.txt'
+    ),
+    dict(
+        encoding='utf8',
+        provider='IOC',
+        collection='Harmful algae blooms',
+        url_template='https://www.marinespecies.org/hab/aphia.php?p=taxdetails&id=<replace_id>',
+        external_id_field='taxon_id',
+        note_field='hab_effect',
+    )
+)
+
 NORCCA = (
     Path(
         settings.CONTENT_DIR,
@@ -98,6 +113,11 @@ class Command(BaseCommand):
             if verbosity > 0:
                 self.stdout.write('Importing Dyntaxa external links...')
             call_command('importlinks', dyntaxa_file, verbosity=verbosity, **dyntaxa_opts)
+
+            ioc_file, ioc_opts = IOC
+            if verbosity > 0:
+                self.stdout.write('Importing IOC external links...')
+            call_command('importlinks', ioc_file, verbosity=verbosity, **ioc_opts)
 
             norcca_file, norcca_opts = NORCCA
             if verbosity > 0:
