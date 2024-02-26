@@ -59,6 +59,7 @@ NORCCA = (
     dict(
         encoding='utf8',
         provider='NORCCA',
+        collection='Culture collection',
         url_template='https://norcca.scrol.net/strain/<replace_id>',
         external_id_field='strain_name',
     )
