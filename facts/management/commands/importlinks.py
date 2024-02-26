@@ -59,6 +59,13 @@ class Command(BaseCommand):
             ),
         )
         parser.add_argument(
+            '--note-field',
+            help=(
+                'Name of a field in the CSV file to '
+                'use as a note for the external link.'
+            ),
+        )
+        parser.add_argument(
             '--url-template',
             help=(
                 'Template for which an external URL is generated '
@@ -76,6 +83,7 @@ class Command(BaseCommand):
         collection = options['collection']
         id_field = options['id_field']
         external_id_field = options['external_id_field']
+        note_field = options['note_field']
         url_template = options['url_template']
         verbosity = options['verbosity']
 
@@ -85,6 +93,9 @@ class Command(BaseCommand):
             id_field=id_field,
             external_id_field=external_id_field,
         )
+
+        if note_field:
+            required_fields['note_field'] = note_field
 
         links_by_taxon_id = defaultdict(list)
 
@@ -134,6 +145,9 @@ class Command(BaseCommand):
                     url_template.replace('<replace_id>', external_id)
                 ),
             }
+
+            if note_field:
+                link_dict['note'] = row[note_field].strip()
 
             links_by_taxon_id[taxon_id].append(link_dict)
 
