@@ -56,14 +56,17 @@ class TaxonListFilter(admin.SimpleListFilter):
     parameter_name = 'taxon'
 
     def lookups(self, request, model_admin):
-        qs = model_admin.model.objects.filter(
-            created_by=request.user
-        ).distinct(
+        qs = model_admin.model.objects
+        if not request.user.is_superuser:
+            qs = qs.filter(created_by=request.user)
+
+        qs = qs.distinct(
             'taxon__scientific_name'
         ).values_list(
             'taxon__id',
             'taxon__scientific_name'
         )
+
         return list(
             map(lambda row: (str(row[0]), str(row[1])), qs)
         )
