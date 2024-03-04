@@ -166,10 +166,14 @@ class MediaAdmin(admin.ModelAdmin):
         return format_html(
             '<div class="priority-actions" data-pk="{0}" data-priority="{1}">'
             '  <button type="button" class="button" {2} data-action="decrement" title="Move up">'
-            '    Move up'
+            '    <span class="visually-hidden">'
+            '      Move up'
+            '    </span>'
             '  </button>'
             '  <button type="button" class="button" {2} data-action="increment" title="Move down">'
-            '    Move down'
+            '    <span class="visually-hidden">'
+            '      Move down'
+            '    </span>'
             '  </button>'
             '</div>',
             obj.pk, obj.priority, boolean_attrs
