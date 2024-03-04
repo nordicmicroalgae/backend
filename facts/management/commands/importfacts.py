@@ -72,7 +72,7 @@ WORMS = (
     ),
     dict(
         encoding='utf8',
-        provider='WORMS',
+        provider='WoRMS',
         url_template='https://www.marinespecies.org/aphia.php?p=taxdetails&id=<replace_id>',
         external_id_field='taxon_id',
     )
