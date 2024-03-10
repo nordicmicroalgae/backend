@@ -43,7 +43,7 @@ class TaxonQuerySet(models.QuerySet):
             }]
         )
 
-    def helcom_peg_only(self):
+    def helcom_eg_phyto_only(self):
         return self.filter(
             facts__data__contains=[{
                 'attributes': {'provider': 'PEG_BVOL'}

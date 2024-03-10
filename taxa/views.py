@@ -90,12 +90,12 @@ class TaxonCollectionView(CollectionView):
             queryset = queryset.harmful_only()
 
 
-        helcom_peg_only = (
-            self.request.GET.get('helcom-peg-only') == 'true'
+        helcom_eg_phyto_only = (
+            self.request.GET.get('helcom-eg-phyto-only') == 'true'
         )
 
-        if helcom_peg_only:
-            queryset = queryset.helcom_peg_only()
+        if helcom_eg_phyto_only:
+            queryset = queryset.helcom_eg_phyto_only()
 
 
         illustrated_only = (

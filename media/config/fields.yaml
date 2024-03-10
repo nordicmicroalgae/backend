@@ -37,7 +37,7 @@ image:
   - label: Contributing organisation
     key: contributing_organisation
     help_text:
-      This could be e.g. HELCOM-PEG, the name of an institute or a
+      This could be e.g. HELCOM EG Phyto, the name of an institute or a
       company. Maximum number of characters is 28. The text is shown
       e.g. under the author name in Galleries and Latest images.
     required: False
@@ -249,7 +249,7 @@ image:
     required: False
     type: TagField
     suggestions:
-      - HELCOM-PEG
+      - HELCOM EG Phyto
       - Kuylenstierna
       - Skagerrak-Kattegat
       - Norwegian Sea

@@ -71,7 +71,7 @@ paths:
       - $ref: '#/components/parameters/group'
       - $ref: '#/components/parameters/culture-collection'
       - $ref: '#/components/parameters/harmful-only'
-      - $ref: '#/components/parameters/helcom-peg-only'
+      - $ref: '#/components/parameters/helcom-eg-phyto-only'
       - $ref: '#/components/parameters/illustrated-only'
       - $ref: '#/components/parameters/not-illustrated-only'
   /taxa/{slug}/:
@@ -219,7 +219,7 @@ paths:
                       properties:
                         name:
                           type: string
-                          example: HELCOM-PEG
+                          example: HELCOM EG Phyto
       parameters:
       - $ref: '#/components/parameters/media-tagset'
   /articles/:
@@ -357,10 +357,10 @@ components:
       required: false
       schema:
         type: boolean
-    helcom-peg-only:
-      name: helcom-peg-only
+    helcom-eg-phyto-only:
+      name: helcom-eg-phyto-only
       in: query
-      description: Limit the list to species found in the HELCOM-PEG list
+      description: Limit the list to species found in the HELCOM EG Phyto list
       required: false
       schema:
         type: boolean
@@ -459,9 +459,9 @@ components:
       description: Limit the list to media within a specific gallery
       schema:
         type: string
-        example: HELCOM-PEG
+        example: HELCOM EG Phyto
         enum:
-        - HELCOM-PEG
+        - HELCOM EG Phyto
         - Kuylenstierna
         - Skagerrak-Kattegat
         - Norwegian Sea
@@ -537,7 +537,7 @@ components:
       properties:
         provider:
           type: string
-          example: HELCOM-PEG
+          example: HELCOM EG Phyto
         collection:
           type: string
           example: Biovolumes
@@ -633,7 +633,7 @@ components:
               type: array
               items:
                 type: string
-                example: HELCOM-PEG
+                example: HELCOM EG Phyto
         renditions:
           type: object
           properties:
