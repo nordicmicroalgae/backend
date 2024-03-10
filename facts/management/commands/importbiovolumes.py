@@ -23,7 +23,6 @@ GENERAL_FIELD_MAPPINGS = {
 
 SIZE_CLASS_FIELD_MAPPINGS = {
     'size_class_no': 'SizeClassNo',
-    'non_valid_size_class': 'Nonvalid_SIZCL',
     'unit': 'Unit',
     'size_range': 'SizeRange',
     'length1': 'Length(l1)µm',
@@ -127,7 +126,14 @@ class Command(BaseCommand):
                 'Aborting.' % ', '.join(missing_fields)
             )
 
-        for row in rows:
+        for row_index, row in enumerate(rows):
+            if None in row.values():
+                self.stdout.write(self.style.WARNING(
+                    'Seems like malformed row: %u. Skipping row.'
+                    % (row_index + 2)
+                ))
+                continue
+
             taxon_id = row[id_field].strip()
 
             if taxon_id == '':
