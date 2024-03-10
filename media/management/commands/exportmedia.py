@@ -23,6 +23,7 @@ def get_representation(obj):
         'created_at': obj.created_at,
         'updated_at': obj.updated_at,
         'attributes': obj.attributes,
+        'renditions': obj.renditions,
     }
 
 def get_objects():
