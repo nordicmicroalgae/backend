@@ -17,7 +17,7 @@ DEFAULT_TAXA_FILE = os.path.join(
     'taxa.txt'
 )
 
-DEFAULT_TAXA_FILE_ENCODING = 'cp1252'
+DEFAULT_TAXA_FILE_ENCODING = 'utf8'
 
 
 class SlugGenerator:
