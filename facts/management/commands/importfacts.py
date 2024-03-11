@@ -18,7 +18,7 @@ ALGAEBASE = (
     dict(
         encoding='iso-8859-1',
         provider='AlgaeBase',
-        url_template='https://www.algaebase.org/search/species/detail/?species_id=<replace_id>',
+        url_template='url',
         external_id_field='ab_id',
     )
 )
@@ -60,7 +60,7 @@ NORCCA = (
         encoding='utf8',
         provider='NORCCA',
         collection='Culture collection',
-        url_template='https://norcca.scrol.net/strain/<replace_id>',
+        url_template='strain_link',
         external_id_field='strain_name',
     )
 )
