@@ -70,7 +70,9 @@ class Command(BaseCommand):
             help=(
                 'Template for which an external URL is generated '
                 'from. <replace_id> is replaced by the value from '
-                'the external id field.'
+                'the external id field. This could also be a '
+                'reference to a field in the CSV file to use either '
+                'as-is or as template on a row basis.'
             ),
             required=True,
         )
@@ -142,7 +144,10 @@ class Command(BaseCommand):
             link_dict = {
                 'external_id': external_id,
                 'external_url': (
-                    url_template.replace('<replace_id>', external_id)
+                    row.get(url_template, url_template).replace(
+                        '<replace_id>',
+                        external_id
+                    )
                 ),
             }
 
