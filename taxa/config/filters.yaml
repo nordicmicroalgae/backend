@@ -16,73 +16,69 @@ species_or_below:
 groups_of_organisms:
   - group_name: Ciliates
     included_taxa:
-      - Litostomatea
-      - Oligohymenophorea
-      - Oligotrichea
+      - Ciliophora
   - group_name: Cyanobacteria
     included_taxa:
-      - Cyanophyceae
+      - Cyanobacteria
   - group_name: Diatoms
     included_taxa:
-      - Bacillariophyceae
+      - Bacillariophyta
   - group_name: Dinoflagellates
     included_taxa:
-      - Dinoflagellata incertae sedis
-      - Dinophyceae
+      - Myzozoa
   - group_name: Other microalgae
     included_taxa:
+      - Bicoecea
+      - Bicosoecophyceae
+      - Bolidophyceae
       - Charophyceae
       - Chlorodendrophyceae
       - Chlorophyceae
       - Chlorophyta incertae sedis
       - Chrysophyceae
+      - Coccolithophyceae
       - Coleochaetophyceae
       - Conjugatophyceae
       - Cryptophyceae
       - Cryptophyta incertae sedis
       - Dictyochophyceae
-      - Euglenoidea
       - Eustigmatophyceae
       - Glaucophyceae
+      - Globothalamea
+      - Goniomonadophyceae
       - Haptophyta incertae sedis
+      - Hyphochytrea
+      - Imbricatea
+      - Katablepharidophyceae
+      - Klebsormidiophyceae
       - Mamiellophyceae
       - Mesostigmatophyceae
+      - Metromonadea
+      - Monothalamea
+      - Nanomonadea
       - Nephroselmidophyceae
+      - Olisthodiscophyceae
+      - Oomycota incertae sedis
       - Pavlovophyceae
       - Pedinophyceae
       - Pelagophyceae
+      - Peronosporea
+      - Phaeophyceae
+      - Phaeothamniophyceae
+      - Pleurastrophyceae
+      - Porphyridiophyceae
       - Prasinophyceae
+      - Proteomyxidea
       - Prymnesiophyceae
       - Pyramimonadophyceae
       - Raphidophyceae
-      - Synurophyceae
-      - Trebouxiophyceae
-      - Ulvophyceae
-      - Xanthophyceae
-  - group_name: Other protozoa
-    included_taxa:
-      - Bicoecea
-      - Bodonophyceae
-      - Choanoflagellatea
-      - Diplonemea
-      - Ebriophyceae
-      - Ellobiopsea
-      - Glissodiscea
-      - Globothalamea
-      - Heterolobosea
-      - Hypochytrea
-      - Imbricatea
-      - Jakobea
-      - Kinetoplastea
-      - Klebsormidiophyceae
-      - Metromonadea
-      - Monothalamea
-      - Oomycota incertae sedis
-      - Peranemea
-      - Percolatea
-      - Peronosporea
-      - Postgaardea
       - Sarcomonadea
       - Telonemea
       - Thecofilosea
-      - Trepomonadea
+      - Trebouxiophyceae
+      - Ulvophyceae
+      - Xanthophyceae
+      - Zygnematophyceae
+  - group_name: Other protozoa
+    included_taxa:
+      - Protozoa
