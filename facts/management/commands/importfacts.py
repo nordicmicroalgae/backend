@@ -36,6 +36,45 @@ DYNTAXA = (
     )
 )
 
+ENA = (
+    Path(
+        settings.CONTENT_DIR,
+        'species', 'facts_external_links_ena.txt'
+    ),
+    dict(
+        encoding='utf8',
+        provider='ENA',
+        url_template='url',
+        external_id_field='ncbi_id',
+    )
+)
+
+GBIF = (
+    Path(
+        settings.CONTENT_DIR,
+        'species', 'facts_external_links_gbif.txt'
+    ),
+    dict(
+        encoding='utf8',
+        provider='GBIF',
+        url_template='url',
+        external_id_field='usage_key',
+    )
+)
+
+ITIS = (
+    Path(
+        settings.CONTENT_DIR,
+        'species', 'facts_external_links_itis.txt'
+    ),
+    dict(
+        encoding='utf8',
+        provider='ITIS',
+        url_template='url',
+        external_id_field='itis_id',
+    )
+)
+
 IOC = (
     Path(
         settings.CONTENT_DIR,
@@ -48,6 +87,19 @@ IOC = (
         url_template='https://www.marinespecies.org/hab/aphia.php?p=taxdetails&id=<replace_id>',
         external_id_field='taxon_id',
         note_field='hab_effect',
+    )
+)
+
+NCBI = (
+    Path(
+        settings.CONTENT_DIR,
+        'species', 'facts_external_links_ncbi.txt'
+    ),
+    dict(
+        encoding='utf8',
+        provider='NCBI',
+        url_template='url',
+        external_id_field='ncbi_id',
     )
 )
 
@@ -86,7 +138,7 @@ NOMP = (
     dict(
         encoding='utf_8_sig',
         provider='NOMP',
-        id_field='AphiaID',
+        id_field='taxon_id',
     )
 )
 
@@ -115,10 +167,30 @@ class Command(BaseCommand):
                 self.stdout.write('Importing Dyntaxa external links...')
             call_command('importlinks', dyntaxa_file, verbosity=verbosity, **dyntaxa_opts)
 
+            ena_file, ena_opts = ENA
+            if verbosity > 0:
+                self.stdout.write('Importing ENA external links...')
+            call_command('importlinks', ena_file, verbosity=verbosity, **ena_opts)
+
+            gbif_file, gbif_opts = GBIF
+            if verbosity > 0:
+                self.stdout.write('Importing GBIF external links...')
+            call_command('importlinks', gbif_file, verbosity=verbosity, **gbif_opts)
+
+            itis_file, itis_opts = ITIS
+            if verbosity > 0:
+                self.stdout.write('Importing ITIS external links...')
+            call_command('importlinks', itis_file, verbosity=verbosity, **itis_opts)
+
             ioc_file, ioc_opts = IOC
             if verbosity > 0:
                 self.stdout.write('Importing IOC external links...')
             call_command('importlinks', ioc_file, verbosity=verbosity, **ioc_opts)
+
+            ncbi_file, ncbi_opts = NCBI
+            if verbosity > 0:
+                self.stdout.write('Importing NCBI external links...')
+            call_command('importlinks', ncbi_file, verbosity=verbosity, **ncbi_opts)
 
             norcca_file, norcca_opts = NORCCA
             if verbosity > 0:
