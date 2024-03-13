@@ -141,10 +141,22 @@ class Command(BaseCommand):
                     ))
                 continue
 
+            row_url_template = row.get(url_template, url_template)
+
+            if row_url_template == '':
+                if verbosity > 1:
+                    self.stdout.write(self.style.WARNING(
+                        'url_template must not be empty. Skipping row.'
+                    ))
+                continue
+
+            if not row_url_template.startswith('http'):
+                row_url_template = 'https://{}'.format(row_url_template)
+
             link_dict = {
                 'external_id': external_id,
                 'external_url': (
-                    row.get(url_template, url_template).replace(
+                    row_url_template.replace(
                         '<replace_id>',
                         external_id
                     )
