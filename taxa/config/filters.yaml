@@ -1,74 +1,75 @@
-# Definition of ranks considered to be "species or below"
+# Definition of ranks considered to be 'species or below'
 species_or_below:
-  - Forma
-  - Species
-  - Subspecies
-  - Variety
+- Forma
+- Species
+- Subspecies
+- Variety
 
-# Definition of "group of organisms". Each group consists of two elements:
+# Definition of 'group of organisms'. Each group consists of two elements:
 #     `group_name`
 #         The name or label of the group. This is for example the text being
-#         shown in the "quick view" user interface.
+#         shown in the 'quick view' user interface.
 #     `included_taxa`
 #         Should contain a list of scientific names. The names should be
 #         taxonomical parents, at any level, for which subordinate taxa to
 #         include in the group.
 groups_of_organisms:
-  - group_name: Ciliates
-    included_taxa:
-      - Ciliophora
-  - group_name: Cyanobacteria
-    included_taxa:
-      - Cyanobacteria
-  - group_name: Diatoms
-    included_taxa:
-      - Bacillariophyta
-  - group_name: Dinoflagellates
-    included_taxa:
-      - Myzozoa
-  - group_name: Other microalgae
-    included_taxa:
-      - Bicoecea
-      - Bicosoecophyceae
-      - Bolidophyceae
-      - Charophyceae
-      - Chlorodendrophyceae
-      - Chlorophyceae
-      - Chlorophyta incertae sedis
-      - Chrysophyceae
-      - Coccolithophyceae
-      - Coleochaetophyceae
-      - Conjugatophyceae
-      - Cryptophyceae
-      - Cryptophyta incertae sedis
-      - Dictyochophyceae
-      - Eustigmatophyceae
-      - Glaucophyceae
-      - Goniomonadophyceae
-      - Haptophyta incertae sedis
-      - Katablepharidophyceae
-      - Klebsormidiophyceae
-      - Mamiellophyceae
-      - Mesostigmatophyceae
-      - Nanomonadea
-      - Nephroselmidophyceae
-      - Olisthodiscophyceae
-      - Pavlovophyceae
-      - Pedinophyceae
-      - Pelagophyceae
-      - Phaeophyceae
-      - Phaeothamniophyceae
-      - Pleurastrophyceae
-      - Porphyridiophyceae
-      - Prasinophyceae
-      - Prymnesiophyceae
-      - Pyramimonadophyceae
-      - Raphidophyceae
-      - Telonemea
-      - Trebouxiophyceae
-      - Ulvophyceae
-      - Xanthophyceae
-      - Zygnematophyceae
-  - group_name: Other protozoa
-    included_taxa:
-      - Protozoa
+- group_name: Ciliates
+  included_taxa:
+  - Ciliophora
+- group_name: Cyanobacteria
+  included_taxa:
+  - Cyanobacteria
+- group_name: Diatoms
+  included_taxa:
+  - Bacillariophyta
+- group_name: Dinoflagellates
+  included_taxa:
+  - Myzozoa
+- group_name: Other microalgae
+  included_taxa:
+  - Bicoecea
+  - Bicosoecophyceae
+  - Bolidophyceae
+  - Charophyceae
+  - Chlorodendrophyceae
+  - Chlorophyceae
+  - Chlorophyta incertae sedis
+  - Chrysophyceae
+  - Coccolithophyceae
+  - Coleochaetophyceae
+  - Conjugatophyceae
+  - Cryptophyceae
+  - Cryptophyta incertae sedis
+  - Dictyochophyceae
+  - Eustigmatophyceae
+  - Glaucophyceae
+  - Goniomonadophyceae
+  - Haptophyta incertae sedis
+  - Katablepharidophyceae
+  - Klebsormidiophyceae
+  - Mamiellophyceae
+  - Mesostigmatophyceae
+  - Nanomonadea
+  - Nephroselmidophyceae
+  - Olisthodiscophyceae
+  - Pavlovophyceae
+  - Pedinophyceae
+  - Pelagophyceae
+  - Phaeophyceae
+  - Phaeothamniophyceae
+  - Pleurastrophyceae
+  - Porphyridiophyceae
+  - Prasinophyceae
+  - Prymnesiophyceae
+  - Pyramimonadophyceae
+  - Raphidophyceae
+  - Telonemea
+  - Trebouxiophyceae
+  - Ulvophyceae
+  - Xanthophyceae
+  - Zygnematophyceae
+- group_name: Protozoa
+  included_taxa:
+  - Protozoa
+
