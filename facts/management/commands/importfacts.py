@@ -155,49 +155,49 @@ class Command(BaseCommand):
             nomp_file, nomp_opts = NOMP
             if verbosity > 0:
                 self.stdout.write('Importing NOMP biovolumes...')
-            call_command('importbiovolumes', nomp_file, verbosity=verbosity, **nomp_opts)
+            call_command('importbiovolumes', nomp_file, **{**options, **nomp_opts})
 
             algaebase_file, algaebase_opts = ALGAEBASE
             if verbosity > 0:
                 self.stdout.write('Importing AlgaeBase external links...')
-            call_command('importlinks', algaebase_file, verbosity=verbosity, **algaebase_opts)
+            call_command('importlinks', algaebase_file, **{**options, **algaebase_opts})
 
             dyntaxa_file, dyntaxa_opts = DYNTAXA
             if verbosity > 0:
                 self.stdout.write('Importing Dyntaxa external links...')
-            call_command('importlinks', dyntaxa_file, verbosity=verbosity, **dyntaxa_opts)
+            call_command('importlinks', dyntaxa_file, **{**options, **dyntaxa_opts})
 
             ena_file, ena_opts = ENA
             if verbosity > 0:
                 self.stdout.write('Importing ENA external links...')
-            call_command('importlinks', ena_file, verbosity=verbosity, **ena_opts)
+            call_command('importlinks', ena_file, **{**options, **ena_opts})
 
             gbif_file, gbif_opts = GBIF
             if verbosity > 0:
                 self.stdout.write('Importing GBIF external links...')
-            call_command('importlinks', gbif_file, verbosity=verbosity, **gbif_opts)
+            call_command('importlinks', gbif_file, **{**options, **gbif_opts})
 
             itis_file, itis_opts = ITIS
             if verbosity > 0:
                 self.stdout.write('Importing ITIS external links...')
-            call_command('importlinks', itis_file, verbosity=verbosity, **itis_opts)
+            call_command('importlinks', itis_file, **{**options, **itis_opts})
 
             ioc_file, ioc_opts = IOC
             if verbosity > 0:
                 self.stdout.write('Importing IOC external links...')
-            call_command('importlinks', ioc_file, verbosity=verbosity, **ioc_opts)
+            call_command('importlinks', ioc_file, **{**options, **ioc_opts})
 
             ncbi_file, ncbi_opts = NCBI
             if verbosity > 0:
                 self.stdout.write('Importing NCBI external links...')
-            call_command('importlinks', ncbi_file, verbosity=verbosity, **ncbi_opts)
+            call_command('importlinks', ncbi_file, **{**options, **ncbi_opts})
 
             norcca_file, norcca_opts = NORCCA
             if verbosity > 0:
                 self.stdout.write('Importing NORCCA external links...')
-            call_command('importlinks', norcca_file, verbosity=verbosity, **norcca_opts)
+            call_command('importlinks', norcca_file, **{**options, **norcca_opts})
 
             worms_file, worms_opts = WORMS
             if verbosity > 0:
                 self.stdout.write('Importing WORMS external links...')
-            call_command('importlinks', worms_file, verbosity=verbosity, **worms_opts)
+            call_command('importlinks', worms_file, **{**options, **worms_opts})
