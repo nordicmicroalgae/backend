@@ -1,0 +1,36 @@
+{% extends 'admin/base_site.html' %}
+
+{% load static %}
+
+{% block extrastyle %}
+{{ block.super }}
+  <link rel="stylesheet" href="{% static 'admin/css/syncdb.css' %}">
+{% endblock %}
+
+{% block title %}Synchronize database{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <h1>Synchronize database</h1>
+  <div id="syncdb-ui">
+    <div id="syncdb-actions">
+    {% if log_id %}
+      <button type="submit" disabled>▶</button>
+      <span>{{ log_id }}</span>
+    {% else %}
+      <form method="post">
+        {% csrf_token %}
+        <button type="submit" title="Run synchronize command">▶</button>
+      </form>
+    {% endif %}
+    </div>
+    <pre id="syncdb-log">{% if log_text %}{{ log_text }}{% endif %}</pre>
+    {% if log_id %}
+    <script id="syncdb-constants"
+            src="{% static 'admin/js/syncdb.js' %}"
+            data-log-url="{% url 'admin:synchronization_syncdb' log_id %}">
+    </script>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

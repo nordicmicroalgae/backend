@@ -1,0 +1,34 @@
+#syncdb-ui {
+  border-radius: 4px;
+  background-color: #000;
+  color: #fff;
+  overflow: hidden;
+}
+
+#syncdb-actions {
+  display: flex;
+  align-items: center;
+  background-color: #222;
+}
+
+#syncdb-actions button[type=submit] {
+  background: none;
+  border: none;
+  color: #fff;
+  padding: .5rem 1rem;
+  font-size: 1.625rem;
+  cursor: pointer;
+}
+
+#syncdb-actions button[type=submit][disabled] {
+  color: #444;
+  cursor: not-allowed;
+}
+
+#syncdb-log {
+  margin: 0;
+  padding: 8px;
+  height: 60vh;
+  overflow-y: scroll;
+  color: #fff;
+}

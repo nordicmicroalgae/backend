@@ -70,6 +70,7 @@ INSTALLED_APPS = [
     'facts',
     'media',
     'contributors',
+    'synchronization',
     'openapi',
     'django.contrib.auth',
     'django.contrib.contenttypes',
