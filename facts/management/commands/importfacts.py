@@ -59,6 +59,7 @@ GBIF = (
         provider='GBIF',
         url_template='url',
         external_id_field='usage_key',
+        note_field='n_nordic_occurrences',
     )
 )
 
