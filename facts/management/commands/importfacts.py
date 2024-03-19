@@ -78,7 +78,7 @@ ITIS = (
 IOC = (
     Path(
         settings.CONTENT_DIR,
-        'species', 'facts_hab_ioc.txt'
+        'species', 'facts_external_links_hab_ioc.txt'
     ),
     dict(
         encoding='utf8',
@@ -86,7 +86,6 @@ IOC = (
         collection='Harmful algae blooms',
         url_template='https://www.marinespecies.org/hab/aphia.php?p=taxdetails&id=<replace_id>',
         external_id_field='taxon_id',
-        note_field='hab_effect',
     )
 )
 
