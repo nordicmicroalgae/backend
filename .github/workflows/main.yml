@@ -83,7 +83,7 @@ jobs:
                   "${{ github.ref_name }}" \
                   ./backend/** \
                   --repo "${{ github.repository }}" \
-                  --notes-from-tag
+                  --notes ""
 
     staging:
         if: github.ref == 'refs/heads/next'
