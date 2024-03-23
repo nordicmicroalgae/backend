@@ -69,6 +69,12 @@ jobs:
                     -f ${{ env.REMOTE_DEST }}/release/wheels \
                     -r ${{ env.REMOTE_DEST }}/release/requirements.txt"
 
+            - name: Apply database migrations
+              run: |
+                ssh ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }} " \
+                  source ${{ env.REMOTE_DEST }}/release/env/bin/activate && \
+                  python3 ${{ env.REMOTE_DEST }}/release/app/manage.py migrate"
+
             - name: Start service
               run: |
                 ssh ${{ env.REMOTE_USER }}@${{ env.REMOTE_HOST }} " \
