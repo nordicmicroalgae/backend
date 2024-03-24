@@ -1,5 +1,11 @@
 class CorsMiddleware:
-    enabled_paths = ('/api/',)
+    enabled_paths = (
+        '/api/',
+    )
+
+    exposed_headers = (
+        'X-Total', # custom header used in REST API
+    )
 
     def __init__(self, get_response):
         self.get_response = get_response
@@ -12,5 +18,10 @@ class CorsMiddleware:
             for path in self.enabled_paths
         ):
             response['Access-Control-Allow-Origin'] = '*'
+
+            # extends the default CORS-safelist
+            response['Access-Control-Expose-Headers'] = (
+                ', '.join(self.exposed_headers)
+            )
 
         return response
