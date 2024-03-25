@@ -120,6 +120,10 @@ class Media(models.Model, renditions.ModelActionsMixin):
             ),
         ]
 
+        permissions = [
+            ('manage_others', 'Can manage others media'),
+        ]
+
     @property
     def title(self):
         return self.attributes.get('title', 'Untitled')

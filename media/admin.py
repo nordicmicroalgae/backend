@@ -23,6 +23,10 @@ class TagListFilter(admin.SimpleListFilter):
 
     def lookups(self, request, model_admin):
         qs = model_admin.model.objects.get_tagset(self.parameter_name)
+
+        if not request.user.has_perm('media.manage_others'):
+            qs = qs.filter(created_by=request.user)
+
         return list(map(
             lambda tag: (str(tag), str(tag)),
             qs.values_list('name', flat=True)
@@ -57,7 +61,7 @@ class TaxonListFilter(admin.SimpleListFilter):
 
     def lookups(self, request, model_admin):
         qs = model_admin.model.objects
-        if not request.user.is_superuser:
+        if not request.user.has_perm('media.manage_others'):
             qs = qs.filter(created_by=request.user)
 
         qs = qs.distinct(
@@ -298,7 +302,7 @@ class MediaAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        if request.user.is_superuser:
+        if request.user.has_perm('media.manage_others'):
             return qs
         return qs.filter(created_by=request.user)
 
