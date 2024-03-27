@@ -152,6 +152,17 @@ class Command(BaseCommand):
 
             # Build up hierachial data for each taxon
             for taxon_info in taxa_by_id.values():
+
+                if taxon_info['parent_id'] is None:
+                    if verbosity > 1:
+                        self.stdout.write(
+                            self.style.WARNING(
+                                'Missing parent for %s.'
+                                % taxon_info['scientific_name']
+                            )
+                        )
+                    continue
+
                 parent_info = taxa_by_id.get(taxon_info['parent_id'])
 
                 # Add parent and children
