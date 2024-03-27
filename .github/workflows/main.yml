@@ -1,4 +1,4 @@
-name: Build & Deploy
+name: CI/CD
 
 on: push
 
@@ -97,4 +97,12 @@ jobs:
         uses: ./.github/workflows/deploy.yml
         with:
             environment: staging
+        secrets: inherit
+
+    production:
+        if: startsWith(github.ref, 'refs/tags/')
+        needs: build
+        uses: ./.github/workflows/deploy.yml
+        with:
+            environment: production
         secrets: inherit
