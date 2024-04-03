@@ -1,3 +1,4 @@
+html[data-theme="light"],
 :root {
   --primary: #666666;
   --secondary: #3c3c3c;
@@ -8,6 +9,19 @@
   --button-hover-bg: #3c3c3c;
   --default-button-hover-bg: #000000;
 }
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --primary: #666666;
+    --selected-row: #444444;
+  }
+}
+
+html[data-theme="dark"] {
+  --primary: #666666;
+  --selected-row: #444444;
+}
+
 
 #changelist-filter ul {
   max-height: 30vh;
