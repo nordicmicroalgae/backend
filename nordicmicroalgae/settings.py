@@ -184,6 +184,10 @@ MEDIA_URL = '/media/'
 
 
 # E-mail
+DEFAULT_FROM_EMAIL = os.environ.get(
+    'DJANGO_DEFAULT_FROM_EMAIL',
+    config.get('default_from_email', 'webmaster@localhost')
+)
 
 EMAIL_HOST = os.environ.get(
     'DJANGO_EMAIL_HOST',
