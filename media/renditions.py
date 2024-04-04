@@ -91,11 +91,16 @@ class Image(Rendition):
 class ResizedImage(Image):
 
     def process(self, image):
+        image = super().process(image)
+
         orig_width, orig_height = image.size
 
         max_width, max_height = self.options
 
         factor = min(max_width/orig_width, max_height/orig_height)
+
+        if factor >= 1:
+            return image
 
         resized_image = image.resize((
             int(orig_width*factor),
@@ -108,6 +113,8 @@ class ResizedImage(Image):
 class EmbededPreviewImage(Image):
 
     def process(self, image):
+        image = super().process(image)
+
         preview_image = image.convert('RGB')
 
         preview_image.thumbnail((80, 80))
