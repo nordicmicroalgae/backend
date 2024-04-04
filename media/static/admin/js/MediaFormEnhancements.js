@@ -48,6 +48,7 @@
         'taxon',
         'file',
         'title',
+        'caption',
       ];
 
       const form = $('#content-main > form');
