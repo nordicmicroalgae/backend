@@ -1,11 +1,11 @@
 openapi: 3.0.0
 info:
-  version: 0.0.0
+  version: 2.0.0-beta
   title: Nordic Microalgae
-  description: API for Nordic Microalgae. __Under development__.
+  description: API for Nordic Microalgae.
 servers:
 - url: /api/
-  description: Development & Testing purposes
+  description: Test
 tags:
 - name: taxa
   description: Lists and taxonomical information
