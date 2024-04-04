@@ -183,6 +183,12 @@ STATICFILES_DIRS = [
 MEDIA_URL = '/media/'
 
 
+# Authentication
+LOGIN_URL = '/admin/login/'
+
+LOGOUT_REDIRECT_URL = '/'
+
+
 # E-mail
 DEFAULT_FROM_EMAIL = os.environ.get(
     'DJANGO_DEFAULT_FROM_EMAIL',
