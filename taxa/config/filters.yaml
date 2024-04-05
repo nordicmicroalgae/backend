@@ -46,7 +46,6 @@ groups_of_organisms:
   - Glaucophyceae
   - Goniomonadophyceae
   - Haptophyta incertae sedis
-  - Katablepharidophyceae
   - Klebsormidiophyceae
   - Mamiellophyceae
   - Mesostigmatophyceae
@@ -64,6 +63,7 @@ groups_of_organisms:
   - Prymnesiophyceae
   - Pyramimonadophyceae
   - Raphidophyceae
+  - Rhodellophyceae
   - Telonemea
   - Trebouxiophyceae
   - Ulvophyceae
