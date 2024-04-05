@@ -117,6 +117,19 @@ NORCCA = (
     )
 )
 
+PR2 = (
+    Path(
+        settings.CONTENT_DIR,
+        'species', 'facts_external_links_pr2.txt'
+    ),
+    dict(
+        encoding='utf8',
+        provider='PR2',
+        url_template='url',
+        external_id_field='pr2_name',
+    )
+)
+
 WORMS = (
     Path(
         settings.CONTENT_DIR,
@@ -201,3 +214,8 @@ class Command(BaseCommand):
             if verbosity > 0:
                 self.stdout.write('Importing WORMS external links...')
             call_command('importlinks', worms_file, **{**options, **worms_opts})
+
+            pr2_file, pr2_opts = PR2
+            if verbosity > 0:
+                self.stdout.write('Importing PR2 external links...')
+            call_command('importlinks', pr2_file, **{**options, **pr2_opts})
