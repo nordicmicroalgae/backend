@@ -22,22 +22,30 @@ urlpatterns = [
     # Admin site routes
     path(
         'admin/password_reset/',
-        auth_views.PasswordResetView.as_view(),
+        auth_views.PasswordResetView.as_view(
+            extra_context={'site_header': admin.site.site_header}
+        ),
         name='admin_password_reset',
     ),
     path(
         'admin/password_reset/done/',
-        auth_views.PasswordResetDoneView.as_view(),
+        auth_views.PasswordResetDoneView.as_view(
+            extra_context={'site_header': admin.site.site_header}
+        ),
         name='password_reset_done',
     ),
     path(
         'admin/password_reset/<uidb64>/<token>/',
-        auth_views.PasswordResetConfirmView.as_view(),
+        auth_views.PasswordResetConfirmView.as_view(
+            extra_context={'site_header': admin.site.site_header}
+        ),
         name='password_reset_confirm',
     ),
     path(
         'admin/password_reset/complete/',
-        auth_views.PasswordResetCompleteView.as_view(),
+        auth_views.PasswordResetCompleteView.as_view(
+            extra_context={'site_header': admin.site.site_header}
+        ),
         name='password_reset_complete',
     ),
     path('admin/', admin.site.urls),
