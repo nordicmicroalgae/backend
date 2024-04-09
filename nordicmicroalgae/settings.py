@@ -180,7 +180,10 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'nordicmicroalgae', 'static'),
 ]
 
-MEDIA_URL = '/media/'
+MEDIA_URL = os.environ.get(
+    'DJANGO_MEDIA_URL',
+    config.get('media_url', '/media/')
+)
 
 
 # Authentication
