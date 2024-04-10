@@ -4,7 +4,10 @@ info:
   title: Nordic Microalgae
   description: API for Nordic Microalgae.
 servers:
-- url: /api/
+- url: https://nordicmicroalgae.org/api/
+  description: Production server
+- url: https://next.nordicmicroalgae.org/api/
+  description: Staging server
 tags:
 - name: taxa
   description: Lists and taxonomical information
