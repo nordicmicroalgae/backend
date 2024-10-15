@@ -86,6 +86,7 @@ IOC = (
         provider='IOC',
         collection='Harmful algae blooms',
         url_template='https://www.marinespecies.org/hab/aphia.php?p=taxdetails&id=<replace_id>',
+        label_template='IOC HAB',
         external_id_field='taxon_id',
     )
 )
@@ -113,6 +114,7 @@ NORCCA = (
         provider='NORCCA',
         collection='Culture collection',
         url_template='strain_link',
+        label_template='NORCCA (strain {strain_name})',
         external_id_field='strain_name',
     )
 )
@@ -126,6 +128,7 @@ PR2 = (
         encoding='utf8',
         provider='PR2',
         url_template='url',
+        label_template='PR2: {pr2_name}',
         external_id_field='pr2_name',
     )
 )

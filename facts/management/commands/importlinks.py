@@ -76,6 +76,16 @@ class Command(BaseCommand):
             ),
             required=True,
         )
+        parser.add_argument(
+            '--label-template',
+            default='{provider}',
+            help=(
+                'Template for which the label text for an external '
+                'URL is generated from. This could also be a '
+                'reference to a field in the CSV file to use either '
+                'as-is or as template on a row basis.'
+            ),
+        )
 
 
     def handle(self, *args, **options):
@@ -87,6 +97,7 @@ class Command(BaseCommand):
         external_id_field = options['external_id_field']
         note_field = options['note_field']
         url_template = options['url_template']
+        label_template = options['label_template']
         verbosity = options['verbosity']
 
         objects_to_save = []
@@ -153,14 +164,38 @@ class Command(BaseCommand):
             if not row_url_template.startswith('http'):
                 row_url_template = 'https://{}'.format(row_url_template)
 
+            external_url = row_url_template.replace('<replace_id>', external_id)
+
+
+            row_label_template = row.get(label_template, label_template)
+
+            if row_label_template == '':
+                if verbosity > 1:
+                    self.stdout.write(self.style.WARNING(
+                        'label_template must not be empty. Skipping row.'
+                    ))
+                continue
+
+            try:
+                label = row_label_template.format(**{
+                    **row,
+                    'provider': provider,
+                    'collection': collection,
+                    'external_id': external_id,
+                })
+            except KeyError as e:
+                label = provider
+                if verbosity > 1:
+                    self.stdout.write(self.style.WARNING(
+                        "Expected to find column %s in order to build label "
+                        "according to the template. Falling back to default: "
+                        "'%s'." % (e, provider)
+                    ))
+
             link_dict = {
                 'external_id': external_id,
-                'external_url': (
-                    row_url_template.replace(
-                        '<replace_id>',
-                        external_id
-                    )
-                ),
+                'external_url': external_url,
+                'label': label,
             }
 
             if note_field:
