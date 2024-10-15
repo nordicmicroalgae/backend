@@ -16,7 +16,7 @@ class Rendition:
         self.options = options
 
     def create(self):
-        self.storage.delete(self.path)
+        self.storage.delete(self.relative_path)
 
         self.source.seek(0)
 
@@ -26,10 +26,10 @@ class Rendition:
             output_buffer.close()
 
     def save(self, output_buffer):
-        self.storage.save(self.path, output_buffer)
+        self.storage.save(self.relative_path, output_buffer)
 
     def delete(self):
-        self.storage.delete(self.path)
+        self.storage.delete(self.relative_path)
 
     def render(self, input_buffer):
         raise NotImplementedError(
@@ -45,9 +45,11 @@ class Rendition:
 
     @property
     def path(self):
-        return self.storage.path(
-            os.path.join(self.label, self.name)
-        )
+        return self.storage.path(self.relative_path)
+
+    @property
+    def relative_path(self):
+        return os.path.join(self.label, self.name)
 
     @property
     def name(self):
@@ -59,9 +61,7 @@ class Rendition:
 
     @property
     def url(self):
-        return self.storage.url(
-            os.path.join(self.label, self.name)
-        )
+        return self.storage.url(self.relative_path)
 
 class Image(Rendition):
 
