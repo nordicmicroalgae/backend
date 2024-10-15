@@ -91,6 +91,21 @@ IOC = (
     )
 )
 
+IOC_UNESCO = (
+    Path(
+        settings.CONTENT_DIR,
+        'species', 'facts_ioc_toxins.txt'
+    ),
+    dict(
+        encoding='utf8',
+        provider='IOC-UNESCO',
+        collection='Harmful algae blooms',
+        url_template='url',
+        label_template='IOC Toxin: {recommended_acronym}',
+        external_id_field='taxon_id',
+    )
+)
+
 NCBI = (
     Path(
         settings.CONTENT_DIR,
@@ -202,6 +217,11 @@ class Command(BaseCommand):
             if verbosity > 0:
                 self.stdout.write('Importing IOC external links...')
             call_command('importlinks', ioc_file, **{**options, **ioc_opts})
+
+            ioc_unesco_file, ioc_unesco_opts = IOC_UNESCO
+            if verbosity > 0:
+                self.stdout.write('Importing IOC-UNESCO external links...')
+            call_command('importlinks', ioc_unesco_file, **{**options, **ioc_unesco_opts})
 
             ncbi_file, ncbi_opts = NCBI
             if verbosity > 0:
