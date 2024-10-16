@@ -22,7 +22,7 @@ groups_of_organisms:
   - Cyanobacteria
 - group_name: Diatoms
   included_taxa:
-  - Bacillariophyta
+  - Bacillariophyceae
 - group_name: Dinoflagellates
   included_taxa:
   - Myzozoa
