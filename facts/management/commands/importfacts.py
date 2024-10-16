@@ -101,7 +101,7 @@ IOC_UNESCO = (
         provider='IOC-UNESCO',
         collection='Harmful algae blooms',
         url_template='url',
-        label_template='IOC Toxin: {recommended_acronym}',
+        label_template='IOC-UNESCO Toxins: {recommended_acronym}',
         external_id_field='taxon_id',
     )
 )
