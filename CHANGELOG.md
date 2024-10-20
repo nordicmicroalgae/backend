@@ -1,3 +1,7 @@
+## 2.1.1 (October 20, 2024)
+
+Includes a minor fix for an integrity error when changing taxon for an image under certain circumstances.
+
 ## 2.1.0 (October 16, 2024)
 
 - Add `label` for external link data structures
