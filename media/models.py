@@ -129,9 +129,18 @@ class Media(models.Model, renditions.ModelActionsMixin):
         return self.attributes.get('title', 'Untitled')
 
     def save(self, *args, **kwargs):
+        try:
+            origin_obj = Media.objects.get(pk=self.pk)
+        except Media.DoesNotExist:
+            origin_obj = None
+
+        changed_taxon = bool(
+            origin_obj and origin_obj.taxon != self.taxon
+        )
+
         if not self.slug:
             setattr(self, 'slug', next(available_slugs(self.title)))
-        if self.priority is None:
+        if changed_taxon or self.priority is None:
             setattr(self, 'priority', next(available_priorities(self.taxon)))
 
         return super().save(*args, **kwargs)
