@@ -31,7 +31,7 @@ DYNTAXA = (
     dict(
         encoding='iso-8859-1',
         provider='Dyntaxa',
-        url_template='https://namnochslaktskap.artfakta.se/taxa/<replace_id>/details',
+        url_template='https://artfakta.se/taxa/<replace_id>/taxonomi',
         external_id_field='dyntaxa_id',
     )
 )
