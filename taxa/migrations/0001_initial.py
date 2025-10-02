@@ -4,29 +4,35 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Taxon',
+            name="Taxon",
             fields=[
-                ('id', models.PositiveBigIntegerField(editable=False, primary_key=True, serialize=False)),
-                ('parent_id', models.PositiveBigIntegerField(blank=True, editable=False, null=True)),
-                ('slug', models.SlugField(editable=False, max_length=255, unique=True)),
-                ('scientific_name', models.CharField(max_length=200)),
-                ('authority', models.CharField(blank=True, max_length=200, null=True)),
-                ('rank', models.CharField(blank=True, max_length=64, null=True)),
-                ('parent', models.JSONField(default=dict)),
-                ('classification', models.JSONField(default=list)),
-                ('children', models.JSONField(default=list)),
+                (
+                    "id",
+                    models.PositiveBigIntegerField(
+                        editable=False, primary_key=True, serialize=False
+                    ),
+                ),
+                (
+                    "parent_id",
+                    models.PositiveBigIntegerField(blank=True, editable=False, null=True),
+                ),
+                ("slug", models.SlugField(editable=False, max_length=255, unique=True)),
+                ("scientific_name", models.CharField(max_length=200)),
+                ("authority", models.CharField(blank=True, max_length=200, null=True)),
+                ("rank", models.CharField(blank=True, max_length=64, null=True)),
+                ("parent", models.JSONField(default=dict)),
+                ("classification", models.JSONField(default=list)),
+                ("children", models.JSONField(default=list)),
             ],
             options={
-                'db_table': 'taxon',
-                'ordering': ('scientific_name',),
+                "db_table": "taxon",
+                "ordering": ("scientific_name",),
             },
         ),
     ]

@@ -11,15 +11,12 @@ insert_final_newline = true
 trim_trailing_whitespace = true
 
 [*.{js,jsx,json}]
-indent_style = space
 indent_size = 2
 
 [*.{css,scss,less}]
-indent_style = space
 indent_size = 2
 
 [*.html]
-indent_style = space
 indent_size = 2
 
 [*.md]

@@ -4,14 +4,13 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('media', '0001_initial'),
+        ("media", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='media',
-            options={'permissions': [('manage_others', 'Can manage others media')]},
+            name="media",
+            options={"permissions": [("manage_others", "Can manage others media")]},
         ),
     ]

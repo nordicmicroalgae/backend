@@ -4,32 +4,29 @@ from media.renditions import get_registered_models
 
 
 def get_registered_models_by_name():
-    return {
-        cls.__name__.lower(): cls
-        for cls in get_registered_models()
-    }
+    return {cls.__name__.lower(): cls for cls in get_registered_models()}
 
 
 class Command(BaseCommand):
     help = (
-        'Generate all kind of file representations '
-        '(e.g. thumbnails), for all kind of Media objects.'
+        "Generate all kind of file representations "
+        "(e.g. thumbnails), for all kind of Media objects."
     )
 
     def add_arguments(self, parser):
         parser.add_argument(
-            'args',
-            metavar='model_names',
-            nargs='*',
+            "args",
+            metavar="model_names",
+            nargs="*",
             help=(
-                'Name of model classes to create renditions for. '
-                'Should be all lowercase. If this is not provided, '
-                'all registered model classes will be used.'
+                "Name of model classes to create renditions for. "
+                "Should be all lowercase. If this is not provided, "
+                "all registered model classes will be used."
             ),
         )
 
     def handle(self, *model_names, **options):
-        verbosity = options['verbosity']
+        verbosity = options["verbosity"]
 
         registered_models = get_registered_models_by_name()
 
@@ -47,7 +44,6 @@ class Command(BaseCommand):
 
             model_classes.append(registered_models.get(model_name))
 
-
         number_of_processed_objects = 0
 
         for model_class in model_classes:
@@ -64,12 +60,11 @@ class Command(BaseCommand):
                 obj.create_renditions()
                 obj.file.close()
 
-                number_of_processed_objects = (
-                    number_of_processed_objects + 1
-                )
+                number_of_processed_objects = number_of_processed_objects + 1
 
         if verbosity > 0:
-            self.stdout.write(self.style.SUCCESS(
-                'Successfully processed %u objects.'
-                % number_of_processed_objects
-            ))
+            self.stdout.write(
+                self.style.SUCCESS(
+                    "Successfully processed %u objects." % number_of_processed_objects
+                )
+            )
