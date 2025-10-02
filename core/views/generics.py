@@ -11,10 +11,9 @@ class SelectableFieldsMixin:
     fields = None
 
     def get_fields(self, selected_fields=[]):
-        user_selected_fields = list(filter(
-            lambda field: field in self.fields,
-            map(str.strip, selected_fields)
-        ))
+        user_selected_fields = list(
+            filter(lambda field: field in self.fields, map(str.strip, selected_fields))
+        )
         return (user_selected_fields or self.fields, {})
 
 
@@ -25,9 +24,9 @@ class SingleObjectMixin(SelectableFieldsMixin):
         return self.queryset.all()
 
     def get_object_dict(self, queryset, *args, **kwargs):
-        fields, expressions = self.get_fields(kwargs.get('fields', []))
+        fields, expressions = self.get_fields(kwargs.get("fields", []))
         queryset = queryset.values(*fields, **expressions)
-        return dict(queryset.get(slug=kwargs.get('slug')))
+        return dict(queryset.get(slug=kwargs.get("slug")))
 
 
 class MultipleObjectMixin(SelectableFieldsMixin):
@@ -37,14 +36,14 @@ class MultipleObjectMixin(SelectableFieldsMixin):
         return self.queryset.all()
 
     def get_object_list(self, queryset, *args, **kwargs):
-        fields, expressions = self.get_fields(kwargs.get('fields', []))
+        fields, expressions = self.get_fields(kwargs.get("fields", []))
         queryset = queryset.values(*fields, **expressions)
 
-        offset = abs(int(kwargs.get('offset', 0)))
-        limit = abs(int(kwargs.get('limit', 0)))
+        offset = abs(int(kwargs.get("offset", 0)))
+        limit = abs(int(kwargs.get("limit", 0)))
 
         if limit > 0:
-            queryset = queryset[offset:(offset+limit)]
+            queryset = queryset[offset : (offset + limit)]
         elif offset > 0:
             queryset = queryset[offset:]
 
@@ -52,39 +51,37 @@ class MultipleObjectMixin(SelectableFieldsMixin):
 
 
 class ResourceView(SingleObjectMixin, View):
-
     def get(self, request, *args, **kwargs):
         try:
             queryset = self.get_queryset()
 
             response_object = self.get_object_dict(
                 queryset,
-                slug=kwargs.get('slug'),
-                fields=request.GET.get('fields', '').split(','),
+                slug=kwargs.get("slug"),
+                fields=request.GET.get("fields", "").split(","),
             )
         except queryset.model.DoesNotExist:
-            return JsonResponse({
-                'message': 
-                    '%(resource)s does not exist.'
-                    % {'resource': queryset.model._meta.verbose_name.title()}
+            return JsonResponse(
+                {
+                    "message": "%(resource)s does not exist."
+                    % {"resource": queryset.model._meta.verbose_name.title()}
                 },
-                status=404
+                status=404,
             )
         except ClientError as exc:
-            return JsonResponse({'message': str(exc)}, status=400)
+            return JsonResponse({"message": str(exc)}, status=400)
 
         return JsonResponse(response_object)
 
 
 class CollectionView(MultipleObjectMixin, View):
-    plural_key = 'results'
+    plural_key = "results"
 
     def head(self, request, *args, **kwargs):
         response_headers = {
-            'X-Total': self.get_queryset().count(),
+            "X-Total": self.get_queryset().count(),
         }
         return HttpResponse(headers=response_headers)
-
 
     def get(self, request, *args, **kwargs):
         try:
@@ -92,15 +89,15 @@ class CollectionView(MultipleObjectMixin, View):
 
             object_list = self.get_object_list(
                 queryset,
-                offset=request.GET.get('offset', 0),
-                limit=request.GET.get('limit', 0),
-                fields=request.GET.get('fields', '').split(','),
+                offset=request.GET.get("offset", 0),
+                limit=request.GET.get("limit", 0),
+                fields=request.GET.get("fields", "").split(","),
             )
         except ClientError as exc:
-            return JsonResponse({'message': str(exc)}, status=400)
+            return JsonResponse({"message": str(exc)}, status=400)
 
         response_headers = {
-            'X-Total': queryset.count(),
+            "X-Total": queryset.count(),
         }
 
         response_objects = {
