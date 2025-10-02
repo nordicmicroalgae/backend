@@ -1,21 +1,21 @@
 from django.db.models import Count, OuterRef, Subquery
 
-from core.views.generics import CollectionView, ResourceView, ClientError
-from taxa.models import Taxon, RelatedTaxon, Synonym
+from core.views.generics import ClientError, CollectionView, ResourceView
 from media.models import Image
+from taxa.models import RelatedTaxon, Synonym, Taxon
 
 
 class TaxonView(ResourceView):
     queryset = Taxon.objects
 
     fields = (
-        'slug',
-        'scientific_name',
-        'authority',
-        'rank',
-        'parent',
-        'classification',
-        'children',
+        "slug",
+        "scientific_name",
+        "authority",
+        "rank",
+        "parent",
+        "classification",
+        "children",
     )
 
 
@@ -23,102 +23,83 @@ class TaxonCollectionView(CollectionView):
     queryset = Taxon.objects
 
     fields = (
-        'slug',
-        'scientific_name',
-        'authority',
-        'rank',
-        'parent',
-        'classification',
-        'children',
-        'image',
+        "slug",
+        "scientific_name",
+        "authority",
+        "rank",
+        "parent",
+        "classification",
+        "children",
+        "image",
     )
 
-    plural_key = 'taxa'
+    plural_key = "taxa"
 
     def get_fields(self, *args, **kwargs):
         fields, expressions = super().get_fields(*args, **kwargs)
 
-        if 'image' in fields:
-            subqueryset = (
-                Image.objects.filter(taxon=OuterRef('pk')).order_by('priority')
+        if "image" in fields:
+            subqueryset = Image.objects.filter(taxon=OuterRef("pk")).order_by("priority")
+            expressions.update(
+                {
+                    "image": Subquery(subqueryset.values("renditions")[:1]),
+                }
             )
-            expressions.update({
-                'image': Subquery(subqueryset.values('renditions')[:1]),
-            })
 
         return fields, expressions
 
     def get_queryset(self, *args, **kwargs):
         queryset = super().get_queryset(*args, **kwargs)
 
-        name_pattern = self.request.GET.get('name')
+        name_pattern = self.request.GET.get("name")
 
-        if name_pattern != None:
+        if name_pattern is not None:
             queryset = queryset.with_name_like(name_pattern)
 
+        rank = self.request.GET.get("rank")
 
-        rank = self.request.GET.get('rank')
-
-        if rank != None:
+        if rank is not None:
             queryset = queryset.within_rank(rank)
 
+        group = self.request.GET.get("group")
 
-        group = self.request.GET.get('group')
-
-        if group != None:
+        if group is not None:
             try:
                 queryset = queryset.within_group(group)
             except queryset.InvalidQuery as exc:
                 raise ClientError(str(exc)) from exc
 
-
-        culture_collection = (
-            self.request.GET.get('culture-collection')
-        )
+        culture_collection = self.request.GET.get("culture-collection")
 
         if culture_collection:
-            queryset = (
-                queryset.with_culture_collection(culture_collection)
-            )
+            queryset = queryset.with_culture_collection(culture_collection)
 
-
-        harmful_only = (
-            self.request.GET.get('harmful-only') == 'true'
-        )
+        harmful_only = self.request.GET.get("harmful-only") == "true"
 
         if harmful_only:
             queryset = queryset.harmful_only()
 
-
-        helcom_eg_phyto_only = (
-            self.request.GET.get('helcom-eg-phyto-only') == 'true'
-        )
+        helcom_eg_phyto_only = self.request.GET.get("helcom-eg-phyto-only") == "true"
 
         if helcom_eg_phyto_only:
             queryset = queryset.helcom_eg_phyto_only()
 
-
-        illustrated_only = (
-            self.request.GET.get('illustrated-only') == 'true'
-        )
-        not_illustrated_only = (
-            self.request.GET.get('not-illustrated-only') == 'true'
-        )
+        illustrated_only = self.request.GET.get("illustrated-only") == "true"
+        not_illustrated_only = self.request.GET.get("not-illustrated-only") == "true"
 
         if illustrated_only and not_illustrated_only:
             raise ClientError(
-                'It is not possible to combine '
-                'illustrated-only and not-illustrated-only.'
+                "It is not possible to combine illustrated-only and not-illustrated-only."
             )
 
         if illustrated_only or not_illustrated_only:
-            queryset = queryset.annotate(image_count=Count('media'))
+            queryset = queryset.annotate(image_count=Count("media"))
             if illustrated_only:
                 queryset = queryset.filter(image_count__gt=0)
             elif not_illustrated_only:
                 queryset = queryset.filter(image_count=0)
 
-        queryset = queryset.order_by('scientific_name')
+        queryset = queryset.order_by("scientific_name")
 
         return queryset
 
@@ -127,29 +108,27 @@ class SynonymCollectionView(CollectionView):
     queryset = Synonym.objects
 
     fields = (
-        'authority',
-        'synonym_name',
-        'related_taxon',
+        "authority",
+        "synonym_name",
+        "related_taxon",
     )
 
-    plural_key = 'synonyms'
+    plural_key = "synonyms"
 
     def get_fields(self, *args, **kwargs):
         fields, expressions = super().get_fields(*args, **kwargs)
 
-        if 'related_taxon' in fields:
-            expressions.update(dict(
-                related_taxon=RelatedTaxon()
-            ))
+        if "related_taxon" in fields:
+            expressions.update(dict(related_taxon=RelatedTaxon()))
 
         return fields, expressions
 
     def get_queryset(self, *args, **kwargs):
         queryset = super().get_queryset(*args, **kwargs)
 
-        taxon = self.request.GET.get('taxon')
+        taxon = self.request.GET.get("taxon")
 
-        if taxon != None:
+        if taxon is not None:
             queryset = queryset.filter(taxon__slug=taxon)
 
         return queryset
