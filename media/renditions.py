@@ -1,13 +1,15 @@
-import os
 import base64
+import os
 from io import BytesIO
-from PIL import Image as PillowImage, ImageFilter
+from typing import ClassVar
+
+from PIL import Image as PillowImage
+from PIL import ImageFilter
 
 from media.storage import default_rendition_storage
 
 
 class Rendition:
-
     storage = default_rendition_storage
 
     def __init__(self, label, instance, *options):
@@ -32,12 +34,10 @@ class Rendition:
         self.storage.delete(self.relative_path)
 
     def render(self, input_buffer):
-        raise NotImplementedError(
-            'Subclasses must implement render() method.'
-        )
+        raise NotImplementedError("Subclasses must implement render() method.")
 
     def to_dict(self):
-        return {'url': self.url, 'type': self.type}
+        return {"url": self.url, "type": self.type}
 
     @property
     def source(self):
@@ -63,9 +63,9 @@ class Rendition:
     def url(self):
         return self.storage.url(self.relative_path)
 
-class Image(Rendition):
 
-    format = 'webp'
+class Image(Rendition):
+    format = "webp"
 
     def render(self, input_buffer):
         output_buffer = BytesIO()
@@ -82,14 +82,14 @@ class Image(Rendition):
     @property
     def name(self):
         root, _ = os.path.splitext(self.source.name)
-        return '%s.%s' % (root, self.format)
+        return "%s.%s" % (root, self.format)
 
     @property
     def type(self):
-        return 'image/%s' % self.format
+        return "image/%s" % self.format
+
 
 class ResizedImage(Image):
-
     def process(self, image):
         image = super().process(image)
 
@@ -97,57 +97,45 @@ class ResizedImage(Image):
 
         max_width, max_height = self.options
 
-        factor = min(max_width/orig_width, max_height/orig_height)
+        factor = min(max_width / orig_width, max_height / orig_height)
 
         if factor >= 1:
             return image
 
-        resized_image = image.resize((
-            int(orig_width*factor),
-            int(orig_height*factor)),
-            PillowImage.LANCZOS
+        resized_image = image.resize(
+            (int(orig_width * factor), int(orig_height * factor)), PillowImage.LANCZOS
         )
 
         return resized_image
 
-class EmbededPreviewImage(Image):
 
+class EmbededPreviewImage(Image):
     def process(self, image):
         image = super().process(image)
 
-        preview_image = image.convert('RGB')
+        preview_image = image.convert("RGB")
 
         preview_image.thumbnail((80, 80))
 
-        preview_image = preview_image.filter(
-            ImageFilter.GaussianBlur(radius=4)
-        )
+        preview_image = preview_image.filter(ImageFilter.GaussianBlur(radius=4))
 
         return preview_image
 
     def save(self, output_buffer):
-        self.encoded_preview = base64.b64encode(
-            output_buffer.getvalue()
-        )
+        self.encoded_preview = base64.b64encode(output_buffer.getvalue())
 
     def delete(self):
         self.encoded_preview = None
 
     @property
     def url(self):
-        return (
-            'data:image/webp;base64,%s'
-            % self.encoded_preview.decode('ascii')
-        )
+        return "data:image/webp;base64,%s" % self.encoded_preview.decode("ascii")
 
 
 class Specification:
-
     def __init__(self, label, rendition, *options):
         if not issubclass(rendition, Rendition):
-            raise ValueError(
-                'rendition must be subclass of Rendition'
-            )
+            raise ValueError("rendition must be subclass of Rendition")
 
         self.label = label
         self.rendition = rendition
@@ -156,15 +144,11 @@ class Specification:
     def to_rendition(self, instance):
         return self.rendition(self.label, instance, *self.options)
 
-
-    _registry = {}
+    _registry: ClassVar[dict] = {}
 
     @classmethod
     def register(cls, model, **specs):
-        cls._registry[model] = [
-            cls(label, *spec)
-            for label, spec in specs.items()
-        ]
+        cls._registry[model] = [cls(label, *spec) for label, spec in specs.items()]
 
     @classmethod
     def get(cls, model):
@@ -179,14 +163,15 @@ def register(**specs):
     def _register_model_spec_wrapper(model):
         Specification.register(model, **specs)
         return model
+
     return _register_model_spec_wrapper
+
 
 def get_registered_models():
     return Specification.get_registered_models()
 
 
 class ModelActionsMixin:
-
     def create_renditions(self):
         self.renditions = {}
         specification = Specification.get(self.__class__)
@@ -196,7 +181,7 @@ class ModelActionsMixin:
             rendition.create()
             self.renditions[rendition.label] = rendition.to_dict()
 
-        self.save(update_fields=['renditions'])
+        self.save(update_fields=["renditions"])
 
     def delete_renditions(self):
         specification = Specification.get(self.__class__)
@@ -206,4 +191,4 @@ class ModelActionsMixin:
             rendition.delete()
 
         self.renditions = {}
-        self.save(update_fields=['renditions'])
+        self.save(update_fields=["renditions"])

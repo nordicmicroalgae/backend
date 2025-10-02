@@ -16,10 +16,7 @@ jobs:
         run: |
           mkdir -p ${GITHUB_WORKSPACE}/dist/app
           rsync -av \
-              --exclude=.git \
-              --exclude=.github \
-              --exclude=.gitignore \
-              --exclude=.editorconfig \
+              --exclude=.* \
               ${GITHUB_WORKSPACE}/src/ \
               ${GITHUB_WORKSPACE}/dist/app/
 

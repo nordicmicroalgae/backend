@@ -1,9 +1,8 @@
-import os
 import operator
-import yaml
-
+import os
 from functools import reduce
 
+import yaml
 from django.conf import settings
 from django.db import models
 from django.db.models import Q
@@ -11,19 +10,16 @@ from django.db.models.functions import JSONObject, NullIf
 
 
 def get_filter_config():
-    config_path = os.path.join(
-        settings.BASE_DIR, 'taxa', 'config', 'filters.yaml'
-    )
+    config_path = os.path.join(settings.BASE_DIR, "taxa", "config", "filters.yaml")
 
     config = {}
-    with open(config_path, 'r', encoding='utf8') as infile:
+    with open(config_path, "r", encoding="utf8") as infile:
         config = yaml.safe_load(infile)
 
     return config
 
 
 class TaxonQuerySet(models.QuerySet):
-
     class InvalidQuery(Exception):
         pass
 
@@ -37,89 +33,78 @@ class TaxonQuerySet(models.QuerySet):
 
     def with_culture_collection(self, provider):
         return self.filter(
-            facts__data__contains=[{
-                'collection': 'Culture collection',
-                'provider': provider,
-            }]
+            facts__data__contains=[
+                {
+                    "collection": "Culture collection",
+                    "provider": provider,
+                }
+            ]
         )
 
     def helcom_eg_phyto_only(self):
         return self.filter(
-            facts__data__contains=[{
-                'attributes': {'provider': 'PEG_BVOL'}
-            }]
+            facts__data__contains=[{"attributes": {"provider": "PEG_BVOL"}}]
         )
 
     def harmful_only(self):
         return self.filter(
-            facts__data__contains=[{
-                'collection': 'Harmful algae blooms',
-            }]
+            facts__data__contains=[
+                {
+                    "collection": "Harmful algae blooms",
+                }
+            ]
         )
 
     def species_only(self):
-        ranks = self.filter_config['species_or_below']
+        ranks = self.filter_config["species_or_below"]
 
-        return self.filter(
-            reduce(
-                operator.or_,
-                [Q(rank=rank) for rank in ranks]
-            )
-        )
+        return self.filter(reduce(operator.or_, [Q(rank=rank) for rank in ranks]))
 
     def within_group(self, group_name):
         group_name = group_name.lower()
 
-        if group_name == 'all':
+        if group_name == "all":
             return self.species_only()
-        
+
         included_taxa_by_group = {
-            group['group_name'].lower(): group['included_taxa'] 
-            for group in self.filter_config['groups_of_organisms']
+            group["group_name"].lower(): group["included_taxa"]
+            for group in self.filter_config["groups_of_organisms"]
         }
 
-        if not group_name in included_taxa_by_group:
+        if group_name not in included_taxa_by_group:
             valid_groups = included_taxa_by_group.keys()
             raise TaxonQuerySet.InvalidQuery(
-                'The provided value for group is not valid. Please '
-                'try one of the following: %s.' % ', '.join(valid_groups)
+                "The provided value for group is not valid. Please "
+                "try one of the following: %s." % ", ".join(valid_groups)
             )
 
         parents = included_taxa_by_group[group_name]
 
         filters = [
-            Q(classification__contains=[{'scientific_name': parent}])
+            Q(classification__contains=[{"scientific_name": parent}])
             for parent in parents
         ]
 
-        return self.species_only().filter(
-            reduce(operator.or_, filters)
-        )
+        return self.species_only().filter(reduce(operator.or_, filters))
 
 
 # For annotations
 class RelatedTaxon(JSONObject):
     fields = (
-        'slug',
-        'scientific_name',
-        'authority',
-        'rank',
+        "slug",
+        "scientific_name",
+        "authority",
+        "rank",
     )
 
     arity = None
 
     def __init__(self, **fields):
-        fields = (
-            fields or
-            {f: 'taxon__%s' % f for f in self.fields}
-        )
+        fields = fields or {f: "taxon__%s" % f for f in self.fields}
         super().__init__(**fields)
 
     def nullable(self):
-        return NullIf(
-            models.Func(self, function='JSONB_STRIP_NULLS'),
-            JSONObject()
-        )
+        return NullIf(models.Func(self, function="JSONB_STRIP_NULLS"), JSONObject())
 
 
 class Taxon(models.Model):
@@ -136,8 +121,8 @@ class Taxon(models.Model):
     objects = TaxonQuerySet.as_manager()
 
     class Meta:
-        db_table = 'taxon'
-        ordering = ('scientific_name',)
+        db_table = "taxon"
+        ordering = ("scientific_name",)
 
     def __str__(self):
         return self.scientific_name
@@ -160,8 +145,8 @@ class Synonym(models.Model):
     )
 
     class Meta:
-        db_table = 'taxon_synonym'
-        ordering = ('synonym_name',)
+        db_table = "taxon_synonym"
+        ordering = ("synonym_name",)
 
     def __str__(self):
         return self.synonym_name

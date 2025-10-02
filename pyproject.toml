@@ -1,0 +1,49 @@
+[project]
+name = "nordicmicroalgae-backend"
+version = "2.1.1"
+description = "Nordic Microalgae"
+authors = [
+]
+dependencies = [
+    "Django==4.2.16",
+    "Pillow==10.4.0",
+    "pyyaml==6.0.2",
+    "psycopg==3.2.3",
+]
+requires-python = ">=3.10"
+readme = "README.md"
+license = {file = "LICENSE"}
+
+[dependency-groups]
+dev = [
+    "ruff>=0.12.0",
+    "pre-commit>=4.2.0",
+]
+
+[tool.ruff]
+line-length = 90
+indent-width = 4
+target-version = "py310"
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+[tool.ruff.lint]
+per-file-ignores."**/migrations/*.py" = ["RUF012"]  # mutable-class-default, not compatible with Django migrations
+
+ignore = [
+    "DJ001",  # django-nullable-model-string-field, should be fixed but needs migration
+]
+
+select = [
+    "A",  # flake8-builtins
+    "DJ",  # flake8-django
+    "E",  # pycodestyle: error
+    "F",  # pyflakes
+    "W",  # pycodestyle: warning
+    "I",  # isort
+    "RUF"  # Ruff-specific rules
+]
