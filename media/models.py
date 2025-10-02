@@ -1,46 +1,40 @@
-import os
 import itertools
+import os
+from typing import ClassVar
 
-from django.db import models
 from django.contrib.auth import get_user_model
 from django.core.serializers.json import DjangoJSONEncoder
-from django.utils.text import slugify
+from django.db import models
 from django.utils import timezone
-
+from django.utils.text import slugify
 
 from media import renditions
 from media.storage import default_origin_storage
 from taxa.models import Taxon
 
 
-def available_slugs(name_base='untitled'):
-    slug_mask = slugify(name_base) + '-%d'
+def available_slugs(name_base="untitled"):
+    slug_mask = slugify(name_base) + "-%d"
 
     def incrementing_slugs():
         counter = itertools.count(1)
         for number in counter:
             yield slug_mask % number
 
-    preexisting_slugs = (
-        Media.objects.all().values_list('slug', flat=True)
-    )
+    preexisting_slugs = Media.objects.all().values_list("slug", flat=True)
 
-    return filter(
-        lambda s: s not in preexisting_slugs,
-        incrementing_slugs()
-    )
+    return filter(lambda s: s not in preexisting_slugs, incrementing_slugs())
+
 
 def available_priorities(taxon=None):
     incrementing_priority = itertools.count(0)
 
-    preexisting_priorities = (
-        Media.objects.filter(taxon=taxon).values_list('priority', flat=True)
+    preexisting_priorities = Media.objects.filter(taxon=taxon).values_list(
+        "priority", flat=True
     )
 
-    return filter(
-        lambda p: p not in preexisting_priorities,
-        incrementing_priority
-    )
+    return filter(lambda p: p not in preexisting_priorities, incrementing_priority)
+
 
 def primary_path_for_media(instance, filename):
     _file_root, file_ext = os.path.splitext(filename)
@@ -50,16 +44,17 @@ def primary_path_for_media(instance, filename):
 class InvalidTagset(Exception):
     pass
 
+
 class Tag(models.Func):
     tagsets = (
-        'contrast_enhancement',
-        'galleries',
-        'preservation',
-        'stain',
-        'technique',
+        "contrast_enhancement",
+        "galleries",
+        "preservation",
+        "stain",
+        "technique",
     )
 
-    function = 'JSONB_ARRAY_ELEMENTS_TEXT'
+    function = "JSONB_ARRAY_ELEMENTS_TEXT"
 
     def __init__(self, tagset):
         if tagset not in self.tagsets:
@@ -68,26 +63,22 @@ class Tag(models.Func):
                 % ('","'.join(self.tagsets), tagset)
             )
 
-        super().__init__(models.F('attributes__%s' % tagset))
+        super().__init__(models.F("attributes__%s" % tagset))
 
 
 class MediaManager(models.Manager):
     def get_tagset(self, tagset):
         annotated_qs = self.get_queryset().annotate(name=Tag(tagset))
-        return annotated_qs.values('name').order_by('name').distinct()
+        return annotated_qs.values("name").order_by("name").distinct()
+
 
 class ImageManager(MediaManager):
     def get_queryset(self):
-        return super().get_queryset().filter(type__startswith='image/')
+        return super().get_queryset().filter(type__startswith="image/")
 
 
 class Media(models.Model, renditions.ModelActionsMixin):
-    taxon = models.ForeignKey(
-        Taxon,
-        on_delete=models.SET_NULL,
-        blank=True,
-        null=True
-    )
+    taxon = models.ForeignKey(Taxon, on_delete=models.SET_NULL, blank=True, null=True)
 
     priority = models.IntegerField(editable=False)
 
@@ -110,23 +101,22 @@ class Media(models.Model, renditions.ModelActionsMixin):
     objects = MediaManager()
 
     class Meta:
-        db_table = 'taxon_media'
+        db_table = "taxon_media"
 
-        constraints = [
+        constraints: ClassVar[list] = [
             models.UniqueConstraint(
-                fields=['taxon', 'priority'],
-                name='unique_media_priority',
-                deferrable=models.Deferrable.DEFERRED
+                fields=["taxon", "priority"],
+                name="unique_media_priority",
+                deferrable=models.Deferrable.DEFERRED,
             ),
         ]
 
-        permissions = [
-            ('manage_others', 'Can manage others media'),
+        permissions: ClassVar[list] = [
+            ("manage_others", "Can manage others media"),
         ]
 
-    @property
-    def title(self):
-        return self.attributes.get('title', 'Untitled')
+    def __str__(self):
+        return self.title
 
     def save(self, *args, **kwargs):
         try:
@@ -134,19 +124,19 @@ class Media(models.Model, renditions.ModelActionsMixin):
         except Media.DoesNotExist:
             origin_obj = None
 
-        changed_taxon = bool(
-            origin_obj and origin_obj.taxon != self.taxon
-        )
+        changed_taxon = bool(origin_obj and origin_obj.taxon != self.taxon)
 
         if not self.slug:
-            setattr(self, 'slug', next(available_slugs(self.title)))
+            setattr(self, "slug", next(available_slugs(self.title)))
         if changed_taxon or self.priority is None:
-            setattr(self, 'priority', next(available_priorities(self.taxon)))
+            setattr(self, "priority", next(available_priorities(self.taxon)))
 
         return super().save(*args, **kwargs)
 
-    def __str__(self):
-        return self.title
+    @property
+    def title(self):
+        return self.attributes.get("title", "Untitled")
+
 
 @renditions.register(
     o=(renditions.Image,),
@@ -167,5 +157,5 @@ def remove_file_on_delete(sender, instance, **kwargs):
     if not instance.file:
         return
 
-    if hasattr(instance.file, 'delete') and callable(instance.file.delete):
+    if hasattr(instance.file, "delete") and callable(instance.file.delete):
         instance.file.delete(save=False)
