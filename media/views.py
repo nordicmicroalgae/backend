@@ -5,7 +5,7 @@ from django.http import Http404
 
 from core.views.generics import ClientError, CollectionView
 from media.models import Image, InvalidTagset, Media
-from taxa.models import RelatedTaxon
+from taxa.models import RelatedTaxon, Taxon
 
 
 class MediaCollectionView(CollectionView):
@@ -61,10 +61,21 @@ class MediaCollectionView(CollectionView):
         taxon = self.request.GET.get("taxon")
 
         if taxon is not None:
-            queryset = queryset.filter(taxon__slug=taxon)
+            if self.request.GET.get("children", "").lower() == "true":
+                possible_taxons = [
+                    child["slug"]
+                    for child in Taxon.objects.filter(slug=taxon)
+                    .values_list("children", flat=True)
+                    .first()
+                    or []
+                    if "slug" in child
+                ] + [taxon]
+            else:
+                possible_taxons = [taxon]
+
+            queryset = queryset.filter(taxon__slug__in=possible_taxons)
 
         queryset = queryset.order_by("priority" if taxon else "-created_at")
-
         return queryset
 
 
