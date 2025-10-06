@@ -4,6 +4,8 @@ info:
   title: Nordic Microalgae
   description: API for Nordic Microalgae.
 servers:
+- url: http://127.0.0.1:5000/api/
+  description: localhost
 - url: https://nordicmicroalgae.org/api/
   description: Production server
 - url: https://next.nordicmicroalgae.org/api/
@@ -167,6 +169,7 @@ paths:
       - $ref: '#/components/parameters/media-artist'
       - $ref: '#/components/parameters/media-gallery'
       - $ref: '#/components/parameters/media-taxon'
+      - $ref: '#/components/parameters/include-children'
   /media/artists/:
     get:
       tags:
@@ -521,6 +524,14 @@ components:
       schema:
         type: string
         example: acanthoceras-zachariasii
+    include-children:
+        name: children
+        in: query
+        description: Include children in result
+        required: false
+        schema:
+            type: boolean
+
   schemas:
     Contributor:
       type: object
