@@ -170,6 +170,7 @@ paths:
       - $ref: '#/components/parameters/media-gallery'
       - $ref: '#/components/parameters/media-taxon'
       - $ref: '#/components/parameters/include-children'
+      - $ref: '#/components/parameters/filter-by-priority'
   /media/artists/:
     get:
       tags:
@@ -528,6 +529,13 @@ components:
         name: children
         in: query
         description: Include children in result
+        required: false
+        schema:
+            type: boolean
+    filter-by-priority:
+        name: priority
+        in: query
+        description: Filter media by priority
         required: false
         schema:
             type: boolean

@@ -1,6 +1,6 @@
 from typing import ClassVar
 
-from django.db.models import Count, F
+from django.db.models import Count, F, OuterRef, Subquery
 from django.http import Http404
 
 from core.views.generics import ClientError, CollectionView
@@ -58,9 +58,9 @@ class MediaCollectionView(CollectionView):
         if gallery is not None:
             queryset = queryset.filter(attributes__contains={"galleries": [gallery]})
 
-        taxon = self.request.GET.get("taxon")
+        taxon = self.request.GET.get("taxon", "")
 
-        if taxon is not None:
+        if taxon:
             if self.request.GET.get("children", "").lower() == "true":
                 possible_taxons = [
                     child["slug"]
@@ -75,7 +75,16 @@ class MediaCollectionView(CollectionView):
 
             queryset = queryset.filter(taxon__slug__in=possible_taxons)
 
-        queryset = queryset.order_by("priority" if taxon else "-created_at")
+        if self.request.GET.get("priority", "").lower() == "true":
+            prioritized_media = (
+                model.objects.filter(taxon=OuterRef("taxon"))
+                .order_by("priority", "id")
+                .values("id")[:1]
+            )
+            queryset = queryset.filter(id__in=Subquery(prioritized_media))
+        else:
+            queryset = queryset.order_by("priority" if taxon else "-created_at")
+
         return queryset
 
 
