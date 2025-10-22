@@ -44,7 +44,10 @@ GBIF = (
         provider="GBIF",
         url_template="url",
         external_id_field="usage_key",
+        scientific_name_field="scientific_name",
         note_field="n_nordic_occurrences",
+        synonym_external_ids_field="synonym_usage_key",
+        synonym_names_field="synonym_names",
     ),
 )
 
