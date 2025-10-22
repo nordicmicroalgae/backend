@@ -49,6 +49,21 @@ class Command(BaseCommand):
             ),
         )
         parser.add_argument(
+            "--scientific-name-field",
+            help=("Name of the field in the CSV file to use as name."),
+        )
+        parser.add_argument(
+            "--synonym-external-ids-field",
+            help=(
+                "Name of the field in the CSV file to use as external "
+                "taxon identifier for synonyms."
+            ),
+        )
+        parser.add_argument(
+            "--synonym-names-field",
+            help=("Name of the field in the CSV file to use as names for synonyms."),
+        )
+        parser.add_argument(
             "--note-field",
             help=(
                 "Name of a field in the CSV file to use as a note for the external link."
@@ -83,6 +98,9 @@ class Command(BaseCommand):
         collection = options["collection"]
         id_field = options["id_field"]
         external_id_field = options["external_id_field"]
+        scientific_name_field = options["scientific_name_field"]
+        synonym_external_ids_field = options["synonym_external_ids_field"]
+        synonym_names_field = options["synonym_names_field"]
         note_field = options["note_field"]
         url_template = options["url_template"]
         label_template = options["label_template"]
@@ -97,6 +115,15 @@ class Command(BaseCommand):
 
         if note_field:
             required_fields["note_field"] = note_field
+
+        if synonym_external_ids_field:
+            required_fields["synonym_external_ids_field"] = synonym_external_ids_field
+
+        if synonym_names_field:
+            required_fields["synonym_names_field"] = synonym_names_field
+
+        if scientific_name_field:
+            required_fields["scientific_name_field"] = scientific_name_field
 
         links_by_taxon_id = defaultdict(list)
 
@@ -195,6 +222,17 @@ class Command(BaseCommand):
 
             if note_field:
                 link_dict["note"] = row[note_field].strip()
+
+            if scientific_name_field:
+                link_dict["scientific_name"] = row[scientific_name_field].strip()
+
+            if synonym_external_ids_field:
+                link_dict["synonym_external_ids"] = row[
+                    synonym_external_ids_field
+                ].strip()
+
+            if synonym_names_field:
+                link_dict["synonym_names"] = row[synonym_names_field].strip()
 
             links_by_taxon_id[taxon_id].append(link_dict)
 
