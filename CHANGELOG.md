@@ -1,3 +1,7 @@
+## 2.2.1 (November 7, 2025)
+
+- Security patch from dependabot.
+
 ## 2.2.0 (November 5, 2025)
 
 - Add uv project management.
