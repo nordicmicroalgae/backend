@@ -1,11 +1,11 @@
 [project]
 name = "nordicmicroalgae-backend"
-version = "2.2.0"
+version = "2.2.1"
 description = "Nordic Microalgae"
 authors = [
 ]
 dependencies = [
-    "Django==4.2.25",
+    "Django==4.2.26",
     "Pillow==10.4.0",
     "pyyaml==6.0.2",
     "psycopg==3.2.3",
