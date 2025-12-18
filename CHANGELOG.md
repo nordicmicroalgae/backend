@@ -1,3 +1,7 @@
+## 2.2.2 (December 18, 2025)
+
+- Security patch from dependabot.
+
 ## 2.2.1 (November 7, 2025)
 
 - Security patch from dependabot.
@@ -13,7 +17,6 @@
 - Add parameter to filter only most prioritized media for each taxon in media query.
 - Import added columns in `facts_external_links_gbif.txt`.
 - Security mitigations from dependabot.
-
 
 ## 2.1.1 (October 20, 2024)
 
