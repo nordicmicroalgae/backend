@@ -1,6 +1,6 @@
 from typing import ClassVar
 
-from django.db.models import Count, F, OuterRef, Subquery
+from django.db.models import Count, F, OuterRef, Q, Subquery
 from django.http import Http404
 
 from core.views.generics import ClientError, CollectionView
@@ -44,7 +44,13 @@ class MediaCollectionView(CollectionView):
         except KeyError:
             raise ClientError("Unknown value provided for type.")
 
+        # start from the chosen model's manager
         queryset = model.objects.all()
+
+        # Exclude IFCB-marked media from the general media collection
+        queryset = queryset.filter(
+            Q(attributes__imagelabeling__isnull=True) | Q(attributes__imagelabeling=False)
+        )
 
         artist = self.request.GET.get("artist")
 
@@ -57,6 +63,15 @@ class MediaCollectionView(CollectionView):
 
         if gallery is not None:
             queryset = queryset.filter(attributes__contains={"galleries": [gallery]})
+
+        # Add exclude_galleries parameter
+        exclude_galleries = self.request.GET.get("exclude_galleries")
+
+        if exclude_galleries is not None:
+            # Exclude images that have this gallery in their galleries list
+            queryset = queryset.exclude(
+                attributes__contains={"galleries": [exclude_galleries]}
+            )
 
         taxon = self.request.GET.get("taxon", "")
 
@@ -123,5 +138,67 @@ class TagCollectionView(CollectionView):
             )
         except InvalidTagset:
             raise Http404()
+
+        return queryset
+
+
+# -----------------------
+# ImageLabeling-specific endpoints
+# -----------------------
+
+
+class ImageLabelingCollectionView(MediaCollectionView):
+    """
+    A collection view that returns only images marked for ImageLabeling.
+
+    Inherits field configuration and other behavior from MediaCollectionView
+    but implements its own queryset building so it doesn't inherit the
+    global exclusion of ImageLabeling images added to MediaCollectionView.
+    """
+
+    plural_key = "image_labeling_images"
+
+    def get_queryset(self, *args, **kwargs):
+        model = Image  # or your ImageLabeling proxy model if you have one
+        queryset = model.objects.all()
+
+        artist = self.request.GET.get("artist")
+        if artist is not None:
+            queryset = queryset.filter(
+                attributes__contains={"photographer_artist": artist}
+            )
+
+        gallery = self.request.GET.get("gallery")
+        if gallery is not None:
+            queryset = queryset.filter(attributes__contains={"galleries": [gallery]})
+
+        taxon = self.request.GET.get("taxon", "")
+        if taxon:
+            if self.request.GET.get("children", "").lower() == "true":
+                possible_taxons = [
+                    child["slug"]
+                    for child in Taxon.objects.filter(slug=taxon)
+                    .values_list("children", flat=True)
+                    .first()
+                    or []
+                    if "slug" in child
+                ]
+            else:
+                possible_taxons = [taxon]
+
+            queryset = queryset.filter(taxon__slug__in=possible_taxons)
+
+        if self.request.GET.get("priority", "").lower() == "true":
+            prioritized_media = (
+                model.objects.filter(taxon=OuterRef("taxon"))
+                .order_by("priority", "id")
+                .values("id")[:1]
+            )
+            queryset = queryset.filter(id__in=Subquery(prioritized_media))
+        else:
+            queryset = queryset.order_by("priority" if taxon else "-created_at")
+
+        # Only include images flagged for ImageLabeling
+        queryset = queryset.filter(attributes__imagelabeling=True)
 
         return queryset

@@ -31,7 +31,15 @@
   font-size: 2rem;
 }
 
-#changelist .preview-image > img {
+#changelist .preview > img {
+  display: block;
+  margin: 0;
+  padding: 0;
+  max-width: var(--max-width);
+  max-height: var(--max-height);
+}
+
+#changelist .preview > img {
   display: block;
   margin: 0;
   padding: 0;

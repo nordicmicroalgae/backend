@@ -52,6 +52,7 @@ class Tag(models.Func):
         "preservation",
         "stain",
         "technique",
+        "imaging_instrument",
     )
 
     function = "JSONB_ARRAY_ELEMENTS_TEXT"
@@ -150,6 +151,21 @@ class Image(Media):
 
     class Meta:
         proxy = True
+
+
+class ImageLabelingImageManager(ImageManager):
+    def get_queryset(self):
+        # limit to images marked as ImageLabeling
+        return super().get_queryset().filter(attributes__imagelabeling=True)
+
+
+class ImageLabelingImage(Image):  # inherit from Image
+    objects = ImageLabelingImageManager()
+
+    class Meta:
+        proxy = True
+        verbose_name = "Labeling Guide Image"
+        verbose_name_plural = "Labeling Guide Images"
 
 
 # Signal receivers. Connected to senders in MediaConfig ready.

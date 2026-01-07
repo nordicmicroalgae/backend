@@ -4,12 +4,12 @@ info:
   title: Nordic Microalgae
   description: API for Nordic Microalgae.
 servers:
-- url: http://127.0.0.1:5000/api/
-  description: localhost
 - url: https://nordicmicroalgae.org/api/
   description: Production server
 - url: https://next.nordicmicroalgae.org/api/
   description: Staging server
+- url: http://127.0.0.1:5000/api/
+  description: localhost
 tags:
 - name: taxa
   description: Lists and taxonomical information
@@ -166,6 +166,38 @@ paths:
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/media-type'
       - $ref: '#/components/parameters/media-fields'
+      - $ref: '#/components/parameters/media-artist'
+      - $ref: '#/components/parameters/media-gallery'
+      - $ref: '#/components/parameters/media-taxon'
+      - $ref: '#/components/parameters/include-children'
+      - $ref: '#/components/parameters/filter-by-priority'
+      - $ref: '#/components/parameters/exclude-galleries'
+  /media/image_labeling/:
+    get:
+      tags:
+      - media
+      description: Returns a list of image labeling guide images for automated imaging instruments
+      responses:
+        200:
+          description: Successful operation
+          headers:
+            X-Total:
+              schema:
+                type: integer
+              description: Total number of image labeling images returned for the query
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  image_labeling_images:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ImageLabelingMedia'
+      parameters:
+      - $ref: '#/components/parameters/offset'
+      - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/image-labeling-fields'
       - $ref: '#/components/parameters/media-artist'
       - $ref: '#/components/parameters/media-gallery'
       - $ref: '#/components/parameters/media-taxon'
@@ -453,6 +485,25 @@ components:
             - attributes
             - renditions
             - related_taxon
+    image-labeling-fields:
+      name: fields
+      in: query
+      explode: false
+      description: Fields to include in the response for image labeling images
+      schema:
+        type: array
+        items:
+          type: string
+          enum:
+            - slug
+            - file
+            - type
+            - created_at
+            - updated_at
+            - attributes
+            - renditions
+            - related_taxon
+            - taxon
     media-artist:
       name: artist
       in: query
@@ -465,7 +516,6 @@ components:
       description: Limit the list to media within a specific gallery
       schema:
         type: string
-        example: HELCOM EG Phyto
         enum:
         - HELCOM EG Phyto
         - Kuylenstierna
@@ -481,6 +531,12 @@ components:
       name: taxon
       in: query
       description: Limit the list to media related to a specific taxon
+      schema:
+        type: string
+    exclude-galleries:
+      name: exclude_galleries
+      in: query
+      description: Exclude media from a specific gallery
       schema:
         type: string
     taxon-fields:
@@ -500,6 +556,7 @@ components:
             - parent
             - classification
             - children
+            - image_labeling_description
     taxon-list-fields:
       name: fields
       in: query
@@ -678,6 +735,107 @@ components:
                   example: '/media/s/dinophysis-arctica-1.jpg'
         related_taxon:
           $ref: '#/components/schemas/RelatedTaxon'
+    ImageLabelingMedia:
+      type: object
+      description: Image labeling guide image for automated imaging instruments
+      properties:
+        slug:
+          type: string
+          example: tripos-muelleri-1
+        file:
+          type: string
+          example: tripos-muelleri-1.png
+        type:
+          type: string
+          example: image/png
+        created_at:
+          type: string
+          example: 2025-01-07T10:22:44:442Z
+        updated_at:
+          type: string
+          example: 2025-01-07T12:10:16:312Z
+        attributes:
+          type: object
+          properties:
+            title:
+              type: string
+              example: Tripos muelleri
+            contributor:
+              type: string
+              example: John Smith
+            institute:
+              type: string
+              example: SMHI
+            imaging_instrument:
+              type: array
+              items:
+                type: string
+                enum:
+                  - IFCB
+                  - CytoSense
+                  - FlowCam
+                  - PlanktoScope
+              example: IFCB
+            training_dataset:
+              type: string
+              example: https://doi.org/10.17044/scilifelab.25883455
+            contributing_organisation:
+              type: string
+              example: SMHI
+            license:
+              type: string
+              example: Creative Commons Attribution-NoDerivs 3.0 Unported
+            caption:
+              type: string
+              example: Description of the image and labeling guidance.
+            copyright_holder:
+              type: string
+              example: John Smith
+            copyright_stamp:
+              type: string
+            geographic_area:
+              type: string
+            location:
+              type: string
+            sampling_date:
+              type: string
+              example: '2025-01-07'
+            latitude_degree:
+              type: int
+            latitude_minute:
+              type: float
+            longitude_degree:
+              type: int
+            longitude_minute:
+              type: float
+            imagelabeling:
+              type: boolean
+              example: true
+        renditions:
+          type: object
+          properties:
+            l:
+              type: object
+              properties:
+                url:
+                  type: string
+                  example: '/media/l/tripos-muelleri-1.webp'
+            m:
+              type: object
+              properties:
+                url:
+                  type: string
+                  example: '/media/m/tripos-muelleri-1.webp'
+            s:
+              type: object
+              properties:
+                url:
+                  type: string
+                  example: '/media/s/tripos-muelleri-1.webp'
+        related_taxon:
+          $ref: '#/components/schemas/RelatedTaxon'
+        taxon:
+          $ref: '#/components/schemas/RelatedTaxon'
     Taxon:
       type: object
       properties:
@@ -724,6 +882,9 @@ components:
                 url:
                   type: string
                   example: '/media/s/dinophysis-arctica-1.jpg'
+        image_labeling_description:
+          type: string
+          example: Description and guidance for identifying this taxon in automated imaging systems.
     RelatedTaxon:
       type: object
       properties:
@@ -734,6 +895,8 @@ components:
         authority:
           type: string
         rank:
+          type: string
+        image_labeling_description:
           type: string
     Synonym:
       type: object
