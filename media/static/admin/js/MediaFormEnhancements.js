@@ -7,6 +7,7 @@
     init: function() {
       MediaFormEnhancements.initFocusSearchOnOpenTaxonSelect();
       MediaFormEnhancements.initAutoUpdateTitleOnTaxonChange();
+      MediaFormEnhancements.initAutoUpdateTitleOnZipUpload();
       MediaFormEnhancements.initSaveAndRestoreFieldsTemplate();
     },
 
@@ -39,6 +40,29 @@
 
         previouslySelectedName = selectedName;
       });
+    },
+
+    initAutoUpdateTitleOnZipUpload() {
+      const fileInput = $('[name=file]');
+      const titleInput = $('[name=title]');
+
+      if (fileInput.length && titleInput.length) {
+        fileInput.on('change', function() {
+          const file = this.files[0];
+          
+          if (file && file.name.toLowerCase().endsWith('.zip')) {
+            // Extract filename without .zip extension
+            const filename = file.name;
+            const titleValue = filename.substring(0, filename.lastIndexOf('.'));
+            
+            // Set the title field
+            titleInput.val(titleValue);
+            
+            // Trigger change event in case there are other listeners
+            titleInput.trigger('change');
+          }
+        });
+      }
     },
 
     initSaveAndRestoreFieldsTemplate() {

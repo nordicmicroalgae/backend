@@ -4,6 +4,7 @@ from media.views import (
     ArtistCollectionView,
     MediaCollectionView,
     TagCollectionView,
+    ImageLabelingCollectionView,
 )
 
 urlpatterns = [
@@ -12,10 +13,21 @@ urlpatterns = [
         MediaCollectionView.as_view(),
         name="media-collection-view",
     ),
-    path("media/artists/", ArtistCollectionView.as_view(), name="artist-collection-view"),
+    path(
+        "media/artists/",
+        ArtistCollectionView.as_view(),
+        name="artist-collection-view",
+    ),
     path(
         "media/tags/<str:tagset>/",
         TagCollectionView.as_view(),
         name="tag-collection-view",
+    ),
+
+    # ImageLabeling-specific endpoints
+    path(
+        "media/image_labeling/",
+        ImageLabelingCollectionView.as_view(),
+        name="image-labeling-collection-view",
     ),
 ]

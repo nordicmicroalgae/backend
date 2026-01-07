@@ -1,9 +1,12 @@
 import json
 from typing import ClassVar
 
-from django.contrib import admin
+from django.contrib import admin, messages
+from django import forms
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
+from django.db import transaction
+from django.db.models import Q
 from django.http import JsonResponse
 from django.urls import path, reverse
 from django.utils import timezone
@@ -11,9 +14,9 @@ from django.utils.decorators import method_decorator
 from django.utils.html import format_html
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_POST
-
-from media.forms import ImageForm
-from media.models import Image
+from django.shortcuts import redirect
+from media.forms import ImageLabelingImageForm, ImageForm
+from media.models import ImageLabelingImage, Image
 
 
 class InvalidPriorityListJson(Exception):
@@ -357,6 +360,11 @@ class MediaAdmin(admin.ModelAdmin):
 class ImageAdmin(MediaAdmin):
     form = ImageForm
 
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        # Include images that are not marked as ImageLabeling
+        return qs.filter(Q(attributes__imagelabeling__isnull=True) | Q(attributes__imagelabeling=False))
+
     def get_preview_html(self, obj):
         small_rendition = obj.renditions.get("s")
 
@@ -366,4 +374,226 @@ class ImageAdmin(MediaAdmin):
         return super().get_preview_html(obj)
 
 
+class ImageLabelingAdmin(MediaAdmin):
+    form = ImageLabelingImageForm
+    
+    list_filter = (
+        TaxonListFilter,
+    )
+
+    def save_model(self, request, obj, form, change):
+        """Handle both single image and ZIP file uploads"""
+        uploaded_file = request.FILES.get('file')
+        
+        if uploaded_file and uploaded_file.name.lower().endswith('.zip'):
+            # Handle ZIP upload
+            self._process_zip_upload(request, obj, uploaded_file)
+        else:
+            # Handle normal single image upload
+            if not hasattr(obj, "created_by"):
+                obj.created_by = request.user
+
+            if change:
+                obj.updated_at = timezone.now()
+
+            super().save_model(request, obj, form, change)
+
+            if hasattr(obj, "create_renditions") and callable(obj.create_renditions):
+                obj.create_renditions()
+
+    def _process_zip_upload(self, request, template_obj, zip_file):
+        """Extract ZIP and create multiple images"""
+        import zipfile
+        import os
+        from io import BytesIO
+        from django.utils.text import slugify
+        from django.core.files.uploadedfile import InMemoryUploadedFile
+        from django.db import transaction
+        
+        try:
+            with zipfile.ZipFile(zip_file, 'r') as zip_ref:
+                # Get image files
+                image_files = [
+                    f for f in zip_ref.namelist() 
+                    if f.lower().endswith(('.png', '.jpg', '.jpeg', '.tif', '.tiff'))
+                    and not f.startswith('__MACOSX')
+                    and not f.startswith('.')
+                    and not os.path.basename(f).startswith('.')
+                ]
+                
+                if not image_files:
+                    messages.error(request, 'No valid image files found in ZIP')
+                    return
+                
+                created_count = 0
+                failed_count = 0
+                taxon = template_obj.taxon
+                
+                if not taxon:
+                    messages.error(request, 'Taxon is required for ZIP upload')
+                    return
+                
+                # Title stays the same for all images
+                title = template_obj.attributes.get('title', taxon.scientific_name)
+                
+                # Get metadata from the form (shared across all images)
+                shared_metadata = template_obj.attributes.copy()
+                
+                # Find the next available number for this taxon
+                from media.models import Image as BaseImage
+                existing_images = BaseImage.objects.filter(
+                    slug__startswith=f"{taxon.slug}-"
+                ).order_by('-slug')
+                
+                # Extract numbers from existing slugs to find the highest
+                start_idx = 1
+                if existing_images.exists():
+                    for img in existing_images:
+                        slug_parts = img.slug.split('-')
+                        if slug_parts[-1].isdigit():
+                            start_idx = max(start_idx, int(slug_parts[-1]) + 1)
+                
+                for idx, filename in enumerate(sorted(image_files), start=start_idx):
+                    try:
+                        # Read image data
+                        image_data = zip_ref.read(filename)
+                        file_obj = BytesIO(image_data)
+                        
+                        # Create slug with running number (for uniqueness)
+                        slug = slugify(f"{taxon.slug}-{idx}")
+                        
+                        # Double-check uniqueness (should not be needed with the logic above)
+                        counter = 1
+                        original_slug = slug
+                        while BaseImage.objects.filter(slug=slug).exists():
+                            slug = f"{original_slug}-{counter}"
+                            counter += 1
+                        
+                        # Get file extension
+                        _, ext = os.path.splitext(filename)
+                        ext = ext.lower()
+                        
+                        # Determine content type
+                        content_type_map = {
+                            '.png': 'image/png',
+                            '.jpg': 'image/jpeg',
+                            '.jpeg': 'image/jpeg',
+                            '.tif': 'image/tiff',
+                            '.tiff': 'image/tiff',
+                        }
+                        content_type = content_type_map.get(ext, 'image/jpeg')
+                        
+                        # Use atomic transaction for each image
+                        with transaction.atomic():
+                            # Create new Image object with shared metadata
+                            # Title stays the same (no number), only slug has number
+                            img = ImageLabelingImage(
+                                slug=slug,
+                                taxon=taxon,
+                                type=content_type,
+                                attributes={**shared_metadata, 'title': title},  # title without number
+                                created_by=request.user,
+                                created_at=timezone.now(),
+                            )
+                            
+                            # Save file (filename gets the number from slug)
+                            img.file.save(
+                                f"{slug}{ext}", 
+                                InMemoryUploadedFile(
+                                    file_obj, 
+                                    None, 
+                                    f"{slug}{ext}", 
+                                    content_type, 
+                                    len(image_data), 
+                                    None
+                                ),
+                                save=True
+                            )
+                            
+                            # Create renditions
+                            if hasattr(img, 'create_renditions'):
+                                img.create_renditions()
+                            
+                            created_count += 1
+                            
+                    except Exception as e:
+                        failed_count += 1
+                        print(f"Error processing {filename}: {str(e)}")
+                        import traceback
+                        traceback.print_exc()
+                
+                if created_count > 0:
+                    messages.success(
+                        request, 
+                        f'Successfully created {created_count} images from ZIP archive'
+                    )
+                if failed_count > 0:
+                    messages.warning(
+                        request,
+                        f'Failed to create {failed_count} images. Check server logs for details.'
+                    )
+                    
+        except zipfile.BadZipFile:
+            messages.error(request, 'Invalid ZIP file')
+        except Exception as e:
+            messages.error(request, f'Error processing ZIP: {str(e)}')
+            import traceback
+            print(traceback.format_exc())
+
+    def response_add(self, request, obj, post_url_continue=None):
+        """
+        Override to prevent trying to redirect to the change page when uploading a ZIP
+        (since we create multiple objects, not just one)
+        """
+        uploaded_file = request.FILES.get('file')
+        if uploaded_file and uploaded_file.name.lower().endswith('.zip'):
+            # For ZIP uploads, redirect to changelist
+            return redirect('admin:media_imagelabelingimage_changelist')
+        return super().response_add(request, obj, post_url_continue)
+
+    def get_form(self, request, obj=None, change=False, **kwargs):
+        """
+        Override to use ImageLabelingImageForm without field validation.
+        """
+        # Completely bypass parent's get_form to avoid field validation
+        defaults = {
+            'form': self.form,
+            'fields': None,  # This tells Django not to restrict fields
+            'exclude': None,
+        }
+        defaults.update(kwargs)
+        
+        # Skip ModelAdmin.get_form and go straight to the base implementation
+        # This avoids the field validation that causes issues with our dynamic fields
+        if defaults['fields'] is None:
+            defaults['fields'] = forms.ALL_FIELDS
+        
+        return defaults['form']
+    
+    def get_fieldsets(self, request, obj=None):
+        """
+        Generate fieldsets from the actual form instance fields.
+        """
+        # Instantiate the form to get fields after __init__ processes them
+        form_instance = self.form()
+        field_names = list(form_instance.fields.keys())
+        
+        return [
+            (None, {
+                'fields': field_names
+            }),
+        ]
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.filter(attributes__imagelabeling=True)
+
+    def get_preview_html(self, obj):
+        small_rendition = obj.renditions.get("s")
+        if small_rendition:
+            return format_html("<img src={} />", small_rendition["url"])
+        return super().get_preview_html(obj)
+
+
 admin.site.register(Image, ImageAdmin)
+admin.site.register(ImageLabelingImage, ImageLabelingAdmin)
