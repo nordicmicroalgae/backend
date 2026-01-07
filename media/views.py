@@ -1,6 +1,6 @@
 from typing import ClassVar
 
-from django.db.models import Count, F, Q, OuterRef, Subquery
+from django.db.models import Count, F, OuterRef, Q, Subquery
 from django.http import Http404
 
 from core.views.generics import ClientError, CollectionView

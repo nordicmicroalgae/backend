@@ -1,22 +1,23 @@
 import json
 from typing import ClassVar
 
-from django.contrib import admin, messages
 from django import forms
+from django.contrib import admin, messages
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Q
 from django.http import JsonResponse
+from django.shortcuts import redirect
 from django.urls import path, reverse
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.utils.html import format_html
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_POST
-from django.shortcuts import redirect
-from media.forms import ImageLabelingImageForm, ImageForm
-from media.models import ImageLabelingImage, Image
+
+from media.forms import ImageForm, ImageLabelingImageForm
+from media.models import Image, ImageLabelingImage
 
 
 class InvalidPriorityListJson(Exception):
@@ -403,12 +404,12 @@ class ImageLabelingAdmin(MediaAdmin):
 
     def _process_zip_upload(self, request, template_obj, zip_file):
         """Extract ZIP and create multiple images"""
-        import zipfile
         import os
+        import zipfile
         from io import BytesIO
-        from django.utils.text import slugify
+
         from django.core.files.uploadedfile import InMemoryUploadedFile
-        from django.db import transaction
+        from django.utils.text import slugify
 
         try:
             with zipfile.ZipFile(zip_file, "r") as zip_ref:
@@ -464,7 +465,7 @@ class ImageLabelingAdmin(MediaAdmin):
                         # Create slug with running number (for uniqueness)
                         slug = slugify(f"{taxon.slug}-{idx}")
 
-                        # Double-check uniqueness (should not be needed with the logic above)
+                        # Double-check uniqueness
                         counter = 1
                         original_slug = slug
                         while BaseImage.objects.filter(slug=slug).exists():
@@ -523,7 +524,7 @@ class ImageLabelingAdmin(MediaAdmin):
 
                     except Exception as e:
                         failed_count += 1
-                        print(f"Error processing {filename}: {str(e)}")
+                        print(f"Error processing {filename}: {e!s}")
                         import traceback
 
                         traceback.print_exc()
@@ -535,14 +536,15 @@ class ImageLabelingAdmin(MediaAdmin):
                     )
                 if failed_count > 0:
                     messages.warning(
-                        request,
-                        f"Failed to create {failed_count} images. Check server logs for details.",
-                    )
+                                request,
+                                f"Failed to create {failed_count} images. "
+                                "Check server logs for details.",
+                            )
 
         except zipfile.BadZipFile:
             messages.error(request, "Invalid ZIP file")
         except Exception as e:
-            messages.error(request, f"Error processing ZIP: {str(e)}")
+            messages.error(request, f"Error processing ZIP: {e!s}")
             import traceback
 
             print(traceback.format_exc())

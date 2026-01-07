@@ -6,7 +6,7 @@ from django import forms
 from django.conf import settings
 
 from media import widgets
-from media.models import ImageLabelingImage, Image, Media
+from media.models import Image, ImageLabelingImage, Media
 
 
 class ImageUploadField(forms.ImageField):
@@ -21,7 +21,11 @@ class ImageOrZipUploadField(forms.FileField):
     def __init__(self, *args, **kwargs):
         kwargs.setdefault(
             "help_text",
-            "Upload a single image (PNG, JPG, TIF) or a ZIP archive containing multiple images. All images from a ZIP will share the same metadata.",
+            (
+                "Upload a single image (PNG, JPG, TIF) or a ZIP archive "
+                "containing multiple images. All images from a ZIP will "
+                "share the same metadata."
+            ),
         )
         super().__init__(*args, **kwargs)
 
@@ -274,4 +278,5 @@ class ImageLabelingImageForm(ImageForm):
 
 
 configure_form(ImageForm, get_fields_config("image"))
-# Note: ImageLabelingImageForm is NOT configured here - it handles its own fields in __init__
+# Note: ImageLabelingImageForm is NOT configured here
+# - it handles its own fields in __init__

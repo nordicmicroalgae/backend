@@ -209,9 +209,11 @@ class ModelActionsMixin:
             # before/after import ordering that prevented a match.
             # Log/raise an informative exception instead of failing with TypeError.
             raise RuntimeError(
-                f"No renditions Specification registered for model {self.__class__.__name__}. "
-                "Ensure that a renditions.Specification is registered for this model "
-                "or one of its base classes (e.g. Image), and that import order is correct."
+                f"No renditions Specification registered for model "
+                f"{self.__class__.__name__}. "
+                "Ensure that a renditions.Specification is registered "
+                "for this model or one of its base classes (e.g. Image), "
+                "and that import order is correct."
             )
 
         for entry in specification:

@@ -2,9 +2,9 @@ from django.urls import path
 
 from media.views import (
     ArtistCollectionView,
+    ImageLabelingCollectionView,
     MediaCollectionView,
     TagCollectionView,
-    ImageLabelingCollectionView,
 )
 
 urlpatterns = [

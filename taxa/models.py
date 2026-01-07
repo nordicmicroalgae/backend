@@ -1,6 +1,7 @@
 import operator
 import os
 from functools import reduce
+from typing import ClassVar
 
 import yaml
 from django.conf import settings
@@ -130,8 +131,11 @@ class Taxon(models.Model):
     class Meta:
         db_table = "taxon"
         ordering = ("scientific_name",)
-        permissions = [
-            ("edit_image_labeling_description", "Can edit image labeling description"),
+        permissions: ClassVar = [
+            (
+                "edit_image_labeling_description",
+                "Can edit image labeling description",
+            ),
         ]
 
     def __str__(self):
