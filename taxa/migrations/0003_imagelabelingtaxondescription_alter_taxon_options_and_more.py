@@ -4,33 +4,44 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('taxa', '0002_synonym'),
+        ("taxa", "0002_synonym"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ImageLabelingTaxonDescription',
-            fields=[
-            ],
+            name="ImageLabelingTaxonDescription",
+            fields=[],
             options={
-                'verbose_name': 'Labeling Guide Description',
-                'verbose_name_plural': 'Labeling Guide Descriptions',
-                'proxy': True,
-                'default_permissions': (),
-                'indexes': [],
-                'constraints': [],
+                "verbose_name": "Labeling Guide Description",
+                "verbose_name_plural": "Labeling Guide Descriptions",
+                "proxy": True,
+                "default_permissions": (),
+                "indexes": [],
+                "constraints": [],
             },
-            bases=('taxa.taxon',),
+            bases=("taxa.taxon",),
         ),
         migrations.AlterModelOptions(
-            name='taxon',
-            options={'ordering': ('scientific_name',), 'permissions': [('edit_image_labeling_description', 'Can edit image labeling description')]},
+            name="taxon",
+            options={
+                "ordering": ("scientific_name",),
+                "permissions": [
+                    (
+                        "edit_image_labeling_description",
+                        "Can edit image labeling description",
+                    )
+                ],
+            },
         ),
         migrations.AddField(
-            model_name='taxon',
-            name='image_labeling_description',
-            field=models.TextField(blank=True, default='', help_text='Description text for the Image Labeling Guide page', verbose_name='Image Labeling Description'),
+            model_name="taxon",
+            name="image_labeling_description",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Description text for the Image Labeling Guide page",
+                verbose_name="Image Labeling Description",
+            ),
         ),
     ]

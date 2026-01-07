@@ -146,6 +146,7 @@ class TagCollectionView(CollectionView):
 # ImageLabeling-specific endpoints
 # -----------------------
 
+
 class ImageLabelingCollectionView(MediaCollectionView):
     """
     A collection view that returns only images marked for ImageLabeling.
@@ -154,6 +155,7 @@ class ImageLabelingCollectionView(MediaCollectionView):
     but implements its own queryset building so it doesn't inherit the
     global exclusion of ImageLabeling images added to MediaCollectionView.
     """
+
     plural_key = "image_labeling_images"
 
     def get_queryset(self, *args, **kwargs):
@@ -162,7 +164,9 @@ class ImageLabelingCollectionView(MediaCollectionView):
 
         artist = self.request.GET.get("artist")
         if artist is not None:
-            queryset = queryset.filter(attributes__contains={"photographer_artist": artist})
+            queryset = queryset.filter(
+                attributes__contains={"photographer_artist": artist}
+            )
 
         gallery = self.request.GET.get("gallery")
         if gallery is not None:

@@ -44,7 +44,10 @@ class TaxonCollectionView(CollectionView):
             # prefer non-ImageLabeling images for taxon thumbnails
             subqueryset = (
                 Image.objects.filter(taxon=OuterRef("pk"))
-                .filter(Q(attributes__imagelabeling__isnull=True) | Q(attributes__imagelabeling=False))
+                .filter(
+                    Q(attributes__imagelabeling__isnull=True)
+                    | Q(attributes__imagelabeling=False)
+                )
                 .order_by("priority")
             )
             expressions.update(
@@ -105,7 +108,7 @@ class TaxonCollectionView(CollectionView):
                 image_count=Count(
                     "media",
                     filter=Q(media__attributes__imagelabeling__isnull=True)
-                        | Q(media__attributes__imagelabeling=False)
+                    | Q(media__attributes__imagelabeling=False),
                 )
             )
             if illustrated_only:

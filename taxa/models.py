@@ -120,9 +120,9 @@ class Taxon(models.Model):
     children = models.JSONField(default=list)
     image_labeling_description = models.TextField(
         blank=True,
-        default='',
-        help_text='Description text for the Image Labeling Guide page',
-        verbose_name='Image Labeling Description'
+        default="",
+        help_text="Description text for the Image Labeling Guide page",
+        verbose_name="Image Labeling Description",
     )
 
     objects = TaxonQuerySet.as_manager()
@@ -140,7 +140,7 @@ class Taxon(models.Model):
 
 class ImageLabelingTaxonDescription(Taxon):
     """Proxy model for managing Image Labeling taxon descriptions"""
-    
+
     class Meta:
         proxy = True
         verbose_name = "Labeling Guide Description"

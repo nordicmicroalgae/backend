@@ -4,23 +4,21 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('media', '0002_alter_media_options'),
+        ("media", "0002_alter_media_options"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ImageLabelingImage',
-            fields=[
-            ],
+            name="ImageLabelingImage",
+            fields=[],
             options={
-                'verbose_name': 'Labeling Guide Image',
-                'verbose_name_plural': 'Labeling Guide Images',
-                'proxy': True,
-                'indexes': [],
-                'constraints': [],
+                "verbose_name": "Labeling Guide Image",
+                "verbose_name_plural": "Labeling Guide Images",
+                "proxy": True,
+                "indexes": [],
+                "constraints": [],
             },
-            bases=('media.image',),
+            bases=("media.image",),
         ),
     ]

@@ -15,12 +15,16 @@ class ImageUploadField(forms.ImageField):
 
 class ImageOrZipUploadField(forms.FileField):
     """Field that accepts both images and ZIP archives"""
+
     widget = widgets.ImageFileInput
-    
+
     def __init__(self, *args, **kwargs):
-        kwargs.setdefault('help_text', 'Upload a single image (PNG, JPG, TIF) or a ZIP archive containing multiple images. All images from a ZIP will share the same metadata.')
+        kwargs.setdefault(
+            "help_text",
+            "Upload a single image (PNG, JPG, TIF) or a ZIP archive containing multiple images. All images from a ZIP will share the same metadata.",
+        )
         super().__init__(*args, **kwargs)
-    
+
     def to_python(self, data):
         """
         Override to allow ZIP files in addition to images.
@@ -28,11 +32,11 @@ class ImageOrZipUploadField(forms.FileField):
         """
         if data is None:
             return None
-        
-        if hasattr(data, 'name') and data.name.lower().endswith('.zip'):
+
+        if hasattr(data, "name") and data.name.lower().endswith(".zip"):
             # For ZIP files, just return the file without image validation
             return data
-        
+
         # For image files, use the parent ImageField validation
         # We need to call FileField's to_python, not ImageField's
         return forms.FileField.to_python(self, data)
@@ -246,20 +250,20 @@ class ImageLabelingImageForm(ImageForm):
         fields = ImageForm.Meta.fields
 
     # Override file field to accept both images and ZIP archives
-    file = ImageOrZipUploadField(label='Image file or ZIP archive')
+    file = ImageOrZipUploadField(label="Image file or ZIP archive")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        
+
         # Remove all inherited configured fields from ImageForm
         image_config = get_fields_config("image")
         for field_config in image_config:
             self.fields.pop(field_config["key"], None)
-        
+
         # Add imagelabeling-specific fields
         imagelabeling_config = get_fields_config("imagelabeling")
         add_configured_fields_to_form(self, imagelabeling_config, ImageLabelingImage)
-        
+
         # Store the config for use in save()
         self.configured_fields = imagelabeling_config
 

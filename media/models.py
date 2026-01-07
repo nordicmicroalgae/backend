@@ -167,6 +167,7 @@ class ImageLabelingImage(Image):  # inherit from Image
         verbose_name = "Labeling Guide Image"
         verbose_name_plural = "Labeling Guide Images"
 
+
 # Signal receivers. Connected to senders in MediaConfig ready.
 def remove_file_on_delete(sender, instance, **kwargs):
     if not instance.file:

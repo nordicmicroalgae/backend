@@ -23,7 +23,6 @@ urlpatterns = [
         TagCollectionView.as_view(),
         name="tag-collection-view",
     ),
-
     # ImageLabeling-specific endpoints
     path(
         "media/image_labeling/",
