@@ -536,10 +536,10 @@ class ImageLabelingAdmin(MediaAdmin):
                     )
                 if failed_count > 0:
                     messages.warning(
-                                request,
-                                f"Failed to create {failed_count} images. "
-                                "Check server logs for details.",
-                            )
+                        request,
+                        f"Failed to create {failed_count} images. "
+                        "Check server logs for details.",
+                    )
 
         except zipfile.BadZipFile:
             messages.error(request, "Invalid ZIP file")
