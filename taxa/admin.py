@@ -43,22 +43,25 @@ class ImageLabelingTaxonDescriptionAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         """Only show taxa that have image labeling images"""
         qs = super().get_queryset(request)
-        
+
         # Filter to only taxa with image labeling images
         from media.models import ImageLabelingImage
-        
-        taxa_with_images = ImageLabelingImage.objects.filter(
-            attributes__imagelabeling=True
-        ).values_list('taxon_id', flat=True).distinct()
-        
+
+        taxa_with_images = (
+            ImageLabelingImage.objects.filter(attributes__imagelabeling=True)
+            .values_list("taxon_id", flat=True)
+            .distinct()
+        )
+
         return qs.filter(id__in=taxa_with_images).order_by("scientific_name")
 
     def changelist_view(self, request, extra_context=None):
         """Add explanatory text about filtered taxa"""
         extra_context = extra_context or {}
-        extra_context['subtitle'] = (
+        extra_context["subtitle"] = (
             "Only taxa with associated image labeling images are displayed. "
-            "Add images through the Image Labeling Images admin to make a taxon appear here."
+            "Add images through the Image Labeling Images admin to make "
+            "a taxon appear here."
         )
         return super().changelist_view(request, extra_context)
 
