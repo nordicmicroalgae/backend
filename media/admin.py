@@ -347,7 +347,7 @@ class MediaAdmin(admin.ModelAdmin):
     def _extra_context_with_defaults(self, extra_context):
         return {
             "show_save_and_continue": False,
-            "show_save_and_add_another": False,
+            "show_save_and_add_another": True,
             **(extra_context or {}),
         }
 
