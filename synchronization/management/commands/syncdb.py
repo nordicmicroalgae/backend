@@ -20,31 +20,44 @@ class Command(BaseCommand):
             encoding="utf8",
         )
 
+        descriptions_file = tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf8",
+        )
+
         self.write("Starting synchronization job.\n\n")
         self.write("This will probably take some time.")
         self.write("Go grab a cup of coffee! ☕️\n\n")
 
         with transaction.atomic(savepoint=False):
             # pre-import jobs
-            self.write("Step 1/5: Exporting media")
+            self.write("Step 1/7: Exporting media")
             call_command("exportmedia", output=media_file.name, **options)
             self.write("")
 
+            self.write("Step 2/7: Exporting taxon descriptions")
+            call_command("exportdescriptions", output=descriptions_file.name, **options)
+            self.write("")
+
             # import jobs
-            self.write("Step 2/5: Importing taxa")
+            self.write("Step 3/7: Importing taxa")
             call_command("importtaxa", clear=True, **options)
             self.write("")
 
-            self.write("Step 3/5: Importing synonyms")
+            self.write("Step 4/7: Importing synonyms")
             call_command("importsynonyms", clear=True, **options)
             self.write("")
 
-            self.write("Step 4/5: Importing facts")
+            self.write("Step 5/7: Importing facts")
             call_command("importfacts", **options)
             self.write("")
 
             # post-import jobs
-            self.write("Step 5/5: Importing media")
+            self.write("Step 6/7: Importing taxon descriptions")
+            call_command("importdescriptions", descriptions_file.name, **options)
+            self.write("")
+
+            self.write("Step 7/7: Importing media")
             call_command("importmedia", media_file.name, clear=True, **options)
             self.write("")
 
