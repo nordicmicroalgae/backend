@@ -551,13 +551,17 @@ class ImageLabelingAdmin(MediaAdmin):
 
     def response_add(self, request, obj, post_url_continue=None):
         """
-        Override to prevent trying to redirect to the change page when uploading a ZIP
-        (since we create multiple objects, not just one)
+        Override to handle ZIP uploads and 'Save and add another' button
         """
         uploaded_file = request.FILES.get("file")
         if uploaded_file and uploaded_file.name.lower().endswith(".zip"):
-            # For ZIP uploads, redirect to changelist
-            return redirect("admin:media_imagelabelingimage_changelist")
+            # Check if "Save and add another" was clicked
+            if "_addanother" in request.POST:
+                # Redirect back to add form
+                return redirect("admin:media_imagelabelingimage_add")
+            else:
+                # For regular save, redirect to changelist
+                return redirect("admin:media_imagelabelingimage_changelist")
         return super().response_add(request, obj, post_url_continue)
 
     def get_form(self, request, obj=None, change=False, **kwargs):
