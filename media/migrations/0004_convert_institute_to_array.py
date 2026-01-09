@@ -4,7 +4,7 @@ from django.db import migrations
 def convert_institute_to_array(apps, schema_editor):
     """Convert institute from string to array"""
     Media = apps.get_model('media', 'Media')
-    
+
     updated_count = 0
     for media in Media.objects.all():
         if 'institute' in media.attributes:
@@ -17,14 +17,14 @@ def convert_institute_to_array(apps, schema_editor):
                 media.attributes['institute'] = [institute]
                 media.save(update_fields=['attributes'])
                 updated_count += 1
-    
+
     print(f"Converted {updated_count} institute fields to arrays")
 
 
 def reverse_convert(apps, schema_editor):
     """Convert back to string (for rollback)"""
     Media = apps.get_model('media', 'Media')
-    
+
     for media in Media.objects.all():
         if 'institute' in media.attributes:
             institute = media.attributes['institute']

@@ -300,7 +300,7 @@ imagelabeling:
 
   - label: Institute
     key: institute
-    help_text: Usually your institute, university or company.
+    help_text: Usually your institute, university or company (use acronym).
     required: False
     type: TagField
     suggestions:
