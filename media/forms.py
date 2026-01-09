@@ -76,6 +76,22 @@ def get_fields_config(media_type):
 
 def tagchoices_factory(model, tagset, choices=[]):
     def get_choices():
+        # Special handling for 'institute' - it's not in Tag.tagsets
+        if tagset == 'institute':
+            # Get all unique institutes from imagelabeling images
+            institutes = set()
+            for img in model.objects.filter(attributes__imagelabeling=True):
+                institute = img.attributes.get('institute')
+                if isinstance(institute, list):
+                    institutes.update(inst for inst in institute if inst)
+                elif isinstance(institute, str) and institute:
+                    institutes.add(institute)
+            
+            # Combine suggestions and database values, remove duplicates
+            all_institutes = set(choice[0] for choice in choices) | institutes
+            return sorted([(inst, inst) for inst in all_institutes])
+        
+        # Regular tagsets use the Tag class
         qs = model.objects.get_tagset(tagset)
         return set(choices + [(tag["name"], tag["name"]) for tag in qs])
 

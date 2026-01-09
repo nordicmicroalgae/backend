@@ -255,11 +255,17 @@ def image_labeling_summary(request):
         for name, count in sorted(all_instruments.items())
     ]
     
-    # Get all unique institutes from JSONB
+    # Get all unique institutes from JSONB (handle both string and array)
     all_institutes = {}
     for img in images.exclude(attributes__institute__isnull=True):
         institute = img.attributes.get('institute')
-        if institute:
+        if isinstance(institute, list):
+            # TagField - array of institutes
+            for inst in institute:
+                if inst:
+                    all_institutes[inst] = all_institutes.get(inst, 0) + 1
+        elif isinstance(institute, str) and institute:
+            # CharField - single institute string
             all_institutes[institute] = all_institutes.get(institute, 0) + 1
     
     institutes_list = [

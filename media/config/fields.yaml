@@ -302,7 +302,14 @@ imagelabeling:
     key: institute
     help_text: Usually your institute, university or company.
     required: False
-    type: CharField
+    type: TagField
+    suggestions:
+      - SMHI
+      - SYKE
+      - NIVA
+      - IOW
+      - SU
+      - IMR
 
   - label: Contributing organisation
     key: contributing_organisation
