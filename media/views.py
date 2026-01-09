@@ -1,7 +1,7 @@
 from typing import ClassVar
 
 from django.db.models import Count, F, OuterRef, Q, Subquery
-from django.http import Http404
+from django.http import Http404, JsonResponse
 
 from core.views.generics import ClientError, CollectionView
 from media.models import Image, InvalidTagset, Media
@@ -202,3 +202,128 @@ class ImageLabelingCollectionView(MediaCollectionView):
         queryset = queryset.filter(attributes__imagelabeling=True)
 
         return queryset
+
+
+def image_labeling_summary(request):
+    """Return aggregated filter data for image labeling without fetching all images"""
+
+    # Base queryset - only ImageLabeling images
+    images = Image.objects.filter(attributes__imagelabeling=True)
+
+    # Count by taxon
+    taxa_counts = (
+        images.values("taxon__id", "taxon__scientific_name", "taxon__slug")
+        .annotate(count=Count("id"))
+        .order_by("taxon__scientific_name")
+    )
+
+    # Process taxa (handle None taxon)
+    taxa_list = []
+    for item in taxa_counts:
+        if item["taxon__id"] is None:
+            taxa_list.append(
+                {
+                    "id": None,
+                    "slug": "__no_taxon__",
+                    "name": "Unknown taxon",
+                    "count": item["count"],
+                }
+            )
+        else:
+            taxa_list.append(
+                {
+                    "id": item["taxon__id"],
+                    "slug": item["taxon__slug"],
+                    "name": item["taxon__scientific_name"],
+                    "count": item["count"],
+                }
+            )
+
+    # Get all unique instruments from JSONB
+    all_instruments = {}
+    for img in images.exclude(attributes__imaging_instrument__isnull=True):
+        instruments = img.attributes.get("imaging_instrument", [])
+        if not isinstance(instruments, list):
+            instruments = [instruments]
+
+        for inst in instruments:
+            if inst:
+                all_instruments[inst] = all_instruments.get(inst, 0) + 1
+
+    instruments_list = [
+        {"name": name, "count": count} for name, count in sorted(all_instruments.items())
+    ]
+
+    # Get all unique institutes from JSONB (handle both string and array)
+    all_institutes = {}
+    for img in images.exclude(attributes__institute__isnull=True):
+        institute = img.attributes.get("institute")
+        if isinstance(institute, list):
+            # TagField - array of institutes
+            for inst in institute:
+                if inst:
+                    all_institutes[inst] = all_institutes.get(inst, 0) + 1
+        elif isinstance(institute, str) and institute:
+            # CharField - single institute string
+            all_institutes[institute] = all_institutes.get(institute, 0) + 1
+
+    institutes_list = [
+        {"name": name, "count": count} for name, count in sorted(all_institutes.items())
+    ]
+
+    return JsonResponse(
+        {
+            "taxa": taxa_list,
+            "instruments": instruments_list,
+            "institutes": institutes_list,
+            "total_count": images.count(),
+        }
+    )
+
+
+def image_labeling_first_per_taxon(request):
+    """Return first image per taxon for landing page"""
+    from django.db.models import Case, IntegerField, Min, Value, When
+
+    # Get the minimum ID (first image) for each taxon
+    first_images = (
+        Image.objects.filter(attributes__imagelabeling=True)
+        .values("taxon_id")
+        .annotate(first_id=Min("id"))
+        .values_list("first_id", flat=True)
+    )
+
+    # Fetch those images with full details
+    images = (
+        Image.objects.filter(id__in=first_images)
+        .select_related("taxon")
+        .annotate(
+            # Add sort key: 0 for taxa with taxon, 1 for NULL (Unknown)
+            taxon_sort=Case(
+                When(taxon__isnull=True, then=Value(1)),
+                default=Value(0),
+                output_field=IntegerField(),
+            )
+        )
+        .order_by("taxon_sort", "taxon__scientific_name")
+    )
+
+    # Serialize the response
+    results = []
+    for img in images:
+        result = {
+            "slug": img.slug,
+            "renditions": img.renditions,
+            "attributes": img.attributes,  # ADD THIS LINE
+            "taxon": {
+                "slug": img.taxon.slug if img.taxon else None,
+                "scientific_name": img.taxon.scientific_name if img.taxon else None,
+            }
+            if img.taxon
+            else None,
+            "taxonSlug": img.taxon.slug if img.taxon else "__no_taxon__",
+            "taxonName": img.taxon.scientific_name if img.taxon else "Unknown taxon",
+        }
+        results.append(result)
+
+    return JsonResponse({"images": results})

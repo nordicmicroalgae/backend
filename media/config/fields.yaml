@@ -300,9 +300,16 @@ imagelabeling:
 
   - label: Institute
     key: institute
-    help_text: Usually your institute, university or company.
+    help_text: Usually your institute, university or company (use acronym).
     required: False
-    type: CharField
+    type: TagField
+    suggestions:
+      - SMHI
+      - SYKE
+      - NIVA
+      - IOW
+      - SU
+      - IMR
 
   - label: Contributing organisation
     key: contributing_organisation

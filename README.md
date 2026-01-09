@@ -5,7 +5,7 @@
 This repository contains source code for the backend used in Nordic Microalgae.
 
 The backend consists of a REST API and administration interface and is written in Python and uses, as of writing, the
-latest <abbr title="Long Term Support">LTS</abbr> version (4.2) of Django as web framework.  PostgreSQL is used as
+latest <abbr title="Long Term Support">LTS</abbr> version (5.2) of Django as web framework.  PostgreSQL is used as
 datbase layer and JSONB is being used heavily to store generated information in read-only tables, as well as for storing
 metadata in some of the user-writable tables.
 

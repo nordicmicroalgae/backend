@@ -203,6 +203,101 @@ paths:
       - $ref: '#/components/parameters/media-taxon'
       - $ref: '#/components/parameters/include-children'
       - $ref: '#/components/parameters/filter-by-priority'
+  /media/image_labeling/first_per_taxon/:
+    get:
+      tags:
+      - media
+      description: Returns first image per taxon for image labeling landing page (optimized for display)
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  images:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        slug:
+                          type: string
+                          example: tripos-muelleri-1
+                        renditions:
+                          type: object
+                        taxon:
+                          type: object
+                          nullable: true
+                          properties:
+                            slug:
+                              type: string
+                              example: tripos-muelleri
+                            scientific_name:
+                              type: string
+                              example: Tripos muelleri
+                        taxonSlug:
+                          type: string
+                          example: tripos-muelleri
+                        taxonName:
+                          type: string
+                          example: Tripos muelleri
+  /media/image_labeling/summary/:
+    get:
+      tags:
+      - media
+      description: Returns aggregated summary data for image labeling filters (taxa, instruments, institutes counts)
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  taxa:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          nullable: true
+                          example: 109473
+                        slug:
+                          type: string
+                          example: amphidinium
+                        name:
+                          type: string
+                          example: Amphidinium
+                        count:
+                          type: integer
+                          example: 3
+                  instruments:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          example: IFCB
+                        count:
+                          type: integer
+                          example: 589
+                  institutes:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          example: SMHI
+                        count:
+                          type: integer
+                          example: 589
+                  total_count:
+                    type: integer
+                    example: 596
   /media/artists/:
     get:
       tags:
