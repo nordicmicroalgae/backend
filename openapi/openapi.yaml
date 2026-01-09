@@ -203,6 +203,45 @@ paths:
       - $ref: '#/components/parameters/media-taxon'
       - $ref: '#/components/parameters/include-children'
       - $ref: '#/components/parameters/filter-by-priority'
+  /media/image_labeling/first_per_taxon/:
+    get:
+      tags:
+      - media
+      description: Returns first image per taxon for image labeling landing page (optimized for display)
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  images:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        slug:
+                          type: string
+                          example: tripos-muelleri-1
+                        renditions:
+                          type: object
+                        taxon:
+                          type: object
+                          nullable: true
+                          properties:
+                            slug:
+                              type: string
+                              example: tripos-muelleri
+                            scientific_name:
+                              type: string
+                              example: Tripos muelleri
+                        taxonSlug:
+                          type: string
+                          example: tripos-muelleri
+                        taxonName:
+                          type: string
+                          example: Tripos muelleri
   /media/image_labeling/summary/:
     get:
       tags:
