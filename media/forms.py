@@ -77,11 +77,11 @@ def get_fields_config(media_type):
 def tagchoices_factory(model, tagset, choices=[]):
     def get_choices():
         # Special handling for 'institute' - it's not in Tag.tagsets
-        if tagset == 'institute':
+        if tagset == "institute":
             # Get all unique institutes from imagelabeling images
             institutes = set()
             for img in model.objects.filter(attributes__imagelabeling=True):
-                institute = img.attributes.get('institute')
+                institute = img.attributes.get("institute")
                 if isinstance(institute, list):
                     institutes.update(inst for inst in institute if inst)
                 elif isinstance(institute, str) and institute:

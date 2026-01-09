@@ -37,8 +37,8 @@ urlpatterns = [
         name="image-labeling-summary",
     ),
     path(
-    "media/image_labeling/first_per_taxon/",
-    image_labeling_first_per_taxon,
-    name="image-labeling-first-per-taxon",
+        "media/image_labeling/first_per_taxon/",
+        image_labeling_first_per_taxon,
+        name="image-labeling-first-per-taxon",
     ),
 ]
