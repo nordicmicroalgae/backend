@@ -5,6 +5,7 @@ from media.views import (
     ImageLabelingCollectionView,
     MediaCollectionView,
     TagCollectionView,
+    image_labeling_summary,
 )
 
 urlpatterns = [
@@ -28,5 +29,10 @@ urlpatterns = [
         "media/image_labeling/",
         ImageLabelingCollectionView.as_view(),
         name="image-labeling-collection-view",
+    ),
+    path(
+        "media/image_labeling/summary/",
+        image_labeling_summary,
+        name="image-labeling-summary",
     ),
 ]

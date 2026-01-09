@@ -202,3 +202,74 @@ class ImageLabelingCollectionView(MediaCollectionView):
         queryset = queryset.filter(attributes__imagelabeling=True)
 
         return queryset
+
+from django.http import JsonResponse
+
+
+def image_labeling_summary(request):
+    """Return aggregated filter data for image labeling without fetching all images"""
+    
+    # Base queryset - only ImageLabeling images
+    images = Image.objects.filter(attributes__imagelabeling=True)
+    
+    # Count by taxon
+    taxa_counts = images.values(
+        'taxon__id',
+        'taxon__scientific_name',
+        'taxon__slug'
+    ).annotate(
+        count=Count('id')
+    ).order_by('taxon__scientific_name')
+    
+    # Process taxa (handle None taxon)
+    taxa_list = []
+    for item in taxa_counts:
+        if item['taxon__id'] is None:
+            taxa_list.append({
+                'id': None,
+                'slug': '__no_taxon__',
+                'name': 'Unknown taxon',
+                'count': item['count']
+            })
+        else:
+            taxa_list.append({
+                'id': item['taxon__id'],
+                'slug': item['taxon__slug'],
+                'name': item['taxon__scientific_name'],
+                'count': item['count']
+            })
+    
+    # Get all unique instruments from JSONB
+    all_instruments = {}
+    for img in images.exclude(attributes__imagingInstrument__isnull=True):
+        instruments = img.attributes.get('imagingInstrument', [])
+        if not isinstance(instruments, list):
+            instruments = [instruments]
+        
+        for inst in instruments:
+            if inst:
+                all_instruments[inst] = all_instruments.get(inst, 0) + 1
+    
+    instruments_list = [
+        {'name': name, 'count': count}
+        for name, count in sorted(all_instruments.items())
+    ]
+    
+    # Get all unique institutes from JSONB
+    all_institutes = {}
+    for img in images.exclude(attributes__institute__isnull=True):
+        institute = img.attributes.get('institute')
+        if institute:
+            all_institutes[institute] = all_institutes.get(institute, 0) + 1
+    
+    institutes_list = [
+        {'name': name, 'count': count}
+        for name, count in sorted(all_institutes.items())
+    ]
+    
+    return JsonResponse({
+        'taxa': taxa_list,
+        'instruments': instruments_list,
+        'institutes': institutes_list,
+        'total_count': images.count()
+    })
