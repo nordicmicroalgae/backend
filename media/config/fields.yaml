@@ -172,13 +172,13 @@ image:
   - label: License
     key: license
     help_text:
-      "'Creative Commons Attribution-NoDerivs 3.0 Unported' is 
-      recommended. This license is the most restrictive of our
+      "'Creative Commons Attribution 4.0 International' (CC BY-ND 4.0)
+      is recommended. This license is the most restrictive of our
       licenses, only allowing others to download your works and
       share them with others as long as they credit you, but they
       can't change them in any way."
     required: True
-    initial: Creative Commons Attribution-NoDerivs 3.0 Unported
+    initial: Creative Commons Attribution 4.0 International
     type: ChoiceField
     widget: RadioSelect
     choices:
@@ -186,6 +186,10 @@ image:
       - Creative Commons Attribution-NoDerivs 3.0 Unported
       - Creative Commons Attribution-ShareAlike 3.0 Unported
       - Public domain
+      - Creative Commons Attribution 4.0 International
+      - Creative Commons Attribution-ShareAlike 4.0 International
+      - Creative Commons Attribution-NoDerivatives 4.0 International
+      - CC0 1.0 Universal
 
   - label: Preservation
     key: preservation
@@ -269,9 +273,9 @@ image:
 # Definitions of fields for the imagelabeling media type
 imagelabeling:
 
-  - label: Title
+  - label: Class name # User-facing label; stored as 'title' in attributes
     key: title
-    help_text: Usually the name of the image class.
+    help_text: Usually the name of the image class or the title of the image.
     required: True
     type: CharField
 
@@ -315,23 +319,12 @@ imagelabeling:
     key: contributing_organisation
     help_text:
       This could be e.g. HELCOM EG Phyto, the name of an institute or a
-      company. Maximum number of characters is 28. The text is shown
-      e.g. under the author name in Galleries and Latest images.
+      company. Maximum number of characters is 28.
     required: False
     type: CharField
 
   - label: Copyright holder
     key: copyright_holder
-    required: False
-    type: CharField
-
-  - label: Copyright stamp
-    key: copyright_stamp
-    help_text:
-      This text will be used for stamping images with the name of
-      the copyright holder. Leave empty if no stamp is needed. Fill in
-      the name of the Copyright holder if you want a stamp. Keep the
-      text as short as possible
     required: False
     type: CharField
 
@@ -355,6 +348,7 @@ imagelabeling:
     required: False
     type: ChoiceField
     choices:
+      - Baltic Sea
       - Baltic Sea - Bothnian Bay
       - Baltic Sea - The Quark
       - Baltic Sea - Bothnian Sea
@@ -379,6 +373,7 @@ imagelabeling:
       - Kattegat - N Great Belt
       - Kattegat - N part of the sound
       - Limfjorden
+      - Skagerrak - Kattegat
       - Skagerrak - off shore
       - Skagerrak - Swedish coast
       - Skagerrak - Oslo fjord
@@ -438,34 +433,23 @@ imagelabeling:
     required: False
     type: CharField
 
-  - label: Latitude minute
-    key: latitude_minute
-    help_text: 'Example: 59.2'
-    required: False
-    type: CharField
-
   - label: Longitude degree
     key: longitude_degree
     help_text: 'Example: 10 (use - for the Southern hemisphere).'
     required: False
     type: CharField
 
-  - label: Longitude minute
-    key: longitude_minute
-    help_text: 'Example 59.2'
-    required: False
-    type: CharField
-
   - label: License
     key: license
     help_text:
-      "'Creative Commons Attribution-NoDerivs 3.0 Unported' is 
-      recommended. This license is the most restrictive of our
-      licenses, only allowing others to download your works and
-      share them with others as long as they credit you, but they
-      can't change them in any way."
+      "'Creative Commons Attribution-NoDerivatives 4.0 International 
+      (CC BY-ND 4.0) is recommended. This license is the most 
+      restrictive of the Creative Commons licenses that still allow 
+      redistribution. Others may download and share the work, 
+      including for commercial purposes, provided they give 
+      appropriate credit. They may not modify the work in any way."
     required: True
-    initial: Creative Commons Attribution-NoDerivs 3.0 Unported
+    initial: Creative Commons Attribution-NoDerivatives 4.0 International
     type: ChoiceField
     widget: RadioSelect
     choices:
@@ -473,3 +457,7 @@ imagelabeling:
       - Creative Commons Attribution-NoDerivs 3.0 Unported
       - Creative Commons Attribution-ShareAlike 3.0 Unported
       - Public domain
+      - Creative Commons Attribution 4.0 International
+      - Creative Commons Attribution-ShareAlike 4.0 International
+      - Creative Commons Attribution-NoDerivatives 4.0 International
+      - CC0 1.0 Universal
