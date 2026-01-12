@@ -8,7 +8,7 @@ from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Q
 from django.http import JsonResponse
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.urls import path, reverse
 from django.utils import timezone
 from django.utils.decorators import method_decorator
@@ -18,6 +18,7 @@ from django.views.decorators.http import require_POST
 
 from media.forms import ImageForm, ImageLabelingImageForm
 from media.models import Image, ImageLabelingImage
+from taxa.models import Taxon
 
 
 class InvalidPriorityListJson(Exception):
@@ -382,6 +383,123 @@ class ImageLabelingAdmin(MediaAdmin):
 
     list_filter = (TaxonListFilter,)
 
+    # Add Change taxon action to the actions list
+    actions: ClassVar[list[str]] = ["change_taxon_action"]
+
+    def change_taxon_action(self, request, queryset):
+        """
+        Admin action to change taxon for multiple selected images
+        """
+        if "apply" in request.POST:
+            new_taxon_id = request.POST.get("new_taxon")
+
+            if new_taxon_id:
+                try:
+                    new_taxon = Taxon.objects.get(pk=new_taxon_id)
+
+                    # Find the next available priority for the new taxon
+                    from media.models import available_priorities
+
+                    # Use a transaction to ensure atomicity
+                    with transaction.atomic():
+                        # Get the next available priorities for the new taxon
+                        priority_generator = available_priorities(new_taxon)
+
+                        # Update each image individually with a new priority
+                        count = 0
+                        for img in queryset:
+                            img.taxon = new_taxon
+                            img.priority = next(priority_generator)
+                            img.save(update_fields=["taxon", "priority"])
+                            count += 1
+
+                    message = (
+                        f"Successfully moved {count} images to taxon: "
+                        f"{new_taxon.scientific_name}"
+                    )
+
+                    self.message_user(request, message)
+                    return None
+
+                except Taxon.DoesNotExist:
+                    self.message_user(
+                        request, "Selected taxon does not exist.", level=messages.ERROR
+                    )
+            else:
+                self.message_user(request, "No taxon selected.", level=messages.ERROR)
+
+        # Create a temporary field to get the widget
+        taxon_field = ImageLabelingImage._meta.get_field("taxon")
+        form_field = self.formfield_for_foreignkey(taxon_field, request)
+
+        class TaxonChangeForm(forms.Form):
+            _selected_action = forms.CharField(widget=forms.MultipleHiddenInput)
+            new_taxon = form_field
+
+        form = TaxonChangeForm(
+            initial={
+                "_selected_action": request.POST.getlist(
+                    admin.helpers.ACTION_CHECKBOX_NAME
+                )
+            }
+        )
+
+        context = {
+            "queryset": queryset,
+            "form": form,
+            "action_checkbox_name": admin.helpers.ACTION_CHECKBOX_NAME,
+            "opts": self.model._meta,
+        }
+
+        return render(
+            request,
+            "admin/media/imagelabelingimage/change_taxon_intermediate.html",
+            context,
+        )
+
+    change_taxon_action.short_description = "Change taxon for selected images"
+
+    def get_preview_html(self, obj):
+        """Display preview thumbnail in changelist"""
+        small_rendition = obj.renditions.get("s")
+        if small_rendition:
+            return format_html("<img src={} />", small_rendition["url"])
+        return super().get_preview_html(obj)
+
+    def get_form(self, request, obj=None, change=False, **kwargs):
+        """
+        Return the form class directly and manually apply widgets.
+        """
+        # Get the form class
+        FormClass = self.form
+
+        # Manually override the taxon field widget
+        db_field = self.model._meta.get_field("taxon")
+
+        # Create a new form class that inherits from our form
+        # and override just the taxon field
+        class ModifiedForm(FormClass):
+            pass
+
+        # Apply the TaxonSelect widget to the taxon field
+        ModifiedForm.base_fields = FormClass.base_fields.copy()
+        ModifiedForm.base_fields["taxon"] = self.formfield_for_foreignkey(
+            db_field, request
+        )
+
+        return ModifiedForm
+
+    def get_fieldsets(self, request, obj=None):
+        """
+        Generate fieldsets from the actual form instance fields.
+        """
+        form_instance = self.form()
+        field_names = list(form_instance.fields.keys())
+
+        return [
+            (None, {"fields": field_names}),
+        ]
+
     def save_model(self, request, obj, form, change):
         """Handle both single image and ZIP file uploads"""
         uploaded_file = request.FILES.get("file")
@@ -563,47 +681,6 @@ class ImageLabelingAdmin(MediaAdmin):
                 # For regular save, redirect to changelist
                 return redirect("admin:media_imagelabelingimage_changelist")
         return super().response_add(request, obj, post_url_continue)
-
-    def get_form(self, request, obj=None, change=False, **kwargs):
-        """
-        Override to use ImageLabelingImageForm without field validation.
-        """
-        # Completely bypass parent's get_form to avoid field validation
-        defaults = {
-            "form": self.form,
-            "fields": None,  # This tells Django not to restrict fields
-            "exclude": None,
-        }
-        defaults.update(kwargs)
-
-        # Skip ModelAdmin.get_form and go straight to the base implementation
-        # This avoids the field validation that causes issues with our dynamic fields
-        if defaults["fields"] is None:
-            defaults["fields"] = forms.ALL_FIELDS
-
-        return defaults["form"]
-
-    def get_fieldsets(self, request, obj=None):
-        """
-        Generate fieldsets from the actual form instance fields.
-        """
-        # Instantiate the form to get fields after __init__ processes them
-        form_instance = self.form()
-        field_names = list(form_instance.fields.keys())
-
-        return [
-            (None, {"fields": field_names}),
-        ]
-
-    def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        return qs.filter(attributes__imagelabeling=True)
-
-    def get_preview_html(self, obj):
-        small_rendition = obj.renditions.get("s")
-        if small_rendition:
-            return format_html("<img src={} />", small_rendition["url"])
-        return super().get_preview_html(obj)
 
 
 admin.site.register(Image, ImageAdmin)
