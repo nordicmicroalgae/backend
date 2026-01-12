@@ -599,6 +599,7 @@ components:
             - renditions
             - related_taxon
             - taxon
+            - priority
     media-artist:
       name: artist
       in: query
@@ -843,6 +844,10 @@ components:
         type:
           type: string
           example: image/png
+        priority:
+          type: integer
+          example: 0
+          description: Display priority (0 = highest priority)
         created_at:
           type: string
           example: 2025-01-07T10:22:44:442Z
