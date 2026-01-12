@@ -18,13 +18,18 @@ class ImageOrZipUploadField(forms.FileField):
 
     widget = widgets.ImageFileInput
 
+    # Upload limit configuration
+    MAX_IMAGES_IN_ZIP = 100
+    MAX_ZIP_SIZE_MB = 50
+
     def __init__(self, *args, **kwargs):
         kwargs.setdefault(
             "help_text",
             (
-                "Upload a single image (PNG, JPG, TIF) or a ZIP archive "
-                "containing multiple images. All images from a ZIP will "
-                "share the same metadata."
+                f"Upload a single image (PNG, JPG, TIF) or a ZIP archive "
+                f"containing multiple images (max {self.MAX_IMAGES_IN_ZIP} images, "
+                f"max {self.MAX_ZIP_SIZE_MB}MB). "
+                f"All images from a ZIP will share the same metadata."
             ),
         )
         super().__init__(*args, **kwargs)
@@ -32,17 +37,52 @@ class ImageOrZipUploadField(forms.FileField):
     def to_python(self, data):
         """
         Override to allow ZIP files in addition to images.
-        For ZIP files, skip image validation.
+        For ZIP files, validate size and image count.
         """
         if data is None:
             return None
 
         if hasattr(data, "name") and data.name.lower().endswith(".zip"):
-            # For ZIP files, just return the file without image validation
+            # Validate ZIP file size
+            if data.size > self.MAX_ZIP_SIZE_MB * 1024 * 1024:
+                raise forms.ValidationError(
+                    f"ZIP file is too large. Maximum size is {self.MAX_ZIP_SIZE_MB}MB."
+                )
+
+            # Validate number of images in ZIP
+            import zipfile
+
+            try:
+                with zipfile.ZipFile(data, "r") as zip_ref:
+                    image_files = [
+                        f
+                        for f in zip_ref.namelist()
+                        if f.lower().endswith((".png", ".jpg", ".jpeg", ".tif", ".tiff"))
+                        and not f.startswith("__MACOSX")
+                        and not f.startswith(".")
+                        and not os.path.basename(f).startswith(".")
+                    ]
+
+                    if len(image_files) == 0:
+                        raise forms.ValidationError(
+                            "ZIP archive contains no valid image files."
+                        )
+
+                    if len(image_files) > self.MAX_IMAGES_IN_ZIP:
+                        raise forms.ValidationError(
+                            f"ZIP archive contains {len(image_files)} images. "
+                            f"Maximum allowed is {self.MAX_IMAGES_IN_ZIP}."
+                        )
+
+                # Reset file pointer after reading
+                data.seek(0)
+
+            except zipfile.BadZipFile:
+                raise forms.ValidationError("Invalid ZIP file.")
+
             return data
 
-        # For image files, use the parent ImageField validation
-        # We need to call FileField's to_python, not ImageField's
+        # For image files, use the parent FileField validation
         return forms.FileField.to_python(self, data)
 
 
@@ -259,28 +299,38 @@ class ImageForm(MediaForm):
     file = ImageUploadField()
 
 
-class ImageLabelingImageForm(ImageForm):
+class ImageLabelingImageForm(forms.ModelForm):
     """
-    Similar to ImageForm but ensures images are marked as ImageLabeling,
-    and uses a custom field configuration.
+    Form for ImageLabeling images with ZIP upload support.
     """
 
-    class Meta(ImageForm.Meta):
+    class Meta:
         model = ImageLabelingImage
-        fields = ImageForm.Meta.fields
+        fields = ("taxon", "file")
+        # Don't specify widgets here - let admin handle it
+
+    class Media:
+        css: ClassVar[dict[str, tuple[str, ...]]] = {
+            "screen": ("admin/css/media_form.css",)
+        }
+        js: ClassVar[tuple[str, ...]] = (
+            "admin/js/jquery.init.js",
+            "admin/js/MediaFormEnhancements.js",
+        )
 
     # Override file field to accept both images and ZIP archives
     file = ImageOrZipUploadField(label="Image file or ZIP archive")
 
     def __init__(self, *args, **kwargs):
+        instance = kwargs.get("instance", None)
+
+        if instance:
+            kwargs.setdefault("initial", {})
+            kwargs["initial"].update(**instance.attributes)
+
         super().__init__(*args, **kwargs)
 
-        # Remove all inherited configured fields from ImageForm
-        image_config = get_fields_config("image")
-        for field_config in image_config:
-            self.fields.pop(field_config["key"], None)
-
-        # Add imagelabeling-specific fields
+        # Add imagelabeling-specific fields AFTER super().__init__
         imagelabeling_config = get_fields_config("imagelabeling")
         add_configured_fields_to_form(self, imagelabeling_config, ImageLabelingImage)
 
@@ -288,8 +338,22 @@ class ImageLabelingImageForm(ImageForm):
         self.configured_fields = imagelabeling_config
 
     def save(self, *args, **kwargs):
+        # Handle content type for file uploads
+        if "file" in self.changed_data:
+            self.instance.type = self.cleaned_data["file"].content_type
+
+        # Save configured fields to attributes
+        if hasattr(self, "configured_fields"):
+            for configured_field in self.configured_fields:
+                field_key = configured_field["key"]
+                if field_key in self.cleaned_data.keys():
+                    field_value = self.cleaned_data[field_key]
+                    self.instance.attributes[field_key] = field_value
+
+        # Mark as imagelabeling
         self.instance.attributes = dict(self.instance.attributes or {})
         self.instance.attributes["imagelabeling"] = True
+
         return super().save(*args, **kwargs)
 
 
