@@ -156,6 +156,19 @@ class ImageLabelingCollectionView(MediaCollectionView):
     global exclusion of ImageLabeling images added to MediaCollectionView.
     """
 
+    # Override fields to include priority
+    fields = (
+        "slug",
+        "file",
+        "type",
+        "created_at",
+        "updated_at",
+        "attributes",
+        "renditions",
+        "related_taxon",
+        "priority",
+    )
+
     plural_key = "image_labeling_images"
 
     def get_queryset(self, *args, **kwargs):
@@ -282,23 +295,33 @@ def image_labeling_summary(request):
 
 
 def image_labeling_first_per_taxon(request):
-    """Return first image per taxon for landing page"""
+    """Return first image (by priority) per taxon for landing page"""
     from django.db.models import Case, IntegerField, Min, Value, When
 
-    # Get the minimum ID (first image) for each taxon
+    # Get the minimum priority (top priority image) for each taxon
     first_images = (
         Image.objects.filter(attributes__imagelabeling=True)
         .values("taxon_id")
-        .annotate(first_id=Min("id"))
-        .values_list("first_id", flat=True)
+        .annotate(first_priority=Min("priority"))  # Changed from Min("id")
     )
 
-    # Fetch those images with full details
+    # Build a list of (taxon_id, priority) pairs to filter
+    taxon_priority_pairs = [
+        (img["taxon_id"], img["first_priority"]) for img in first_images
+    ]
+
+    # Fetch images matching (taxon_id, priority) combinations
+    from django.db.models import Q
+
+    query = Q()
+    for taxon_id, priority in taxon_priority_pairs:
+        query |= Q(taxon_id=taxon_id, priority=priority)
+
     images = (
-        Image.objects.filter(id__in=first_images)
+        Image.objects.filter(query)
+        .filter(attributes__imagelabeling=True)
         .select_related("taxon")
         .annotate(
-            # Add sort key: 0 for taxa with taxon, 1 for NULL (Unknown)
             taxon_sort=Case(
                 When(taxon__isnull=True, then=Value(1)),
                 default=Value(0),
@@ -314,7 +337,7 @@ def image_labeling_first_per_taxon(request):
         result = {
             "slug": img.slug,
             "renditions": img.renditions,
-            "attributes": img.attributes,  # ADD THIS LINE
+            "attributes": img.attributes,
             "taxon": {
                 "slug": img.taxon.slug if img.taxon else None,
                 "scientific_name": img.taxon.scientific_name if img.taxon else None,
