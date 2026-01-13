@@ -280,8 +280,40 @@ def image_labeling_summary(request):
             # CharField - single institute string
             all_institutes[institute] = all_institutes.get(institute, 0) + 1
 
+    # Count images with no institute
+    no_institute_count = images.filter(
+        Q(attributes__institute__isnull=True)
+        | Q(attributes__institute="")
+        | Q(attributes__institute=[])
+    ).count()
+
+    if no_institute_count > 0:
+        all_institutes["__not_specified__"] = no_institute_count
+
     institutes_list = [
         {"name": name, "count": count} for name, count in sorted(all_institutes.items())
+    ]
+
+    # Get all unique geographic areas from JSONB
+    all_geographic_areas = {}
+    for img in images.exclude(attributes__geographic_area__isnull=True):
+        geographic_area = img.attributes.get("geographic_area")
+        if geographic_area:
+            all_geographic_areas[geographic_area] = (
+                all_geographic_areas.get(geographic_area, 0) + 1
+            )
+
+    # Count images with no geographic_area
+    no_area_count = images.filter(
+        Q(attributes__geographic_area__isnull=True) | Q(attributes__geographic_area="")
+    ).count()
+
+    if no_area_count > 0:
+        all_geographic_areas["__not_specified__"] = no_area_count
+
+    geographic_areas_list = [
+        {"name": name, "count": count}
+        for name, count in sorted(all_geographic_areas.items())
     ]
 
     return JsonResponse(
@@ -289,6 +321,7 @@ def image_labeling_summary(request):
             "taxa": taxa_list,
             "instruments": instruments_list,
             "institutes": institutes_list,
+            "geographic_areas": geographic_areas_list,
             "total_count": images.count(),
         }
     )
@@ -302,7 +335,7 @@ def image_labeling_first_per_taxon(request):
     first_images = (
         Image.objects.filter(attributes__imagelabeling=True)
         .values("taxon_id")
-        .annotate(first_priority=Min("priority"))  # Changed from Min("id")
+        .annotate(first_priority=Min("priority"))
     )
 
     # Build a list of (taxon_id, priority) pairs to filter
