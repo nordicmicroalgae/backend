@@ -528,8 +528,8 @@ class ImageLabelingAdmin(MediaAdmin):
 
         try:
             # Get the ZIP filename at the start
-            zip_filename = getattr(zip_file, 'name', 'ZIP archive')
-            
+            zip_filename = getattr(zip_file, "name", "ZIP archive")
+
             with zipfile.ZipFile(zip_file, "r") as zip_ref:
                 # Get image files
                 image_files = [
@@ -650,7 +650,8 @@ class ImageLabelingAdmin(MediaAdmin):
                 if created_count > 0:
                     messages.success(
                         request,
-                        f"Successfully created {created_count} images from {zip_filename}",
+                        f"Successfully created {created_count} images "
+                        f"from {zip_filename}",
                     )
                 if failed_count > 0:
                     messages.warning(
