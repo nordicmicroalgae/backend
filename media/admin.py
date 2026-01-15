@@ -380,10 +380,7 @@ class ImageAdmin(MediaAdmin):
 
 class ImageLabelingAdmin(MediaAdmin):
     form = ImageLabelingImageForm
-
     list_filter = (TaxonListFilter,)
-
-    # Add Change taxon action to the actions list
     actions: ClassVar[list[str]] = ["change_taxon_action"]
 
     def change_taxon_action(self, request, queryset):
@@ -530,6 +527,9 @@ class ImageLabelingAdmin(MediaAdmin):
         from django.utils.text import slugify
 
         try:
+            # Get the ZIP filename at the start
+            zip_filename = getattr(zip_file, "name", "ZIP archive")
+
             with zipfile.ZipFile(zip_file, "r") as zip_ref:
                 # Get image files
                 image_files = [
@@ -650,7 +650,8 @@ class ImageLabelingAdmin(MediaAdmin):
                 if created_count > 0:
                     messages.success(
                         request,
-                        f"Successfully created {created_count} images from ZIP archive",
+                        f"Successfully created {created_count} images "
+                        f"from {zip_filename}",
                     )
                 if failed_count > 0:
                     messages.warning(
