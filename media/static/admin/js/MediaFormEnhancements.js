@@ -8,6 +8,7 @@
       MediaFormEnhancements.initFocusSearchOnOpenTaxonSelect();
       MediaFormEnhancements.initAutoUpdateTitleOnTaxonChange();
       MediaFormEnhancements.initAutoUpdateTitleOnZipUpload();
+      MediaFormEnhancements.initAutoSelectTaxonFromZipFilename();
       MediaFormEnhancements.initSaveAndRestoreFieldsTemplate();
     },
 
@@ -63,6 +64,93 @@
           }
         });
       }
+    },
+
+    initAutoSelectTaxonFromZipFilename() {
+      const fileInput = $('[name=file]');
+      const taxonSelect = $('[name=taxon]');
+
+      if (!fileInput.length || !taxonSelect.length) {
+        return;
+      }
+
+      fileInput.on('change', function() {
+        const file = this.files[0];
+        if (!file || !file.name.toLowerCase().endsWith('.zip')) {
+          return;
+        }
+
+        // Extract taxon name from filename
+        let name = file.name;
+        name = name.replace(/\.zip$/i, '');           // Remove .zip
+        name = name.replace(/_/g, ' ');               // Underscores to spaces
+        name = name.replace(/\b(sp|spp|cf)\.?\b/gi, ''); // Remove sp/spp/cf
+        name = name.replace(/\s+/g, ' ').trim();      // Clean whitespace
+
+        if (!name) return;
+
+        // Check if it's a Select2 autocomplete widget
+        if (taxonSelect.data('select2')) {
+          const autocompleteUrl = taxonSelect.data('ajax--url');
+          if (autocompleteUrl) {
+            $.ajax({
+              url: autocompleteUrl,
+              data: { term: name },
+              dataType: 'json',
+              success: function(data) {
+                if (data.results && data.results.length > 0) {
+                  // Find best match (exact, then first result)
+                  const match = data.results.find(item =>
+                    item.text.toLowerCase() === name.toLowerCase()
+                  ) || data.results[0];
+
+                  // Set the value in Select2
+                  const option = new Option(match.text, match.id, true, true);
+                  taxonSelect.append(option).trigger('change');
+                }
+              }
+            });
+          }
+        } else {
+          // Regular <select>: search through options
+          const selectElement = taxonSelect[0];
+          const options = selectElement.options;
+          let bestMatch = null;
+          const nameLower = name.toLowerCase();
+
+          // Try exact match first (case-insensitive)
+          for (let i = 0; i < options.length; i++) {
+            if (options[i].text.toLowerCase() === nameLower) {
+              bestMatch = options[i];
+              break;
+            }
+          }
+
+          // Then try starts-with
+          if (!bestMatch) {
+            for (let i = 0; i < options.length; i++) {
+              if (options[i].text.toLowerCase().startsWith(nameLower)) {
+                bestMatch = options[i];
+                break;
+              }
+            }
+          }
+
+          // Then try if the search term starts with option text (for genus-level matches)
+          if (!bestMatch) {
+            for (let i = 0; i < options.length; i++) {
+              if (nameLower.startsWith(options[i].text.toLowerCase())) {
+                bestMatch = options[i];
+                break;
+              }
+            }
+          }
+
+          if (bestMatch) {
+            taxonSelect.val(bestMatch.value).trigger('change');
+          }
+        }
+      });
     },
 
     initSaveAndRestoreFieldsTemplate() {
