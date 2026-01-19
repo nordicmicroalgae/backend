@@ -243,7 +243,7 @@ class MediaAdmin(admin.ModelAdmin):
             ]
             objects_to_update.append(object_to_update)
 
-        _result = queryset.bulk_update(objects_to_update, fields=["priority"])
+        queryset.bulk_update(objects_to_update, fields=["priority"])
 
         return JsonResponse(
             {
@@ -358,6 +358,84 @@ class MediaAdmin(admin.ModelAdmin):
             parameters.get(TaxonListFilter.parameter_name)
         )
 
+    def change_taxon_action(self, request, queryset):
+        """
+        Admin action to change taxon for multiple selected images
+        """
+        if "apply" in request.POST:
+            new_taxon_id = request.POST.get("new_taxon")
+
+            if new_taxon_id:
+                try:
+                    new_taxon = Taxon.objects.get(pk=new_taxon_id)
+
+                    # Find the next available priority for the new taxon
+                    from media.models import available_priorities
+
+                    # Use a transaction to ensure atomicity
+                    with transaction.atomic():
+                        # Get the next available priorities for the new taxon
+                        priority_generator = available_priorities(new_taxon)
+
+                        # Update each image individually with a new priority
+                        count = 0
+                        for img in queryset:
+                            img.taxon = new_taxon
+                            img.priority = next(priority_generator)
+                            img.save(update_fields=["taxon", "priority"])
+                            count += 1
+
+                    message = (
+                        f"Successfully moved {count} images to taxon: "
+                        f"{new_taxon.scientific_name}"
+                    )
+
+                    self.message_user(request, message)
+                    return None
+
+                except Taxon.DoesNotExist:
+                    self.message_user(
+                        request, "Selected taxon does not exist.", level=messages.ERROR
+                    )
+            else:
+                self.message_user(request, "No taxon selected.", level=messages.ERROR)
+
+        # Create a temporary field to get the widget
+        taxon_field = self.model._meta.get_field("taxon")
+        form_field = self.formfield_for_foreignkey(taxon_field, request)
+
+        class TaxonChangeForm(forms.Form):
+            _selected_action = forms.CharField(widget=forms.MultipleHiddenInput)
+            new_taxon = form_field
+
+        form = TaxonChangeForm(
+            initial={
+                "_selected_action": request.POST.getlist(
+                    admin.helpers.ACTION_CHECKBOX_NAME
+                )
+            }
+        )
+
+        changelist_url = reverse(
+            f"admin:{self.model._meta.app_label}_{self.model._meta.model_name}_changelist"
+        )
+
+        context = {
+            "queryset": queryset,
+            "form": form,
+            "action_checkbox_name": admin.helpers.ACTION_CHECKBOX_NAME,
+            "opts": self.model._meta,
+            "cancel_url": changelist_url,
+        }
+
+        return render(
+            request,
+            "admin/media/change_taxon_intermediate.html",
+            context,
+        )
+
+    change_taxon_action.short_description = "Change taxon for selected images"
+
 
 class ImageAdmin(MediaAdmin):
     form = ImageForm
@@ -378,159 +456,11 @@ class ImageAdmin(MediaAdmin):
 
         return super().get_preview_html(obj)
 
-    def change_taxon_action(self, request, queryset):
-        """
-        Admin action to change taxon for multiple selected images
-        """
-        if "apply" in request.POST:
-            new_taxon_id = request.POST.get("new_taxon")
-
-            if new_taxon_id:
-                try:
-                    new_taxon = Taxon.objects.get(pk=new_taxon_id)
-
-                    # Find the next available priority for the new taxon
-                    from media.models import available_priorities
-
-                    # Use a transaction to ensure atomicity
-                    with transaction.atomic():
-                        # Get the next available priorities for the new taxon
-                        priority_generator = available_priorities(new_taxon)
-
-                        # Update each image individually with a new priority
-                        count = 0
-                        for img in queryset:
-                            img.taxon = new_taxon
-                            img.priority = next(priority_generator)
-                            img.save(update_fields=["taxon", "priority"])
-                            count += 1
-
-                    message = (
-                        f"Successfully moved {count} images to taxon: "
-                        f"{new_taxon.scientific_name}"
-                    )
-
-                    self.message_user(request, message)
-                    return None
-
-                except Taxon.DoesNotExist:
-                    self.message_user(
-                        request, "Selected taxon does not exist.", level=messages.ERROR
-                    )
-            else:
-                self.message_user(request, "No taxon selected.", level=messages.ERROR)
-
-        # Create a temporary field to get the widget
-        taxon_field = Image._meta.get_field("taxon")
-        form_field = self.formfield_for_foreignkey(taxon_field, request)
-
-        class TaxonChangeForm(forms.Form):
-            _selected_action = forms.CharField(widget=forms.MultipleHiddenInput)
-            new_taxon = form_field
-
-        form = TaxonChangeForm(
-            initial={
-                "_selected_action": request.POST.getlist(
-                    admin.helpers.ACTION_CHECKBOX_NAME
-                )
-            }
-        )
-
-        context = {
-            "queryset": queryset,
-            "form": form,
-            "action_checkbox_name": admin.helpers.ACTION_CHECKBOX_NAME,
-            "opts": self.model._meta,
-            "cancel_url": reverse("admin:media_image_changelist"),
-        }
-
-        return render(
-            request,
-            "admin/media/change_taxon_intermediate.html",
-            context,
-        )
-
-    change_taxon_action.short_description = "Change taxon for selected images"
-
 
 class ImageLabelingAdmin(MediaAdmin):
     form = ImageLabelingImageForm
     list_filter = (TaxonListFilter,)
     actions: ClassVar[list[str]] = ["change_taxon_action"]
-
-    def change_taxon_action(self, request, queryset):
-        """
-        Admin action to change taxon for multiple selected images
-        """
-        if "apply" in request.POST:
-            new_taxon_id = request.POST.get("new_taxon")
-
-            if new_taxon_id:
-                try:
-                    new_taxon = Taxon.objects.get(pk=new_taxon_id)
-
-                    # Find the next available priority for the new taxon
-                    from media.models import available_priorities
-
-                    # Use a transaction to ensure atomicity
-                    with transaction.atomic():
-                        # Get the next available priorities for the new taxon
-                        priority_generator = available_priorities(new_taxon)
-
-                        # Update each image individually with a new priority
-                        count = 0
-                        for img in queryset:
-                            img.taxon = new_taxon
-                            img.priority = next(priority_generator)
-                            img.save(update_fields=["taxon", "priority"])
-                            count += 1
-
-                    message = (
-                        f"Successfully moved {count} images to taxon: "
-                        f"{new_taxon.scientific_name}"
-                    )
-
-                    self.message_user(request, message)
-                    return None
-
-                except Taxon.DoesNotExist:
-                    self.message_user(
-                        request, "Selected taxon does not exist.", level=messages.ERROR
-                    )
-            else:
-                self.message_user(request, "No taxon selected.", level=messages.ERROR)
-
-        # Create a temporary field to get the widget
-        taxon_field = ImageLabelingImage._meta.get_field("taxon")
-        form_field = self.formfield_for_foreignkey(taxon_field, request)
-
-        class TaxonChangeForm(forms.Form):
-            _selected_action = forms.CharField(widget=forms.MultipleHiddenInput)
-            new_taxon = form_field
-
-        form = TaxonChangeForm(
-            initial={
-                "_selected_action": request.POST.getlist(
-                    admin.helpers.ACTION_CHECKBOX_NAME
-                )
-            }
-        )
-
-        context = {
-            "queryset": queryset,
-            "form": form,
-            "action_checkbox_name": admin.helpers.ACTION_CHECKBOX_NAME,
-            "opts": self.model._meta,
-            "cancel_url": reverse("admin:media_imagelabelingimage_changelist"),
-        }
-
-        return render(
-            request,
-            "admin/media/change_taxon_intermediate.html",
-            context,
-        )
-
-    change_taxon_action.short_description = "Change taxon for selected images"
 
     def get_preview_html(self, obj):
         """Display preview thumbnail in changelist"""
