@@ -5,7 +5,7 @@
 <form method="post">
   {% csrf_token %}
   
-  <h1>{{ title }}</h1>
+  <h1>Change Taxon</h1>
   
   <p>You have selected {{ queryset.count }} image(s) to change taxon.</p>
   
@@ -23,7 +23,7 @@
       <input type="hidden" name="{{ action_checkbox_name }}" value="{{ obj.pk }}">
     {% endfor %}
     <input type="submit" name="apply" value="Change taxon">
-    <a href="{% url 'admin:media_imagelabelingimage_changelist' %}" class="button cancel-link">Cancel</a>
+    <a href="{{ cancel_url }}" class="button cancel-link">Cancel</a>
   </div>
 </form>
 
