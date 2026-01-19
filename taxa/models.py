@@ -174,3 +174,20 @@ class Synonym(models.Model):
 
     def __str__(self):
         return self.synonym_name
+
+
+class OrphanedDescription(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    old_taxon_id = models.CharField(max_length=255, unique=True, db_index=True)
+    description = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "orphaned_description"
+        ordering: ClassVar = ["-updated_at"]
+        verbose_name = "Orphaned Image Labeling Description"
+        verbose_name_plural = "Orphaned Image Labeling Descriptions"
+
+    def __str__(self):
+        return f"Orphaned: {self.old_taxon_id}"
