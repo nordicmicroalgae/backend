@@ -6,6 +6,7 @@ from media.views import (
     MediaCollectionView,
     TagCollectionView,
     image_labeling_first_per_taxon,
+    image_labeling_grouped_by_plankton,
     image_labeling_summary,
 )
 
@@ -40,5 +41,10 @@ urlpatterns = [
         "media/image_labeling/first_per_taxon/",
         image_labeling_first_per_taxon,
         name="image-labeling-first-per-taxon",
+    ),
+    path(
+        "media/image_labeling/grouped_by_plankton/",
+        image_labeling_grouped_by_plankton,
+        name="image-labeling-grouped-by-plankton",
     ),
 ]

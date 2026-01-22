@@ -237,7 +237,7 @@ def image_labeling_summary(request):
             taxa_list.append(
                 {
                     "id": None,
-                    "slug": "__no_taxon__",
+                    "slug": "unknown",
                     "name": "Unknown taxon",
                     "count": item["count"],
                 }
@@ -327,6 +327,121 @@ def image_labeling_summary(request):
     )
 
 
+def image_labeling_grouped_by_plankton(request):
+    """Return taxa grouped by plankton groups with unique class names per taxon."""
+    from taxa.models import get_filter_config
+
+    # Load the groups config
+    config = get_filter_config()
+    groups_config = config.get("groups_of_organisms", [])
+
+    # Define the display order (excluding "Other microalgae" - those go to "Other")
+    group_order = [
+        "Cyanobacteria",
+        "Diatoms",
+        "Dinoflagellates",
+        "Ciliates",
+        "Protozoa",
+    ]
+
+    # Build a lookup: group_name -> set of parent taxa scientific names
+    # Only include groups that are in our display order
+    groups_parents = {}
+    for group in groups_config:
+        if group["group_name"] in group_order:
+            groups_parents[group["group_name"]] = set(group["included_taxa"])
+
+    # Get all image labeling images with taxa
+    images = (
+        Image.objects.filter(attributes__imagelabeling=True)
+        .select_related("taxon")
+        .only("taxon", "attributes")
+    )
+
+    # Build data structure: { taxon_slug: { taxon_name, classification, titles } }
+    taxa_data = {}
+    for img in images:
+        if not img.taxon:
+            continue
+
+        taxon_slug = img.taxon.slug
+        title = img.attributes.get("title", "Untitled")
+
+        if taxon_slug not in taxa_data:
+            taxa_data[taxon_slug] = {
+                "taxon_slug": taxon_slug,
+                "taxon_name": img.taxon.scientific_name,
+                "classification": img.taxon.classification or [],
+                "titles": set(),
+            }
+        taxa_data[taxon_slug]["titles"].add(title)
+
+    # Determine which group each taxon belongs to
+    def get_taxon_group(taxon_name, classification):
+        """Check which group a taxon belongs to based on its name or classification"""
+        # Build set of names to check: the taxon's own name + all ancestors
+        classification_names = {
+            c.get("scientific_name") for c in classification if isinstance(c, dict)
+        }
+        # Also include the taxon's own scientific name
+        names_to_check = classification_names | {taxon_name}
+
+        for group_name in group_order:
+            if group_name in groups_parents:
+                parents = groups_parents[group_name]
+                # Check if any of the taxon's names match the group's included taxa
+                if names_to_check & parents:
+                    return group_name
+        return None
+
+    # Organize taxa by groups
+    groups_data = {group: [] for group in group_order}
+    unassigned_taxa = []
+
+    for taxon_slug, data in taxa_data.items():
+        group = get_taxon_group(data["taxon_name"], data["classification"])
+        taxon_entry = {
+            "taxon_slug": data["taxon_slug"],
+            "taxon_name": data["taxon_name"],
+            "titles": sorted(list(data["titles"])),
+            "title_count": len(data["titles"]),
+        }
+        if group:
+            groups_data[group].append(taxon_entry)
+        else:
+            unassigned_taxa.append(taxon_entry)
+
+    # Sort taxa within each group alphabetically
+    for group in groups_data:
+        groups_data[group].sort(key=lambda x: x["taxon_name"])
+    unassigned_taxa.sort(key=lambda x: x["taxon_name"])
+
+    # Build response in the requested order
+    result = []
+    for group_name in group_order:
+        taxa = groups_data.get(group_name, [])
+        if taxa:  # Only include groups that have taxa with images
+            result.append(
+                {
+                    "group_name": group_name,
+                    "taxa": taxa,
+                    "taxon_count": len(taxa),
+                }
+            )
+
+    # Add unassigned taxa to "Other" if any
+    if unassigned_taxa:
+        result.append(
+            {
+                "group_name": "Other",
+                "taxa": unassigned_taxa,
+                "taxon_count": len(unassigned_taxa),
+            }
+        )
+
+    return JsonResponse({"groups": result})
+
+
 def image_labeling_first_per_taxon(request):
     """Return first image (by priority) per taxon for landing page"""
     from django.db.models import Case, IntegerField, Min, Value, When
@@ -377,7 +492,7 @@ def image_labeling_first_per_taxon(request):
             }
             if img.taxon
             else None,
-            "taxonSlug": img.taxon.slug if img.taxon else "__no_taxon__",
+            "taxonSlug": img.taxon.slug if img.taxon else "unknown",
             "taxonName": img.taxon.scientific_name if img.taxon else "Unknown taxon",
         }
         results.append(result)
