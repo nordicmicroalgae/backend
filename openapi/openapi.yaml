@@ -298,6 +298,53 @@ paths:
                   total_count:
                     type: integer
                     example: 596
+  /media/image_labeling/grouped_by_plankton/:
+    get:
+      tags:
+      - media
+      description: Returns taxa grouped by plankton groups (Cyanobacteria, Diatoms, Dinoflagellates, Ciliates, Protozoa, Other) with unique class names per taxon for the image labeling sidebar
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  groups:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        group_name:
+                          type: string
+                          example: Diatoms
+                          description: Name of the plankton group
+                        taxon_count:
+                          type: integer
+                          example: 15
+                          description: Number of taxa in this group
+                        taxa:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              taxon_slug:
+                                type: string
+                                example: chaetoceros-affinis
+                              taxon_name:
+                                type: string
+                                example: Chaetoceros affinis
+                              titles:
+                                type: array
+                                items:
+                                  type: string
+                                example: ["Chaetoceros affinis", "Chaetoceros chain"]
+                                description: Unique class names (titles) for images of this taxon
+                              title_count:
+                                type: integer
+                                example: 2
+                                description: Number of unique class names
   /media/artists/:
     get:
       tags:

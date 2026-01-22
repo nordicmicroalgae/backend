@@ -555,21 +555,29 @@ class ImageLabelingAdmin(MediaAdmin):
                 failed_count = 0
                 taxon = template_obj.taxon
 
-                if not taxon:
-                    messages.error(request, "Taxon is required for ZIP upload")
-                    return
-
-                # Title stays the same for all images
-                title = template_obj.attributes.get("title", taxon.scientific_name)
+                # Determine the slug prefix and title
+                if taxon:
+                    slug_prefix = taxon.slug
+                    title = template_obj.attributes.get("title", taxon.scientific_name)
+                else:
+                    # No taxon - use title for slug prefix, or "unknown" as fallback
+                    title = template_obj.attributes.get("title", "")
+                    if not title:
+                        messages.error(
+                            request,
+                            "Title (class name) is required for ZIP upload without taxon",
+                        )
+                        return
+                    slug_prefix = slugify(title) or "unknown"
 
                 # Get metadata from the form (shared across all images)
                 shared_metadata = template_obj.attributes.copy()
 
-                # Find the next available number for this taxon
+                # Find the next available number for this slug prefix
                 from media.models import Image as BaseImage
 
                 existing_images = BaseImage.objects.filter(
-                    slug__startswith=f"{taxon.slug}-"
+                    slug__startswith=f"{slug_prefix}-"
                 ).order_by("-slug")
 
                 # Extract numbers from existing slugs to find the highest
@@ -587,7 +595,7 @@ class ImageLabelingAdmin(MediaAdmin):
                         file_obj = BytesIO(image_data)
 
                         # Create slug with running number (for uniqueness)
-                        slug = slugify(f"{taxon.slug}-{idx}")
+                        slug = slugify(f"{slug_prefix}-{idx}")
 
                         # Double-check uniqueness
                         counter = 1
