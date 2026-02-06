@@ -17,9 +17,15 @@ class NordicMicroalgaeAdminConfig(AdminConfig):
                 if request.user.is_superuser:
                     return fieldsets
                 return [
-                    (name, {**opts, "fields": tuple(
-                        f for f in opts["fields"] if f != "is_superuser"
-                    )})
+                    (
+                        name,
+                        {
+                            **opts,
+                            "fields": tuple(
+                                f for f in opts["fields"] if f != "is_superuser"
+                            ),
+                        },
+                    )
                     for name, opts in fieldsets
                 ]
 
