@@ -212,6 +212,11 @@ AXES_FAILURE_LIMIT = 5
 AXES_COOLOFF_TIME = 1  # hours
 AXES_LOCKOUT_PARAMETERS = ["ip_address"]
 AXES_RESET_ON_SUCCESS = True
+AXES_ENABLE_ACCESS_FAILURE_LOG = True
+AXES_COOLOFF_MESSAGE = (
+    "Account temporarily blocked due to too many failed login attempts."
+    " Please try again in 1 hour."
+)
 
 
 # Security
