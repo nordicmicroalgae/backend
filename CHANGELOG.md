@@ -2,7 +2,7 @@
 
 - Add image labeling library for automated imaging instruments, including guide images, admin upload form, plankton group navigation, and summary statistics.
 - Security hardening and improved login UX with attempt warnings and failure logging.
-- Dependency updates (Django 5.2.11, Pillow).
+- Dependency updates (Django 5.2.11, Pillow, sqlparse).
 
 ## 2.2.2 (December 18, 2025)
 
