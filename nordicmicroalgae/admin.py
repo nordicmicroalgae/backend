@@ -17,6 +17,8 @@ class NordicMicroalgaeAdminSite(AdminSite):
         ip_address = get_client_ip_address(request)
         attempts = AccessAttempt.objects.filter(ip_address=ip_address)
         failures = attempts.values_list("failures_since_start", flat=True).first() or 0
+        if request.method == "POST":
+            failures += 1
         remaining = max(settings.AXES_FAILURE_LIMIT - failures, 0)
         if failures > 0:
             extra_context["axes_remaining_attempts"] = remaining
