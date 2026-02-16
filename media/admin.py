@@ -1,10 +1,14 @@
 import json
 from typing import ClassVar
 
-from django.contrib import admin
+from django import forms
+from django.contrib import admin, messages
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
+from django.db import transaction
+from django.db.models import Q
 from django.http import JsonResponse
+from django.shortcuts import redirect, render
 from django.urls import path, reverse
 from django.utils import timezone
 from django.utils.decorators import method_decorator
@@ -12,8 +16,9 @@ from django.utils.html import format_html
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_POST
 
-from media.forms import ImageForm
-from media.models import Image
+from media.forms import ImageForm, ImageLabelingImageForm
+from media.models import Image, ImageLabelingImage
+from taxa.models import Taxon
 
 
 class InvalidPriorityListJson(Exception):
@@ -238,7 +243,7 @@ class MediaAdmin(admin.ModelAdmin):
             ]
             objects_to_update.append(object_to_update)
 
-        _result = queryset.bulk_update(objects_to_update, fields=["priority"])
+        queryset.bulk_update(objects_to_update, fields=["priority"])
 
         return JsonResponse(
             {
@@ -343,7 +348,7 @@ class MediaAdmin(admin.ModelAdmin):
     def _extra_context_with_defaults(self, extra_context):
         return {
             "show_save_and_continue": False,
-            "show_save_and_add_another": False,
+            "show_save_and_add_another": True,
             **(extra_context or {}),
         }
 
@@ -353,9 +358,95 @@ class MediaAdmin(admin.ModelAdmin):
             parameters.get(TaxonListFilter.parameter_name)
         )
 
+    def change_taxon_action(self, request, queryset):
+        """
+        Admin action to change taxon for multiple selected images
+        """
+        if "apply" in request.POST:
+            new_taxon_id = request.POST.get("new_taxon")
+
+            if new_taxon_id:
+                try:
+                    new_taxon = Taxon.objects.get(pk=new_taxon_id)
+
+                    # Find the next available priority for the new taxon
+                    from media.models import available_priorities
+
+                    # Use a transaction to ensure atomicity
+                    with transaction.atomic():
+                        # Get the next available priorities for the new taxon
+                        priority_generator = available_priorities(new_taxon)
+
+                        # Update each image individually with a new priority
+                        count = 0
+                        for img in queryset:
+                            img.taxon = new_taxon
+                            img.priority = next(priority_generator)
+                            img.save(update_fields=["taxon", "priority"])
+                            count += 1
+
+                    message = (
+                        f"Successfully moved {count} images to taxon: "
+                        f"{new_taxon.scientific_name}"
+                    )
+
+                    self.message_user(request, message)
+                    return None
+
+                except Taxon.DoesNotExist:
+                    self.message_user(
+                        request, "Selected taxon does not exist.", level=messages.ERROR
+                    )
+            else:
+                self.message_user(request, "No taxon selected.", level=messages.ERROR)
+
+        # Create a temporary field to get the widget
+        taxon_field = self.model._meta.get_field("taxon")
+        form_field = self.formfield_for_foreignkey(taxon_field, request)
+
+        class TaxonChangeForm(forms.Form):
+            _selected_action = forms.CharField(widget=forms.MultipleHiddenInput)
+            new_taxon = form_field
+
+        form = TaxonChangeForm(
+            initial={
+                "_selected_action": request.POST.getlist(
+                    admin.helpers.ACTION_CHECKBOX_NAME
+                )
+            }
+        )
+
+        changelist_url = reverse(
+            f"admin:{self.model._meta.app_label}_{self.model._meta.model_name}_changelist"
+        )
+
+        context = {
+            "queryset": queryset,
+            "form": form,
+            "action_checkbox_name": admin.helpers.ACTION_CHECKBOX_NAME,
+            "opts": self.model._meta,
+            "cancel_url": changelist_url,
+        }
+
+        return render(
+            request,
+            "admin/media/change_taxon_intermediate.html",
+            context,
+        )
+
+    change_taxon_action.short_description = "Change taxon for selected images"
+
 
 class ImageAdmin(MediaAdmin):
     form = ImageForm
+    actions: ClassVar[list[str]] = ["change_taxon_action"]
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        # Include images that are not marked as ImageLabeling
+        return qs.filter(
+            Q(attributes__imagelabeling__isnull=True) | Q(attributes__imagelabeling=False)
+        )
 
     def get_preview_html(self, obj):
         small_rendition = obj.renditions.get("s")
@@ -366,4 +457,246 @@ class ImageAdmin(MediaAdmin):
         return super().get_preview_html(obj)
 
 
+class ImageLabelingAdmin(MediaAdmin):
+    form = ImageLabelingImageForm
+    list_filter = (TaxonListFilter,)
+    actions: ClassVar[list[str]] = ["change_taxon_action"]
+
+    def get_preview_html(self, obj):
+        """Display preview thumbnail in changelist"""
+        small_rendition = obj.renditions.get("s")
+        if small_rendition:
+            return format_html("<img src={} />", small_rendition["url"])
+        return super().get_preview_html(obj)
+
+    def get_form(self, request, obj=None, change=False, **kwargs):
+        """
+        Return the form class directly and manually apply widgets.
+        """
+        # Get the form class
+        FormClass = self.form
+
+        # Manually override the taxon field widget
+        db_field = self.model._meta.get_field("taxon")
+
+        # Create a new form class that inherits from our form
+        # and override just the taxon field
+        class ModifiedForm(FormClass):
+            pass
+
+        # Apply the TaxonSelect widget to the taxon field
+        ModifiedForm.base_fields = FormClass.base_fields.copy()
+        ModifiedForm.base_fields["taxon"] = self.formfield_for_foreignkey(
+            db_field, request
+        )
+
+        return ModifiedForm
+
+    def get_fieldsets(self, request, obj=None):
+        """
+        Generate fieldsets from the actual form instance fields.
+        """
+        form_instance = self.form()
+        field_names = list(form_instance.fields.keys())
+
+        return [
+            (None, {"fields": field_names}),
+        ]
+
+    def save_model(self, request, obj, form, change):
+        """Handle both single image and ZIP file uploads"""
+        uploaded_file = request.FILES.get("file")
+
+        if uploaded_file and uploaded_file.name.lower().endswith(".zip"):
+            # Handle ZIP upload
+            self._process_zip_upload(request, obj, uploaded_file)
+        else:
+            # Handle normal single image upload
+            if not hasattr(obj, "created_by"):
+                obj.created_by = request.user
+
+            if change:
+                obj.updated_at = timezone.now()
+
+            super().save_model(request, obj, form, change)
+
+            if hasattr(obj, "create_renditions") and callable(obj.create_renditions):
+                obj.create_renditions()
+
+    def _process_zip_upload(self, request, template_obj, zip_file):
+        """Extract ZIP and create multiple images"""
+        import os
+        import zipfile
+        from io import BytesIO
+
+        from django.core.files.uploadedfile import InMemoryUploadedFile
+        from django.utils.text import slugify
+
+        try:
+            # Get the ZIP filename at the start
+            zip_filename = getattr(zip_file, "name", "ZIP archive")
+
+            with zipfile.ZipFile(zip_file, "r") as zip_ref:
+                # Get image files
+                image_files = [
+                    f
+                    for f in zip_ref.namelist()
+                    if f.lower().endswith((".png", ".jpg", ".jpeg", ".tif", ".tiff"))
+                    and not f.startswith("__MACOSX")
+                    and not f.startswith(".")
+                    and not os.path.basename(f).startswith(".")
+                ]
+
+                if not image_files:
+                    messages.error(request, "No valid image files found in ZIP")
+                    return
+
+                created_count = 0
+                failed_count = 0
+                taxon = template_obj.taxon
+
+                # Determine the slug prefix and title
+                if taxon:
+                    slug_prefix = taxon.slug
+                    title = template_obj.attributes.get("title", taxon.scientific_name)
+                else:
+                    # No taxon - use title for slug prefix, or "unknown" as fallback
+                    title = template_obj.attributes.get("title", "")
+                    if not title:
+                        messages.error(
+                            request,
+                            "Title (class name) is required for ZIP upload without taxon",
+                        )
+                        return
+                    slug_prefix = slugify(title) or "unknown"
+
+                # Get metadata from the form (shared across all images)
+                shared_metadata = template_obj.attributes.copy()
+
+                # Find the next available number for this slug prefix
+                from media.models import Image as BaseImage
+
+                existing_images = BaseImage.objects.filter(
+                    slug__startswith=f"{slug_prefix}-"
+                ).order_by("-slug")
+
+                # Extract numbers from existing slugs to find the highest
+                start_idx = 1
+                if existing_images.exists():
+                    for img in existing_images:
+                        slug_parts = img.slug.split("-")
+                        if slug_parts[-1].isdigit():
+                            start_idx = max(start_idx, int(slug_parts[-1]) + 1)
+
+                for idx, filename in enumerate(sorted(image_files), start=start_idx):
+                    try:
+                        # Read image data
+                        image_data = zip_ref.read(filename)
+                        file_obj = BytesIO(image_data)
+
+                        # Create slug with running number (for uniqueness)
+                        slug = slugify(f"{slug_prefix}-{idx}")
+
+                        # Double-check uniqueness
+                        counter = 1
+                        original_slug = slug
+                        while BaseImage.objects.filter(slug=slug).exists():
+                            slug = f"{original_slug}-{counter}"
+                            counter += 1
+
+                        # Get file extension
+                        _, ext = os.path.splitext(filename)
+                        ext = ext.lower()
+
+                        # Determine content type
+                        content_type_map = {
+                            ".png": "image/png",
+                            ".jpg": "image/jpeg",
+                            ".jpeg": "image/jpeg",
+                            ".tif": "image/tiff",
+                            ".tiff": "image/tiff",
+                        }
+                        content_type = content_type_map.get(ext, "image/jpeg")
+
+                        # Use atomic transaction for each image
+                        with transaction.atomic():
+                            # Create new Image object with shared metadata
+                            # Title stays the same (no number), only slug has number
+                            img = ImageLabelingImage(
+                                slug=slug,
+                                taxon=taxon,
+                                type=content_type,
+                                attributes={
+                                    **shared_metadata,
+                                    "title": title,
+                                },  # title without number
+                                created_by=request.user,
+                                created_at=timezone.now(),
+                            )
+
+                            # Save file (filename gets the number from slug)
+                            img.file.save(
+                                f"{slug}{ext}",
+                                InMemoryUploadedFile(
+                                    file_obj,
+                                    None,
+                                    f"{slug}{ext}",
+                                    content_type,
+                                    len(image_data),
+                                    None,
+                                ),
+                                save=True,
+                            )
+
+                            # Create renditions
+                            if hasattr(img, "create_renditions"):
+                                img.create_renditions()
+
+                            created_count += 1
+
+                    except Exception as e:
+                        failed_count += 1
+                        print(f"Error processing {filename}: {e!s}")
+                        import traceback
+
+                        traceback.print_exc()
+
+                if created_count > 0:
+                    messages.success(
+                        request,
+                        f"Successfully created {created_count} images "
+                        f"from {zip_filename}",
+                    )
+                if failed_count > 0:
+                    messages.warning(
+                        request,
+                        f"Failed to create {failed_count} images. "
+                        "Check server logs for details.",
+                    )
+
+        except zipfile.BadZipFile:
+            messages.error(request, "Invalid ZIP file")
+        except Exception as e:
+            messages.error(request, f"Error processing ZIP: {e!s}")
+            import traceback
+
+            print(traceback.format_exc())
+
+    def response_add(self, request, obj, post_url_continue=None):
+        """
+        Override to handle ZIP uploads and 'Save and add another' button
+        """
+        uploaded_file = request.FILES.get("file")
+        if uploaded_file and uploaded_file.name.lower().endswith(".zip"):
+            # Check if "Save and add another" was clicked
+            if "_addanother" in request.POST:
+                # Redirect back to add form
+                return redirect("admin:media_imagelabelingimage_add")
+            else:
+                # For regular save, redirect to changelist
+                return redirect("admin:media_imagelabelingimage_changelist")
+        return super().response_add(request, obj, post_url_continue)
+
+
 admin.site.register(Image, ImageAdmin)
+admin.site.register(ImageLabelingImage, ImageLabelingAdmin)

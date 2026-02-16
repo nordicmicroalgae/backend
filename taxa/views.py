@@ -1,4 +1,4 @@
-from django.db.models import Count, OuterRef, Subquery
+from django.db.models import Count, OuterRef, Q, Subquery
 
 from core.views.generics import ClientError, CollectionView, ResourceView
 from media.models import Image
@@ -16,6 +16,7 @@ class TaxonView(ResourceView):
         "parent",
         "classification",
         "children",
+        "image_labeling_description",
     )
 
 
@@ -31,6 +32,7 @@ class TaxonCollectionView(CollectionView):
         "classification",
         "children",
         "image",
+        "image_labeling_description",
     )
 
     plural_key = "taxa"
@@ -39,7 +41,15 @@ class TaxonCollectionView(CollectionView):
         fields, expressions = super().get_fields(*args, **kwargs)
 
         if "image" in fields:
-            subqueryset = Image.objects.filter(taxon=OuterRef("pk")).order_by("priority")
+            # prefer non-ImageLabeling images for taxon thumbnails
+            subqueryset = (
+                Image.objects.filter(taxon=OuterRef("pk"))
+                .filter(
+                    Q(attributes__imagelabeling__isnull=True)
+                    | Q(attributes__imagelabeling=False)
+                )
+                .order_by("priority")
+            )
             expressions.update(
                 {
                     "image": Subquery(subqueryset.values("renditions")[:1]),
@@ -93,7 +103,14 @@ class TaxonCollectionView(CollectionView):
             )
 
         if illustrated_only or not_illustrated_only:
-            queryset = queryset.annotate(image_count=Count("media"))
+            # Count only images that are NOT marked for ImageLabeling
+            queryset = queryset.annotate(
+                image_count=Count(
+                    "media",
+                    filter=Q(media__attributes__imagelabeling__isnull=True)
+                    | Q(media__attributes__imagelabeling=False),
+                )
+            )
             if illustrated_only:
                 queryset = queryset.filter(image_count__gt=0)
             elif not_illustrated_only:

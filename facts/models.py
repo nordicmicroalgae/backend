@@ -16,7 +16,7 @@ class Facts(models.Model):
         db_table = "taxon_facts"
 
     def __str__(self):
-        return f"{self.taxon.title} facts"
+        return f"{self.taxon.scientific_name} facts"
 
     def add_or_replace(self, facts_to_add):
         compare_keys = (

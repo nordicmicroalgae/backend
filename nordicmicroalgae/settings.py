@@ -56,6 +56,7 @@ ALLOWED_HOSTS = os.environ.get(
 
 INSTALLED_APPS = [
     "nordicmicroalgae.apps.NordicMicroalgaeAdminConfig",
+    "axes",
     "taxa",
     "facts",
     "media",
@@ -75,6 +76,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "axes.middleware.AxesMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "nordicmicroalgae.middleware.CorsMiddleware",
@@ -153,8 +155,6 @@ TIME_ZONE = "UTC"
 
 USE_I18N = True
 
-USE_L10N = True
-
 USE_TZ = True
 
 
@@ -200,3 +200,30 @@ EMAIL_USE_TLS = os.environ.get(
 EMAIL_USE_SSL = os.environ.get(
     "DJANGO_EMAIL_USE_SSL", str(config.get("email_use_ssl", "no"))
 ).lower() in ["yes", "on", "true"]
+
+
+AUTHENTICATION_BACKENDS = [
+    "axes.backends.AxesStandaloneBackend",
+    "django.contrib.auth.backends.ModelBackend",
+]
+
+# Login rate limiting (django-axes)
+AXES_FAILURE_LIMIT = 5
+AXES_COOLOFF_TIME = 1  # hours
+AXES_LOCKOUT_PARAMETERS = ["ip_address"]
+AXES_RESET_ON_SUCCESS = True
+AXES_ENABLE_ACCESS_FAILURE_LOG = True
+AXES_COOLOFF_MESSAGE = (
+    "Account temporarily blocked due to too many failed login attempts."
+    " Please try again in 1 hour."
+)
+
+
+# Security
+SESSION_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SECURE = not DEBUG
+SECURE_SSL_REDIRECT = not DEBUG
+SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = "same-origin"

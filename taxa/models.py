@@ -1,6 +1,7 @@
 import operator
 import os
 from functools import reduce
+from typing import ClassVar
 
 import yaml
 from django.conf import settings
@@ -95,6 +96,7 @@ class RelatedTaxon(JSONObject):
         "scientific_name",
         "authority",
         "rank",
+        "image_labeling_description",
     )
 
     arity = None
@@ -117,15 +119,37 @@ class Taxon(models.Model):
     parent = models.JSONField(default=dict)
     classification = models.JSONField(default=list)
     children = models.JSONField(default=list)
+    image_labeling_description = models.TextField(
+        blank=True,
+        default="",
+        help_text="Description text for the Image Labeling Guide page",
+        verbose_name="Image Labeling Description",
+    )
 
     objects = TaxonQuerySet.as_manager()
 
     class Meta:
         db_table = "taxon"
         ordering = ("scientific_name",)
+        permissions: ClassVar = [
+            (
+                "edit_image_labeling_description",
+                "Can edit image labeling description",
+            ),
+        ]
 
     def __str__(self):
         return self.scientific_name
+
+
+class ImageLabelingTaxonDescription(Taxon):
+    """Proxy model for managing Image Labeling taxon descriptions"""
+
+    class Meta:
+        proxy = True
+        verbose_name = "Labeling Guide Description"
+        verbose_name_plural = "Labeling Guide Descriptions"
+        default_permissions = ()
 
 
 class Synonym(models.Model):
@@ -150,3 +174,20 @@ class Synonym(models.Model):
 
     def __str__(self):
         return self.synonym_name
+
+
+class OrphanedDescription(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    old_taxon_id = models.CharField(max_length=255, unique=True, db_index=True)
+    description = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "orphaned_description"
+        ordering: ClassVar = ["-updated_at"]
+        verbose_name = "Orphaned Image Labeling Description"
+        verbose_name_plural = "Orphaned Image Labeling Descriptions"
+
+    def __str__(self):
+        return f"Orphaned: {self.old_taxon_id}"

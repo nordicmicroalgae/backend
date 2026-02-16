@@ -152,7 +152,34 @@ class Specification:
 
     @classmethod
     def get(cls, model):
-        return cls._registry.get(model)
+        """
+        Return the specification list for the given model.
+
+        Lookup order:
+        1. Exact match in the registry.
+        2. Any registered model that is a base class of the provided model
+           (i.e. issubclass(model, registered_model)).
+        3. None if nothing found.
+
+        This makes proxy models and subclasses inherit the renditions
+        configuration from their parent model (e.g. IFCBImage -> Image).
+        """
+        # 1) exact match first
+        spec = cls._registry.get(model)
+        if spec is not None:
+            return spec
+
+        # 2) fallback: find first registered model that is a base class
+        for registered_model, registered_spec in cls._registry.items():
+            try:
+                if issubclass(model, registered_model):
+                    return registered_spec
+            except TypeError:
+                # issubclass can raise if `model` is not a class; skip in that case
+                continue
+
+        # 3) nothing found
+        return None
 
     @classmethod
     def get_registered_models(cls):
@@ -175,6 +202,19 @@ class ModelActionsMixin:
     def create_renditions(self):
         self.renditions = {}
         specification = Specification.get(self.__class__)
+
+        if not specification:
+            # No renditions specification found for this model or its bases.
+            # This can happen for unregistered models or if registration occurred
+            # before/after import ordering that prevented a match.
+            # Log/raise an informative exception instead of failing with TypeError.
+            raise RuntimeError(
+                f"No renditions Specification registered for model "
+                f"{self.__class__.__name__}. "
+                "Ensure that a renditions.Specification is registered "
+                "for this model or one of its base classes (e.g. Image), "
+                "and that import order is correct."
+            )
 
         for entry in specification:
             rendition = entry.to_rendition(self)

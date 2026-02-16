@@ -1,4 +1,5 @@
 import os
+import re
 import threading
 
 from django.conf import settings
@@ -16,10 +17,14 @@ from django.views.decorators.csrf import csrf_protect
 
 LOGS = os.path.join(settings.CONTENT_DIR, ".syncdb")
 
+LOG_ID_PATTERN = re.compile(r"^syncdb-\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}$")
+
 
 def get_log_file(log_id):
+    if not LOG_ID_PATTERN.match(log_id):
+        raise ValueError("Invalid log_id format")
     log_name = "{}.log".format(log_id)
-    return os.path.join(LOGS, os.path.basename(log_name))
+    return os.path.join(LOGS, log_name)
 
 
 class AdminRequiredMixin(UserPassesTestMixin):

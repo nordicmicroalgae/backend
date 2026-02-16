@@ -172,13 +172,13 @@ image:
   - label: License
     key: license
     help_text:
-      "'Creative Commons Attribution-NoDerivs 3.0 Unported' is 
-      recommended. This license is the most restrictive of our
+      "'Creative Commons Attribution 4.0 International' (CC BY-ND 4.0)
+      is recommended. This license is the most restrictive of our
       licenses, only allowing others to download your works and
       share them with others as long as they credit you, but they
       can't change them in any way."
     required: True
-    initial: Creative Commons Attribution-NoDerivs 3.0 Unported
+    initial: Creative Commons Attribution 4.0 International
     type: ChoiceField
     widget: RadioSelect
     choices:
@@ -186,6 +186,10 @@ image:
       - Creative Commons Attribution-NoDerivs 3.0 Unported
       - Creative Commons Attribution-ShareAlike 3.0 Unported
       - Public domain
+      - Creative Commons Attribution 4.0 International
+      - Creative Commons Attribution-ShareAlike 4.0 International
+      - Creative Commons Attribution-NoDerivatives 4.0 International
+      - CC0 1.0 Universal
 
   - label: Preservation
     key: preservation
@@ -251,13 +255,209 @@ image:
     required: False
     type: TagField
     suggestions:
-      - HELCOM EG Phyto
-      - Kuylenstierna
-      - Skagerrak-Kattegat
-      - Norwegian Sea
-      - Marine Research Institute - Iceland
-      - Freshwater
-      - Swedish benthic freshwater diatoms
+      - Baltic Proper
+      - Citizen science
       - Diatom resting stages
       - Dinoflagellate cysts
+      - Finnish Phytoplankton Society
+      - Freshwater
+      - HELCOM EG Phyto
+      - Kuylenstierna
+      - Marine Research Institute - Iceland
+      - NOMP
+      - Norwegian Sea
       - Other resting stages
+      - Skagerrak-Kattegat
+      - Swedish benthic freshwater diatoms
+
+# Definitions of fields for the imagelabeling media type
+imagelabeling:
+
+  - label: Class name # User-facing label; stored as 'title' in attributes
+    key: title
+    help_text: Usually the name of the image class or the title of the image.
+    required: True
+    type: CharField
+
+  - label: Imaging instrument
+    key: imaging_instrument
+    help_text: The automated imaging instrument used to capture this image.
+    required: True
+    type: TagField
+    suggestions:
+      - IFCB
+      - CytoSense
+      - FlowCam
+      - PlanktoScope
+
+  - label: Contributor
+    key: contributor
+    help_text: Usually the name of the person providing the image.
+    required: True
+    type: CharField
+
+  - label: Training dataset DOI
+    key: training_dataset
+    help_text: Is the image part of a published training dataset?
+    required: False
+    type: CharField
+
+  - label: Institute
+    key: institute
+    help_text: Usually your institute, university or company (use acronym).
+    required: False
+    type: TagField
+    suggestions:
+      - SMHI
+      - SYKE
+      - NIVA
+      - IOW
+      - SU
+      - IMR
+
+  - label: Contributing organisation
+    key: contributing_organisation
+    help_text:
+      This could be e.g. HELCOM EG Phyto, the name of an institute or a
+      company. Maximum number of characters is 28.
+    required: False
+    type: CharField
+
+  - label: Copyright holder
+    key: copyright_holder
+    required: False
+    type: CharField
+
+  - label: Caption
+    key: caption
+    help_text:
+      The text describing the illustration. Caption is not saved in
+      templates.
+    required: False
+    type: CharField
+    widget: Textarea
+
+  - label: Sampling date
+    key: sampling_date
+    required: False
+    type: DateField
+
+  - label: Geographic area
+    key: geographic_area
+    help_text: Choose the area where the organism was collected.
+    required: False
+    type: ChoiceField
+    choices:
+      - Baltic Sea
+      - Baltic Sea - Bothnian Bay
+      - Baltic Sea - The Quark
+      - Baltic Sea - Bothnian Sea
+      - Baltic Sea - Archipelago Sea
+      - Baltic Sea - Åland Sea
+      - Baltic Sea - Gulf of Finland
+      - Baltic Sea - Gulf of Riga
+      - Baltic Sea - Northern Baltic Proper
+      - Baltic Sea - Central Baltic Proper
+      - Baltic Sea - Southern Baltic Proper
+      - Baltic Sea - The Gulf of Gdansk
+      - Baltic Sea - Arkona Basin
+      - Baltic Sea - Mecklenburger Bight
+      - Baltic Sea - Kiel Bay
+      - Baltic Sea - S Little Belt
+      - Baltic Sea - S Great Belt
+      - Baltic Sea - S part of the sound
+      - Kattegat - off shore
+      - Kattegat - Swedish coast
+      - Kattegat - Danish coast
+      - Kattegat - N Little Belt
+      - Kattegat - N Great Belt
+      - Kattegat - N part of the sound
+      - Limfjorden
+      - Skagerrak - Kattegat
+      - Skagerrak - off shore
+      - Skagerrak - Swedish coast
+      - Skagerrak - Oslo fjord
+      - Skagerrak - Norwegian coast
+      - North Sea - off shore
+      - North Sea - Norwegian coast
+      - North Sea - Danish coast
+      - Norwegian Sea - off shore
+      - Norwegian Sea - coast
+      - Barent Sea - off shore
+      - Barent Sea - Norwegian coast
+      - Barent Sea - Svalbard
+      - Faeroes
+      - Shetland
+      - Iceland - NE
+      - Iceland - SW
+      - Greenland Sea - off shore
+      - Greenland Sea - Greenland coast
+      - Arctic ocean - off shore
+      - Arctic ocean - Svalbard coast
+      - Arctic ocean - Greenland coast
+      - Atlantic ocean - off shore
+      - Lake - Denmark
+      - Lake - Estonia
+      - Lake - Finland
+      - Lake - Greenland
+      - Lake - Iceland
+      - Lake - Germany
+      - Lake - Latvia
+      - Lake - Lithuania
+      - Lake - Norway
+      - Lake - Poland
+      - Lake - Russia
+      - Lake - Sweden
+      - River - Denmark
+      - River - Estonia
+      - River - Finland
+      - River - Greenland
+      - River - Iceland
+      - River - Germany
+      - River - Latvia
+      - River - Lithuania
+      - River - Norway
+      - River - Poland
+      - River - Russia
+      - River - Sweden
+
+  - label: Location
+    key: location
+    help_text: Where the water sample/organism was collected.
+    required: False
+    type: CharField
+
+  - label: Latitude degree
+    key: latitude_degree
+    help_text: 'Example: 57 (use - for the West of Greenwhich).'
+    required: False
+    type: CharField
+
+  - label: Longitude degree
+    key: longitude_degree
+    help_text: 'Example: 10 (use - for the Southern hemisphere).'
+    required: False
+    type: CharField
+
+  - label: License
+    key: license
+    help_text:
+      "'Creative Commons Attribution-NoDerivatives 4.0 International 
+      (CC BY-ND 4.0) is recommended. This license is the most 
+      restrictive of the Creative Commons licenses that still allow 
+      redistribution. Others may download and share the work, 
+      including for commercial purposes, provided they give 
+      appropriate credit. They may not modify the work in any way."
+    required: True
+    initial: Creative Commons Attribution-NoDerivatives 4.0 International
+    type: ChoiceField
+    widget: RadioSelect
+    choices:
+      - Creative Commons Attribution 3.0 Unported
+      - Creative Commons Attribution-NoDerivs 3.0 Unported
+      - Creative Commons Attribution-ShareAlike 3.0 Unported
+      - Public domain
+      - Creative Commons Attribution 4.0 International
+      - Creative Commons Attribution-ShareAlike 4.0 International
+      - Creative Commons Attribution-NoDerivatives 4.0 International
+      - CC0 1.0 Universal

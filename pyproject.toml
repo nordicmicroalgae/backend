@@ -1,14 +1,15 @@
 [project]
 name = "nordicmicroalgae-backend"
-version = "2.2.2"
+version = "2.3.0"
 description = "Nordic Microalgae"
 authors = [
 ]
 dependencies = [
-    "Django==4.2.27",
-    "Pillow==10.4.0",
-    "pyyaml==6.0.2",
-    "psycopg==3.2.3",
+    "django==5.2.11",
+    "django-axes>=7.0.1",
+    "pillow==12.1.1",
+    "pyyaml==6.0.3",
+    "psycopg==3.3.2",
 ]
 requires-python = ">=3.10"
 readme = "README.md"
