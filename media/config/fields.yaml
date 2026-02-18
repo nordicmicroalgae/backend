@@ -314,6 +314,9 @@ imagelabeling:
       - IOW
       - SU
       - IMR
+      - PML
+      - SAMS
+      - IGB
 
   - label: Contributing organisation
     key: contributing_organisation
