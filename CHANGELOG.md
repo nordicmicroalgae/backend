@@ -1,3 +1,7 @@
+## 2.3.1 (February 18, 2026)
+
+- Add new contributor organizations to tag fields.
+
 ## 2.3.0 (February 16, 2026)
 
 - Add image labeling library for automated imaging instruments, including guide images, admin upload form, plankton group navigation, and summary statistics.
