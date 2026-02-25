@@ -1,3 +1,8 @@
+## 2.3.2 (February 25, 2026)
+
+- Add copyright stamp watermark overlay to image renditions.
+- Add "Recreate renditions" admin action for re-processing existing images.
+
 ## 2.3.1 (February 18, 2026)
 
 - Add new contributor organizations to tag fields.
