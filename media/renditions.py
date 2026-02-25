@@ -109,14 +109,14 @@ class Image(Rendition):
 
         with PillowImage.open(input_buffer) as image:
             processed_image = self.process(image)
+            copyright_stamp = self.instance.attributes.get("copyright_stamp", "")
+            if copyright_stamp:
+                processed_image = _apply_watermark(processed_image, copyright_stamp)
             processed_image.save(output_buffer, format=self.format)
 
         return output_buffer
 
     def process(self, image):
-        copyright_stamp = self.instance.attributes.get("copyright_stamp", "")
-        if copyright_stamp:
-            image = _apply_watermark(image, copyright_stamp)
         return image
 
     @property
