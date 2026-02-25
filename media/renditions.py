@@ -4,7 +4,7 @@ from io import BytesIO
 from typing import ClassVar
 
 from PIL import Image as PillowImage
-from PIL import ImageFilter
+from PIL import ImageDraw, ImageFilter, ImageFont
 
 from media.storage import default_rendition_storage
 
@@ -64,6 +64,43 @@ class Rendition:
         return self.storage.url(self.relative_path)
 
 
+def _apply_watermark(image, text):
+    """Overlay semi-transparent watermark text in the bottom-right corner."""
+    original_mode = image.mode
+    if image.mode != "RGBA":
+        image = image.convert("RGBA")
+
+    overlay = PillowImage.new("RGBA", image.size, (0, 0, 0, 0))
+    draw = ImageDraw.Draw(overlay)
+
+    font_size = max(12, int(image.height * 0.025))
+    try:
+        font = ImageFont.truetype("DejaVuSans.ttf", font_size)
+    except (OSError, IOError):
+        font = ImageFont.load_default()
+
+    bbox = draw.textbbox((0, 0), text, font=font)
+    text_width = bbox[2] - bbox[0]
+    text_height = bbox[3] - bbox[1]
+
+    padding = int(font_size * 0.8)
+    x = image.width - text_width - padding
+    y = image.height - text_height - padding
+
+    shadow_color = (0, 0, 0, 128)
+    for dx, dy in [(-1, -1), (-1, 1), (1, -1), (1, 1)]:
+        draw.text((x + dx, y + dy), text, font=font, fill=shadow_color)
+
+    draw.text((x, y), text, font=font, fill=(255, 255, 255, 180))
+
+    image = PillowImage.alpha_composite(image, overlay)
+
+    if original_mode != "RGBA":
+        image = image.convert(original_mode)
+
+    return image
+
+
 class Image(Rendition):
     format = "webp"
 
@@ -72,6 +109,9 @@ class Image(Rendition):
 
         with PillowImage.open(input_buffer) as image:
             processed_image = self.process(image)
+            copyright_stamp = self.instance.attributes.get("copyright_stamp", "")
+            if copyright_stamp and self.label != "s":
+                processed_image = _apply_watermark(processed_image, copyright_stamp)
             processed_image.save(output_buffer, format=self.format)
 
         return output_buffer
@@ -110,9 +150,17 @@ class ResizedImage(Image):
 
 
 class EmbededPreviewImage(Image):
-    def process(self, image):
-        image = super().process(image)
+    def render(self, input_buffer):
+        """Skip watermark for the blurred preview placeholder."""
+        output_buffer = BytesIO()
 
+        with PillowImage.open(input_buffer) as image:
+            processed_image = self.process(image)
+            processed_image.save(output_buffer, format=self.format)
+
+        return output_buffer
+
+    def process(self, image):
         preview_image = image.convert("RGB")
 
         preview_image.thumbnail((80, 80))

@@ -436,10 +436,34 @@ class MediaAdmin(admin.ModelAdmin):
 
     change_taxon_action.short_description = "Change taxon for selected images"
 
+    def recreate_renditions_action(self, request, queryset):
+        success_count = 0
+        fail_count = 0
+        for obj in queryset:
+            try:
+                obj.create_renditions()
+                success_count += 1
+            except Exception as e:
+                fail_count += 1
+                self.message_user(
+                    request,
+                    f"Failed to recreate renditions for {obj}: {e}",
+                    level=messages.ERROR,
+                )
+        if success_count:
+            self.message_user(
+                request,
+                f"Successfully recreated renditions for {success_count} images.",
+            )
+
+    recreate_renditions_action.short_description = (
+        "Recreate renditions for selected images"
+    )
+
 
 class ImageAdmin(MediaAdmin):
     form = ImageForm
-    actions: ClassVar[list[str]] = ["change_taxon_action"]
+    actions: ClassVar[list[str]] = ["change_taxon_action", "recreate_renditions_action"]
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -460,7 +484,7 @@ class ImageAdmin(MediaAdmin):
 class ImageLabelingAdmin(MediaAdmin):
     form = ImageLabelingImageForm
     list_filter = (TaxonListFilter,)
-    actions: ClassVar[list[str]] = ["change_taxon_action"]
+    actions: ClassVar[list[str]] = ["change_taxon_action", "recreate_renditions_action"]
 
     def get_preview_html(self, obj):
         """Display preview thumbnail in changelist"""
