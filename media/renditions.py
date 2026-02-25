@@ -150,9 +150,17 @@ class ResizedImage(Image):
 
 
 class EmbededPreviewImage(Image):
-    def process(self, image):
-        image = super().process(image)
+    def render(self, input_buffer):
+        """Skip watermark for the blurred preview placeholder."""
+        output_buffer = BytesIO()
 
+        with PillowImage.open(input_buffer) as image:
+            processed_image = self.process(image)
+            processed_image.save(output_buffer, format=self.format)
+
+        return output_buffer
+
+    def process(self, image):
         preview_image = image.convert("RGB")
 
         preview_image.thumbnail((80, 80))
