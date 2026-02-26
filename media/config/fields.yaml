@@ -172,13 +172,13 @@ image:
   - label: License
     key: license
     help_text:
-      "'Creative Commons Attribution 4.0 International' (CC BY-ND 4.0)
-      is recommended. This license is the most restrictive of our
-      licenses, only allowing others to download your works and
-      share them with others as long as they credit you, but they
-      can't change them in any way."
+      "'Creative Commons Attribution-NoDerivatives 4.0 International'
+      (CC BY-ND 4.0) is recommended. This license is the most
+      restrictive of our licenses, only allowing others to download
+      your works and share them with others as long as they credit
+      you, but they can't change them in any way."
     required: True
-    initial: Creative Commons Attribution 4.0 International
+    initial: Creative Commons Attribution-NoDerivatives 4.0 International
     type: ChoiceField
     widget: RadioSelect
     choices:
