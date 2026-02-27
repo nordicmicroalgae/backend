@@ -28,6 +28,17 @@ image:
     required: False
     type: CharField
 
+  - label: Copyright stamp position
+    key: copyright_stamp_position
+    help_text: Choose which corner the copyright stamp should appear in.
+    required: False
+    type: ChoiceField
+    choices:
+      - ["bottom-right", "Bottom right"]
+      - ["bottom-left", "Bottom left"]
+      - ["top-right", "Top right"]
+      - ["top-left", "Top left"]
+
   - label: Institute
     key: institute
     help_text: Usually your institute, university or company.
