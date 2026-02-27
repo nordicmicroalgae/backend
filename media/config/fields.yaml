@@ -252,6 +252,9 @@ image:
 
   - label: Galleries
     key: galleries
+    help_text:
+      Select one or more galleries. To create a subgallery, use the
+      "Add subgallery" tool below the gallery selector.
     required: False
     type: TagField
     suggestions:
