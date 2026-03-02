@@ -52,12 +52,12 @@
     $formRow.append($helper);
 
     $helper.find('.subgallery-add').on('click', function () {
-      var parent = $helper.find('.subgallery-parent').val();
-      var child = $.trim($helper.find('.subgallery-child').val());
+      const parent = $helper.find('.subgallery-parent').val();
+      const child = $.trim($helper.find('.subgallery-child').val());
 
-      if (!child) return;
+      if (!child || child.indexOf('/') !== -1) return;
 
-      var fullValue = parent + '/' + child;
+      const fullValue = parent + '/' + child;
 
       // Add as a new <option> if it doesn't exist, then select it
       if ($select.find('option[value="' + CSS.escape(fullValue) + '"]').length === 0) {
@@ -83,7 +83,7 @@
 
   $(function () {
     $('.media-tag-widget').each(function () {
-      var $el = $(this);
+      const $el = $(this);
       $el.select2();
 
       // Add subgallery helper only for the galleries field

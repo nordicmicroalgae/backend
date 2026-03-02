@@ -64,6 +64,9 @@ class Rendition:
         return self.storage.url(self.relative_path)
 
 
+VALID_STAMP_POSITIONS = {"bottom-right", "bottom-left", "top-right", "top-left"}
+
+
 def _apply_watermark(image, text, position="bottom-right"):
     """Overlay semi-transparent watermark text in the specified corner."""
     original_mode = image.mode
@@ -126,6 +129,8 @@ class Image(Rendition):
                     self.instance.attributes.get("copyright_stamp_position")
                     or "bottom-right"
                 )
+                if copyright_stamp_position not in VALID_STAMP_POSITIONS:
+                    copyright_stamp_position = "bottom-right"
                 processed_image = _apply_watermark(
                     processed_image, copyright_stamp, position=copyright_stamp_position
                 )
