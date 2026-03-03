@@ -60,9 +60,14 @@ class MediaCollectionView(CollectionView):
             )
 
         gallery = self.request.GET.get("gallery")
-        include_subgalleries = (
-            self.request.GET.get("include_subgalleries", "true").lower() not in {"false", "0"}
+        include_subgalleries_value = self.request.GET.get(
+            "include_subgalleries",
+            "true",
         )
+        include_subgalleries = include_subgalleries_value.lower() not in {
+            "false",
+            "0",
+        }
 
         if gallery is not None:
             if include_subgalleries:
