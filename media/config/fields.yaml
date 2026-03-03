@@ -28,6 +28,17 @@ image:
     required: False
     type: CharField
 
+  - label: Copyright stamp position
+    key: copyright_stamp_position
+    help_text: Choose which corner the copyright stamp should appear in.
+    required: False
+    type: ChoiceField
+    choices:
+      - ["bottom-right", "Bottom right"]
+      - ["bottom-left", "Bottom left"]
+      - ["top-right", "Top right"]
+      - ["top-left", "Top left"]
+
   - label: Institute
     key: institute
     help_text: Usually your institute, university or company.
@@ -172,13 +183,13 @@ image:
   - label: License
     key: license
     help_text:
-      "'Creative Commons Attribution 4.0 International' (CC BY-ND 4.0)
-      is recommended. This license is the most restrictive of our
-      licenses, only allowing others to download your works and
-      share them with others as long as they credit you, but they
-      can't change them in any way."
+      "'Creative Commons Attribution-NoDerivatives 4.0 International'
+      (CC BY-ND 4.0) is recommended. This license is the most
+      restrictive of our licenses, only allowing others to download
+      your works and share them with others as long as they credit
+      you, but they can't change them in any way."
     required: True
-    initial: Creative Commons Attribution 4.0 International
+    initial: Creative Commons Attribution-NoDerivatives 4.0 International
     type: ChoiceField
     widget: RadioSelect
     choices:
@@ -252,6 +263,9 @@ image:
 
   - label: Galleries
     key: galleries
+    help_text:
+      Select one or more galleries. To create a subgallery, use the
+      "Add subgallery" tool below the gallery selector.
     required: False
     type: TagField
     suggestions:

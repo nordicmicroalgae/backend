@@ -64,8 +64,11 @@ class Rendition:
         return self.storage.url(self.relative_path)
 
 
-def _apply_watermark(image, text):
-    """Overlay semi-transparent watermark text in the bottom-right corner."""
+VALID_STAMP_POSITIONS = {"bottom-right", "bottom-left", "top-right", "top-left"}
+
+
+def _apply_watermark(image, text, position="bottom-right"):
+    """Overlay semi-transparent watermark text in the specified corner."""
     original_mode = image.mode
     if image.mode != "RGBA":
         image = image.convert("RGBA")
@@ -84,8 +87,19 @@ def _apply_watermark(image, text):
     text_height = bbox[3] - bbox[1]
 
     padding = int(font_size * 0.8)
-    x = image.width - text_width - padding
-    y = image.height - text_height - padding
+
+    if position == "top-left":
+        x = padding
+        y = padding
+    elif position == "top-right":
+        x = image.width - text_width - padding
+        y = padding
+    elif position == "bottom-left":
+        x = padding
+        y = image.height - text_height - padding
+    else:  # bottom-right (default)
+        x = image.width - text_width - padding
+        y = image.height - text_height - padding
 
     shadow_color = (0, 0, 0, 128)
     for dx, dy in [(-1, -1), (-1, 1), (1, -1), (1, 1)]:
@@ -111,7 +125,15 @@ class Image(Rendition):
             processed_image = self.process(image)
             copyright_stamp = self.instance.attributes.get("copyright_stamp", "")
             if copyright_stamp and self.label != "s":
-                processed_image = _apply_watermark(processed_image, copyright_stamp)
+                copyright_stamp_position = (
+                    self.instance.attributes.get("copyright_stamp_position")
+                    or "bottom-right"
+                )
+                if copyright_stamp_position not in VALID_STAMP_POSITIONS:
+                    copyright_stamp_position = "bottom-right"
+                processed_image = _apply_watermark(
+                    processed_image, copyright_stamp, position=copyright_stamp_position
+                )
             processed_image.save(output_buffer, format=self.format)
 
         return output_buffer

@@ -160,7 +160,8 @@ def configure_form(form_cls, form_config):
 
         if "choices" in field_config:
             field_kwargs["choices"] = [
-                (choice, choice) for choice in field_config["choices"]
+                tuple(choice) if isinstance(choice, list) else (choice, choice)
+                for choice in field_config["choices"]
             ]
 
         if "initial" in field_config:
@@ -217,7 +218,8 @@ def add_configured_fields_to_form(form_instance, form_config, model_class):
 
         if "choices" in field_config:
             field_kwargs["choices"] = [
-                (choice, choice) for choice in field_config["choices"]
+                tuple(choice) if isinstance(choice, list) else (choice, choice)
+                for choice in field_config["choices"]
             ]
 
         if "initial" in field_config:
