@@ -168,6 +168,7 @@ paths:
       - $ref: '#/components/parameters/media-fields'
       - $ref: '#/components/parameters/media-artist'
       - $ref: '#/components/parameters/media-gallery'
+      - $ref: '#/components/parameters/media-include-subgalleries'
       - $ref: '#/components/parameters/media-taxon'
       - $ref: '#/components/parameters/include-children'
       - $ref: '#/components/parameters/filter-by-priority'
@@ -200,6 +201,7 @@ paths:
       - $ref: '#/components/parameters/image-labeling-fields'
       - $ref: '#/components/parameters/media-artist'
       - $ref: '#/components/parameters/media-gallery'
+      - $ref: '#/components/parameters/media-include-subgalleries'
       - $ref: '#/components/parameters/media-taxon'
       - $ref: '#/components/parameters/include-children'
       - $ref: '#/components/parameters/filter-by-priority'
@@ -656,7 +658,7 @@ components:
     media-gallery:
       name: gallery
       in: query
-      description: Limit the list to media within a specific gallery
+      description: Limit the list to media within a specific gallery (including subgalleries)
       schema:
         type: string
         enum:
@@ -670,6 +672,12 @@ components:
         - Diatom resting stages
         - Dinoflagellate cysts
         - Other resting stages
+    media-include-subgalleries:
+      name: include_subgalleries
+      in: query
+      description: Include subgalleries when filtering by gallery (default true)
+      schema:
+        type: boolean
     media-taxon:
       name: taxon
       in: query
@@ -679,7 +687,7 @@ components:
     exclude-galleries:
       name: exclude_galleries
       in: query
-      description: Exclude media from a specific gallery
+      description: Exclude media from a specific gallery (including all subgalleries)
       schema:
         type: string
     taxon-fields:

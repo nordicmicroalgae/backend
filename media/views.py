@@ -60,17 +60,31 @@ class MediaCollectionView(CollectionView):
             )
 
         gallery = self.request.GET.get("gallery")
+        include_subgalleries_value = self.request.GET.get(
+            "include_subgalleries",
+            "true",
+        )
+        include_subgalleries = include_subgalleries_value.lower() not in {
+            "false",
+            "0",
+        }
 
         if gallery is not None:
-            queryset = queryset.filter(attributes__contains={"galleries": [gallery]})
+            if include_subgalleries:
+                queryset = queryset.filter(
+                    Q(attributes__contains={"galleries": [gallery]})
+                    | Q(attributes__galleries__icontains=f"{gallery}/")
+                )
+            else:
+                queryset = queryset.filter(attributes__contains={"galleries": [gallery]})
 
-        # Add exclude_galleries parameter
         exclude_galleries = self.request.GET.get("exclude_galleries")
 
         if exclude_galleries is not None:
             # Exclude images that have this gallery in their galleries list
             queryset = queryset.exclude(
-                attributes__contains={"galleries": [exclude_galleries]}
+                Q(attributes__contains={"galleries": [exclude_galleries]})
+                | Q(attributes__galleries__icontains=f"{exclude_galleries}/")
             )
 
         taxon = self.request.GET.get("taxon", "")
@@ -172,7 +186,7 @@ class ImageLabelingCollectionView(MediaCollectionView):
     plural_key = "image_labeling_images"
 
     def get_queryset(self, *args, **kwargs):
-        model = Image  # or your ImageLabeling proxy model if you have one
+        model = Image
         queryset = model.objects.all()
 
         artist = self.request.GET.get("artist")

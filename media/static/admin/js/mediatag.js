@@ -30,11 +30,13 @@
     if ($formRow.length === 0) return;
     if ($formRow.find('.subgallery-helper').length > 0) return;
 
-    const parentOptions = parents
-      .map(function (p) {
-        const escaped = $('<span>').text(p).html();
-        return '<option value="' + escaped + '">' + escaped + '</option>';
-      })
+    const parentOptions = ['<option value="" selected>-------</option>']
+      .concat(
+        parents.map(function (p) {
+          const escaped = $('<span>').text(p).html();
+          return '<option value="' + escaped + '">' + escaped + '</option>';
+        })
+      )
       .join('');
 
     const $helper = $(
@@ -55,7 +57,7 @@
       const parent = $helper.find('.subgallery-parent').val();
       const child = $.trim($helper.find('.subgallery-child').val());
 
-      if (!child || child.indexOf('/') !== -1) return;
+      if (!parent || !child || child.indexOf('/') !== -1) return;
 
       const fullValue = parent + '/' + child;
 

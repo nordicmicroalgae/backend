@@ -309,7 +309,6 @@ class ImageLabelingImageForm(forms.ModelForm):
     class Meta:
         model = ImageLabelingImage
         fields = ("taxon", "file")
-        # Don't specify widgets here - let admin handle it
 
     class Media:
         css: ClassVar[dict[str, tuple[str, ...]]] = {
@@ -332,7 +331,6 @@ class ImageLabelingImageForm(forms.ModelForm):
 
         super().__init__(*args, **kwargs)
 
-        # Add imagelabeling-specific fields AFTER super().__init__
         imagelabeling_config = get_fields_config("imagelabeling")
         add_configured_fields_to_form(self, imagelabeling_config, ImageLabelingImage)
 
@@ -360,5 +358,3 @@ class ImageLabelingImageForm(forms.ModelForm):
 
 
 configure_form(ImageForm, get_fields_config("image"))
-# Note: ImageLabelingImageForm is NOT configured here
-# - it handles its own fields in __init__
