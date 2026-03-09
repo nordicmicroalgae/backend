@@ -19,6 +19,8 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import include, path
 
+from . import views
+
 urlpatterns = [
     # Admin site routes
     path(
@@ -51,6 +53,7 @@ urlpatterns = [
     ),
     path("admin/", admin.site.urls),
     # REST API routes
+    path("api/version/", views.get_version),
     path("api/", include("pages.urls")),
     path("api/", include("taxa.urls")),
     path("api/", include("facts.urls")),

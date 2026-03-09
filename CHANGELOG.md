@@ -1,3 +1,13 @@
+## 2.3.3 (March 9, 2026)
+
+- Expose the backend version in the API for the Terms of Use page.
+- Add a subgallery helper for gallery tagging in the admin.
+- Add a copyright stamp position selector for image renditions.
+- Harden media form validation and error handling.
+- Add `include_subgalleries` to media queries and document the parameter.
+- Include subgalleries when filtering media by gallery and exclude gallery filters.
+- Default subgallery parent selection to blank in the admin helper.
+
 ## 2.3.2 (February 25, 2026)
 
 - Add copyright stamp watermark overlay to image renditions.
