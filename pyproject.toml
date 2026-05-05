@@ -18,7 +18,7 @@ license = {file = "LICENSE"}
 [dependency-groups]
 dev = [
     "ruff>=0.14.0",
-    "pre-commit>=4.2.0",
+    "pre-commit>=4.5.1",
     "pytest>=8.4.2",
     "pytest-django>=4.11.1",
 ]
