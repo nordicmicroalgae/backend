@@ -37,7 +37,7 @@ jobs:
             mkdir ${{ env.REMOTE_DEST }}/release.new"
 
       - name: Download artifact from build job
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: backend
           path: ./backend
