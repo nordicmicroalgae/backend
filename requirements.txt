@@ -182,9 +182,9 @@ typing-extensions==4.15.0 ; python_full_version < '3.13' \
     # via
     #   asgiref
     #   psycopg
-tzdata==2025.2 ; sys_platform == 'win32' \
-    --hash=sha256:1a403fada01ff9221ca8044d701868fa132215d84beb92242d9acd2147f667a8 \
-    --hash=sha256:b60a638fcc0daffadf82fe0f57e53d06bdec2f36c4df66280ae79bce6bd6f2b9
+tzdata==2026.2 ; sys_platform == 'win32' \
+    --hash=sha256:9173fde7d80d9018e02a662e168e5a2d04f87c41ea174b139fbef642eda62d10 \
+    --hash=sha256:bbe9af844f658da81a5f95019480da3a89415801f6cc966806612cc7169bffe7
     # via
     #   django
     #   psycopg
