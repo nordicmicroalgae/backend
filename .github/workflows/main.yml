@@ -70,7 +70,7 @@ jobs:
             ${GITHUB_WORKSPACE}/dist/static/
 
       - name: Archive Artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: backend
           path: dist
@@ -86,7 +86,7 @@ jobs:
 
     steps:
       - name: Download artifact from build job
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: backend
           path: ./backend
