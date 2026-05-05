@@ -1,3 +1,8 @@
+## 2.3.4 (May 5, 2026)
+
+- Security patch from dependabot.
+- Update GitHub actions to run on Node.js 24
+
 ## 2.3.3 (March 9, 2026)
 
 - Expose the backend version in the API for the Terms of Use page.
