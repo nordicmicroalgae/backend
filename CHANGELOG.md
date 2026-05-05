@@ -1,3 +1,7 @@
+## 2.3.5 (May 5, 2026)
+
+- Bump project version (2.3.4 release was tagged without a version bump).
+
 ## 2.3.4 (May 5, 2026)
 
 - Security patch from dependabot.
