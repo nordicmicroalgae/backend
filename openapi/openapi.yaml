@@ -1,6 +1,6 @@
 openapi: 3.0.0
 info:
-  version: 2.3.3
+  version: 2.3.5
   title: Nordic Microalgae
   description: API for Nordic Microalgae.
 servers:
