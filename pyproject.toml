@@ -9,7 +9,7 @@ dependencies = [
     "django-axes>=7.0.1",
     "pillow==12.2.0",
     "pyyaml==6.0.3",
-    "psycopg==3.3.2",
+    "psycopg==3.3.4",
 ]
 requires-python = ">=3.10"
 readme = "README.md"
