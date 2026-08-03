@@ -1,3 +1,7 @@
+## 2.3.7 (August 3, 2026)
+
+- Security patch from dependabot.
+
 ## 2.3.6 (June 9, 2026)
 
 - Security patch from dependabot.
