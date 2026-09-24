@@ -1,3 +1,7 @@
+## 2.3.8 (September 24, 2026)
+
+- Security patch from dependabot (Django 5.2.16, sqlparse 0.6.0).
+
 ## 2.3.7 (August 3, 2026)
 
 - Security patch from dependabot.
