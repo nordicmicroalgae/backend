@@ -218,7 +218,7 @@ class MediaAdmin(admin.ModelAdmin):
                 type(posted_data) is list and all(type(v) is int for v in posted_data)
             ):
                 raise InvalidPriorityListJson
-        except (json.JSONDecodeError, InvalidPriorityListJson):
+        except json.JSONDecodeError, InvalidPriorityListJson:
             return JsonResponse(
                 {
                     "error": (

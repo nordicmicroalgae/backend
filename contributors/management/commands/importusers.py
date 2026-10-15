@@ -74,7 +74,7 @@ class Command(BaseCommand):
                 if clear_existing_users:
                     raise UserWillBeRemoved()
                 users_to_update.append(user)
-            except (UserModel.DoesNotExist, UserWillBeRemoved):
+            except UserModel.DoesNotExist, UserWillBeRemoved:
                 user = UserModel(**{UserModel.USERNAME_FIELD: username})
                 user.set_password(make_password())
                 users_to_create.append(user)

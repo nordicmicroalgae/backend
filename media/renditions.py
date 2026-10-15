@@ -79,7 +79,7 @@ def _apply_watermark(image, text, position="bottom-right"):
     font_size = max(12, int(image.height * 0.025))
     try:
         font = ImageFont.truetype("DejaVuSans.ttf", font_size)
-    except (OSError, IOError):
+    except OSError, IOError:
         font = ImageFont.load_default()
 
     bbox = draw.textbbox((0, 0), text, font=font)
