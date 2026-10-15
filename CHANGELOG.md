@@ -1,3 +1,8 @@
+## 2.4.0 (October 15, 2026)
+
+- Update Python version to 3.14.
+- Update all dependencies.
+
 ## 2.3.8 (September 24, 2026)
 
 - Security patch from dependabot (Django 5.2.16, sqlparse 0.6.0).

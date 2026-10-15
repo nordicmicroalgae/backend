@@ -13,7 +13,7 @@ try:
     with open(_pyproject_path) as f:
         _match = re.search(r'^version\s*=\s*"([^"]+)"', f.read(), re.MULTILINE)
     VERSION = _match.group(1) if _match else "unknown"
-except (FileNotFoundError, OSError):
+except FileNotFoundError, OSError:
     VERSION = "unknown"
 
 
