@@ -6,7 +6,7 @@ This repository contains source code for the backend used in Nordic Microalgae.
 
 The backend consists of a REST API and administration interface and is written in Python and uses, as of writing, the
 latest <abbr title="Long Term Support">LTS</abbr> version (5.2) of Django as web framework.  PostgreSQL is used as
-datbase layer and JSONB is being used heavily to store generated information in read-only tables, as well as for storing
+database layer and JSONB is being used heavily to store generated information in read-only tables, as well as for storing
 metadata in some of the user-writable tables.
 
 ## Install and run locally
@@ -36,7 +36,7 @@ mkdir media
 ```
 
 ### Postgres database
-### Option 1: Local database
+#### Option 1: Local database
 Create postgres user:
 ```commandline
 createuser nordicmicroalgae -P -s
@@ -55,8 +55,8 @@ podman run -d --name pg-local \
   -e POSTGRES_PASSWORD=postgres \
   -e POSTGRES_USER=postgres \
   -p 5432:5432 \
-  -v pgdata:/var/lib/postgresql/data \
-  r-harbor.smhi.se/public/postgres:16-alpine
+  -v pgdata:/var/lib/postgresql \
+  r-imageregistry.smhi.se/public/postgres:18-alpine
 ```
 
 Create postgres user:
@@ -88,6 +88,31 @@ database_user: nordicmicroalgae
 database_password: <REPLACE-WITH-DATABASE-PASSWORD>
 ```
 
+All supported keys, with their defaults when omitted:
+
+| Key | Default | Description |
+|---|---|---|
+| `secret_key` | – | Django secret key (required) |
+| `debug` | `no` | Debug mode (`yes`/`true`/`on` to enable) |
+| `allowed_hosts` | `.nordicmicroalgae.org` | Space-separated list of allowed host names |
+| `database_name` | – | Database name |
+| `database_user` | – | Database user |
+| `database_password` | – | Database password |
+| `database_host` | `127.0.0.1` | Database host |
+| `database_port` | `5432` | Database port |
+| `media_url` | `/media/` | Public URL for contributed images |
+| `default_from_email` | `webmaster@localhost` | Sender address for outgoing e-mail |
+| `email_host` | `localhost` | SMTP server |
+| `email_port` | `25` | SMTP port |
+| `email_host_user` | (empty) | SMTP user name |
+| `email_host_password` | (empty) | SMTP password |
+| `email_use_tls` | `no` | Use STARTTLS |
+| `email_use_ssl` | `no` | Use implicit TLS |
+
+Each key can also be set with an environment variable named `DJANGO_` followed by the key in upper case (e.g.
+`DJANGO_DATABASE_PASSWORD`). Environment variables take precedence over the file. The location of the `shared`
+directory can be changed with `NORDICMICROALGAE_DATA_DIR`.
+
 ### Setup Django application
 Install uv by following instructions for your platform in [the official documentation](https://docs.astral.sh/uv/).
 
@@ -118,7 +143,7 @@ uv run manage.py runserver 5000
 Open http://localhost:5000/api/ or http://localhost:5000/admin/
 
 ### Development extras
-The is a project configuration for [pre-commit](https://pre-commit.com/) in the project root. This tool runs formatting
+There is a project configuration for [pre-commit](https://pre-commit.com/) in the project root. This tool runs formatting
 and linting checks (using ruff) every time you commit but only if you activate it for this specific repository.
 
 Activate pre-commit by running:
@@ -130,3 +155,10 @@ To commit without running checks (e.g. WIP commits):
 ```commandline
 git commit --no-verify
 ```
+
+## Deployment
+Deployment is done by GitHub Actions (see `.github/workflows/`):
+
+- Push to `next` deploys to staging (https://next.nordicmicroalgae.org/).
+- Pushing a tag deploys to production (https://nordicmicroalgae.org/) and creates a GitHub release. By convention, tags
+  are only created on `master`.

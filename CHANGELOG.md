@@ -2,6 +2,7 @@
 
 - Update Python version to 3.14.
 - Update all dependencies.
+- Document configuration keys and deployment in README.
 
 ## 2.3.8 (September 24, 2026)
 
